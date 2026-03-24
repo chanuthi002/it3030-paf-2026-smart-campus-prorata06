@@ -6,12 +6,21 @@ function App() {
   const [reload, setReload] = useState(false);
   const [showForm, setShowForm] = useState(false);
 
+  // 🔄 Refresh list + close popup + scroll
   const refresh = () => {
-    setReload(!reload);
+    setReload((prev) => !prev); // better toggle
     setShowForm(false);
+
+    // scroll to resource list
+    setTimeout(() => {
+      const list = document.getElementById("resource-list");
+      if (list) {
+        list.scrollIntoView({ behavior: "smooth" });
+      }
+    }, 100);
   };
 
-  // ✅ ADD THESE STYLES HERE
+  // 🎨 Overlay style
   const overlayStyle = {
     position: "fixed",
     top: 0,
@@ -22,30 +31,40 @@ function App() {
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
+    zIndex: 1000,
   };
 
+  // 🎨 Modal style
   const modalStyle = {
     backgroundColor: "#fff",
     padding: "20px",
     borderRadius: "10px",
     width: "400px",
+    boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
   };
 
   return (
     <div style={{ padding: "20px" }}>
       <h1>Faculty Resource Management</h1>
 
-      {/* 🔘 OPEN BUTTON */}
-      <button onClick={() => setShowForm(true)}>+ Add Resource</button>
+      {/* ➕ ADD BUTTON */}
+      <button onClick={() => setShowForm(true)}>
+        + Add Resource
+      </button>
 
-      {/* 📋 LIST */}
+      {/* 📋 RESOURCE LIST */}
       <ResourceList reload={reload} />
 
-      {/* 🪟 POPUP */}
+      {/* 🪟 POPUP MODAL */}
       {showForm && (
         <div style={overlayStyle}>
           <div style={modalStyle}>
-            <button onClick={() => setShowForm(false)}>❌</button>
+            {/* ❌ CLOSE BUTTON */}
+            <div style={{ textAlign: "right" }}>
+              <button onClick={() => setShowForm(false)}>❌</button>
+            </div>
+
+            {/* FORM */}
             <ResourceForm refresh={refresh} />
           </div>
         </div>

@@ -8,7 +8,7 @@ import {
 
 function ResourceList() {
   const [resources, setResources] = useState([]);
-  const [allResources, setAllResources] = useState([]); 
+  const [allResources, setAllResources] = useState([]);
 
   const [editingId, setEditingId] = useState(null);
   const [editForm, setEditForm] = useState({
@@ -63,46 +63,38 @@ function ResourceList() {
     });
   };
 
-  // ✅ FILTER LOGIC (SMART)
+  // ✅ FILTER
   const handleFilter = () => {
     if (!filter.type && !filter.location) {
       loadData();
       return;
     }
 
-    if (filter.type && !filter.location) {
-      const filtered = allResources.filter(
-        (r) => r.type === filter.type
-      );
-      setResources(filtered);
-      return;
-    }
+    const filtered = allResources.filter((r) => {
+      const typeMatch = filter.type
+        ? r.type === filter.type
+        : true;
 
-    if (!filter.type && filter.location) {
-      const filtered = allResources.filter(
-        (r) => r.location === filter.location
-      );
-      setResources(filtered);
-      return;
-    }
+      const locationMatch = filter.location
+        ? r.location === filter.location
+        : true;
 
-    searchResources(filter.type, filter.location).then((res) =>
-      setResources(res.data)
-    );
+      return typeMatch && locationMatch;
+    });
+
+    setResources(filtered);
   };
 
-  // ✅ UNIQUE LOCATIONS (FROM ORIGINAL DATA)
   const uniqueLocations = [
     ...new Set(allResources.map((r) => r.location)),
   ];
 
   return (
-    <div style={{ padding: "20px" }}>
+    <div id="resource-list" style={{ padding: "20px" }}>
       <h2>Resources</h2>
 
       {/* 🔍 FILTER UI */}
       <div style={{ marginBottom: "20px" }}>
-        {/* TYPE */}
         <select
           value={filter.type}
           onChange={(e) =>
@@ -116,7 +108,6 @@ function ResourceList() {
           <option value="EQUIPMENT">Equipment</option>
         </select>
 
-        {/* LOCATION */}
         <select
           value={filter.location}
           style={{ marginLeft: "10px" }}
@@ -156,29 +147,41 @@ function ResourceList() {
               border: "1px solid #ccc",
               borderRadius: "10px",
               padding: "15px",
-              width: "250px",
+              width: "260px",
               backgroundColor: "#f9f9f9",
             }}
           >
             {editingId === r.id ? (
-              <>
+              <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
                 <input
                   name="name"
+                  placeholder="Name"
                   value={editForm.name}
                   onChange={handleChange}
                 />
-                <input
+
+                <select
                   name="type"
                   value={editForm.type}
                   onChange={handleChange}
-                />
+                >
+                  <option value="COMPUTER_LAB">Computer Lab</option>
+                  <option value="LECTURE_HALL">Lecture Hall</option>
+                  <option value="MEETING_ROOM">Meeting Room</option>
+                  <option value="EQUIPMENT">Equipment</option>
+                </select>
+
                 <input
                   name="capacity"
+                  type="number"
+                  placeholder="Capacity"
                   value={editForm.capacity}
                   onChange={handleChange}
                 />
+
                 <input
                   name="location"
+                  placeholder="Location"
                   value={editForm.location}
                   onChange={handleChange}
                 />
@@ -188,15 +191,20 @@ function ResourceList() {
                   value={editForm.status}
                   onChange={handleChange}
                 >
-                  <option>ACTIVE</option>
-                  <option>OUT_OF_SERVICE</option>
+                  <option value="ACTIVE">ACTIVE</option>
+                  <option value="OUT_OF_SERVICE">OUT_OF_SERVICE</option>
                 </select>
 
-                <button onClick={handleUpdate}>Save</button>
-                <button onClick={() => setEditingId(null)}>
-                  Cancel
-                </button>
-              </>
+                <div>
+                  <button onClick={handleUpdate}>Save</button>
+                  <button
+                    onClick={() => setEditingId(null)}
+                    style={{ marginLeft: "10px" }}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
             ) : (
               <>
                 <h3>{r.name}</h3>
@@ -216,7 +224,10 @@ function ResourceList() {
                 </p>
 
                 <button onClick={() => handleEdit(r)}>Edit</button>
-                <button onClick={() => handleDelete(r.id)}>
+                <button
+                  onClick={() => handleDelete(r.id)}
+                  style={{ marginLeft: "10px" }}
+                >
                   Delete
                 </button>
               </>
