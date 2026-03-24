@@ -4,11 +4,14 @@ import {
   deleteResource,
   updateResource,
   searchResources,
+  getAvailabilityByResource,
 } from "../services/api";
 
-function ResourceList() {
+function ResourceList({ reload, onBook, onAddAvailability }) {
   const [resources, setResources] = useState([]);
   const [allResources, setAllResources] = useState([]);
+
+  const [availabilityMap, setAvailabilityMap] = useState({});
 
   const [editingId, setEditingId] = useState(null);
   const [editForm, setEditForm] = useState({
@@ -24,7 +27,7 @@ function ResourceList() {
     location: "",
   });
 
-  // ✅ LOAD DATA
+  // LOAD DATA
   const loadData = () => {
     getAllResources().then((res) => {
       setResources(res.data);
@@ -34,9 +37,23 @@ function ResourceList() {
 
   useEffect(() => {
     loadData();
-  }, []);
+  }, [reload]);
 
-  // ✅ DELETE
+  // LOAD AVAILABILITY
+  useEffect(() => {
+    resources.forEach((r) => {
+      getAvailabilityByResource(r.id)
+        .then((res) => {
+          setAvailabilityMap((prev) => ({
+            ...prev,
+            [r.id]: res.data,
+          }));
+        })
+        .catch(() => {});
+    });
+  }, [resources]);
+
+  // DELETE
   const handleDelete = (id) => {
     deleteResource(id).then(() => {
       alert("Deleted!");
@@ -44,7 +61,7 @@ function ResourceList() {
     });
   };
 
-  // ✅ EDIT
+  // EDIT
   const handleEdit = (resource) => {
     setEditingId(resource.id);
     setEditForm(resource);
@@ -54,7 +71,7 @@ function ResourceList() {
     setEditForm({ ...editForm, [e.target.name]: e.target.value });
   };
 
-  // ✅ UPDATE
+  // UPDATE
   const handleUpdate = () => {
     updateResource(editingId, editForm).then(() => {
       alert("Updated!");
@@ -63,7 +80,7 @@ function ResourceList() {
     });
   };
 
-  // ✅ FILTER
+  // FILTER
   const handleFilter = () => {
     if (!filter.type && !filter.location) {
       loadData();
@@ -71,10 +88,7 @@ function ResourceList() {
     }
 
     const filtered = allResources.filter((r) => {
-      const typeMatch = filter.type
-        ? r.type === filter.type
-        : true;
-
+      const typeMatch = filter.type ? r.type === filter.type : true;
       const locationMatch = filter.location
         ? r.location === filter.location
         : true;
@@ -93,7 +107,7 @@ function ResourceList() {
     <div id="resource-list" style={{ padding: "20px" }}>
       <h2>Resources</h2>
 
-      {/* 🔍 FILTER UI */}
+      {/* FILTER */}
       <div style={{ marginBottom: "20px" }}>
         <select
           value={filter.type}
@@ -138,7 +152,7 @@ function ResourceList() {
         </button>
       </div>
 
-      {/* 📋 CARDS */}
+      {/* CARDS */}
       <div style={{ display: "flex", flexWrap: "wrap", gap: "20px" }}>
         {resources.map((r) => (
           <div
@@ -148,23 +162,16 @@ function ResourceList() {
               borderRadius: "10px",
               padding: "15px",
               width: "260px",
-              backgroundColor: "#f9f9f9",
+              backgroundColor:
+                r.status === "OUT_OF_SERVICE" ? "#eee" : "#f9f9f9",
+              opacity: r.status === "OUT_OF_SERVICE" ? 0.7 : 1,
             }}
           >
             {editingId === r.id ? (
               <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-                <input
-                  name="name"
-                  placeholder="Name"
-                  value={editForm.name}
-                  onChange={handleChange}
-                />
+                <input name="name" value={editForm.name} onChange={handleChange} />
 
-                <select
-                  name="type"
-                  value={editForm.type}
-                  onChange={handleChange}
-                >
+                <select name="type" value={editForm.type} onChange={handleChange}>
                   <option value="COMPUTER_LAB">Computer Lab</option>
                   <option value="LECTURE_HALL">Lecture Hall</option>
                   <option value="MEETING_ROOM">Meeting Room</option>
@@ -174,35 +181,24 @@ function ResourceList() {
                 <input
                   name="capacity"
                   type="number"
-                  placeholder="Capacity"
                   value={editForm.capacity}
                   onChange={handleChange}
                 />
 
                 <input
                   name="location"
-                  placeholder="Location"
                   value={editForm.location}
                   onChange={handleChange}
                 />
 
-                <select
-                  name="status"
-                  value={editForm.status}
-                  onChange={handleChange}
-                >
+                <select name="status" value={editForm.status} onChange={handleChange}>
                   <option value="ACTIVE">ACTIVE</option>
                   <option value="OUT_OF_SERVICE">OUT_OF_SERVICE</option>
                 </select>
 
                 <div>
                   <button onClick={handleUpdate}>Save</button>
-                  <button
-                    onClick={() => setEditingId(null)}
-                    style={{ marginLeft: "10px" }}
-                  >
-                    Cancel
-                  </button>
+                  <button onClick={() => setEditingId(null)}>Cancel</button>
                 </div>
               </div>
             ) : (
@@ -211,25 +207,60 @@ function ResourceList() {
                 <p><b>Type:</b> {r.type}</p>
                 <p><b>Capacity:</b> {r.capacity}</p>
                 <p><b>Location:</b> {r.location}</p>
+
                 <p>
                   <b>Status:</b>{" "}
-                  <span
-                    style={{
-                      color:
-                        r.status === "ACTIVE" ? "green" : "red",
-                    }}
-                  >
+                  <span style={{ color: r.status === "ACTIVE" ? "green" : "red" }}>
                     {r.status}
                   </span>
                 </p>
 
+                {/* AVAILABILITY */}
+                <div style={{ marginTop: "10px" }}>
+                  <b>Availability:</b>
+
+                  {availabilityMap[r.id]?.length > 0 ? (
+                    availabilityMap[r.id].map((a, i) => (
+                      <div key={i} style={{ fontSize: "12px" }}>
+                        {a.date.split("T")[0]}: {a.startTime} - {a.endTime}
+                      </div>
+                    ))
+                  ) : (
+                    <p style={{ fontSize: "12px", color: "gray" }}>
+                      No availability
+                    </p>
+                  )}
+                </div>
+
                 <button onClick={() => handleEdit(r)}>Edit</button>
-                <button
-                  onClick={() => handleDelete(r.id)}
-                  style={{ marginLeft: "10px" }}
-                >
-                  Delete
-                </button>
+                <button onClick={() => handleDelete(r.id)}>Delete</button>
+
+                {/* ✅ ONLY SHOW IF ACTIVE */}
+                {r.status === "ACTIVE" && (
+                  <>
+                    <button
+                      onClick={() => onBook(r)}
+                      style={{
+                        marginLeft: "10px",
+                        backgroundColor: "#007bff",
+                        color: "white",
+                      }}
+                    >
+                      Book
+                    </button>
+
+                    <button
+                      onClick={() => onAddAvailability(r)}
+                      style={{
+                        marginLeft: "10px",
+                        backgroundColor: "green",
+                        color: "white",
+                      }}
+                    >
+                      Add Availability
+                    </button>
+                  </>
+                )}
               </>
             )}
           </div>

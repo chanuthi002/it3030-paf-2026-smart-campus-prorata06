@@ -1,8 +1,11 @@
 package com.paf.faculty.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
+import org.springframework.http.ResponseEntity;
+import com.paf.faculty.model.Availability;
 import com.paf.faculty.model.Resource;
 import com.paf.faculty.service.ResourceService;
 
@@ -70,4 +73,15 @@ public class ResourceController {
             @RequestParam String location) {
         return service.search(type, location);
     }
+
+    /*
+     * @PostMapping
+     * public ResponseEntity<?> add(@RequestBody Availability availability) {
+     * try {
+     * return ResponseEntity.ok(service.addAvailability(availability));
+     * } catch (RuntimeException e) {
+     * return ResponseEntity.badRequest().body(e.getMessage());
+     * }
+     * }
+     */
 }
