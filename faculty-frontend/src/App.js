@@ -1,26 +1,37 @@
 import { useState } from "react";
 import ResourceForm from "./components/ResourceForm";
 import ResourceList from "./components/ResourceList";
+import BookingForm from "./components/BookingForm";
+import AvailabilityForm from "./components/AvailabilityForm"; // ✅ NEW
 
 function App() {
   const [reload, setReload] = useState(false);
   const [showForm, setShowForm] = useState(false);
 
-  // 🔄 Refresh list + close popup + scroll
-  const refresh = () => {
-    setReload((prev) => !prev); // better toggle
-    setShowForm(false);
+  // 🔥 BOOKING STATE
+  const [showBooking, setShowBooking] = useState(false);
 
-    // scroll to resource list
+  // 🔥 AVAILABILITY STATE (NEW)
+  const [showAvailability, setShowAvailability] = useState(false);
+
+  // 🔥 SELECTED RESOURCE
+  const [selectedResource, setSelectedResource] = useState(null);
+
+  // 🔄 REFRESH FUNCTION
+  const refresh = () => {
+    setReload((prev) => !prev);
+
+    setShowForm(false);
+    setShowBooking(false);
+    setShowAvailability(false); // ✅ close availability popup
+
     setTimeout(() => {
       const list = document.getElementById("resource-list");
-      if (list) {
-        list.scrollIntoView({ behavior: "smooth" });
-      }
+      if (list) list.scrollIntoView({ behavior: "smooth" });
     }, 100);
   };
 
-  // 🎨 Overlay style
+  // 🎨 STYLES
   const overlayStyle = {
     position: "fixed",
     top: 0,
@@ -34,38 +45,71 @@ function App() {
     zIndex: 1000,
   };
 
-  // 🎨 Modal style
   const modalStyle = {
     backgroundColor: "#fff",
     padding: "20px",
     borderRadius: "10px",
     width: "400px",
-    boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
   };
 
   return (
     <div style={{ padding: "20px" }}>
       <h1>Faculty Resource Management</h1>
 
-      {/* ➕ ADD BUTTON */}
-      <button onClick={() => setShowForm(true)}>
-        + Add Resource
-      </button>
+      {/* ➕ ADD RESOURCE */}
+      <button onClick={() => setShowForm(true)}>+ Add Resource</button>
 
       {/* 📋 RESOURCE LIST */}
-      <ResourceList reload={reload} />
+      <ResourceList
+        reload={reload}
 
-      {/* 🪟 POPUP MODAL */}
+        // ✅ BOOK BUTTON
+        onBook={(resource) => {
+          setSelectedResource(resource);
+          setShowBooking(true);
+        }}
+
+        // ✅ ADD AVAILABILITY BUTTON (NEW)
+        onAddAvailability={(resource) => {
+          setSelectedResource(resource);
+          setShowAvailability(true);
+        }}
+      />
+
+      {/* 🪟 ADD RESOURCE POPUP */}
       {showForm && (
         <div style={overlayStyle}>
           <div style={modalStyle}>
-            {/* ❌ CLOSE BUTTON */}
-            <div style={{ textAlign: "right" }}>
-              <button onClick={() => setShowForm(false)}>❌</button>
-            </div>
-
-            {/* FORM */}
+            <button onClick={() => setShowForm(false)}>❌</button>
             <ResourceForm refresh={refresh} />
+          </div>
+        </div>
+      )}
+
+      {/* 🪟 BOOKING POPUP */}
+      {showBooking && (
+        <div style={overlayStyle}>
+          <div style={modalStyle}>
+            <button onClick={() => setShowBooking(false)}>❌</button>
+
+            <BookingForm
+              resource={selectedResource}
+              refresh={refresh}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* 🪟 AVAILABILITY POPUP (NEW) */}
+      {showAvailability && (
+        <div style={overlayStyle}>
+          <div style={modalStyle}>
+            <button onClick={() => setShowAvailability(false)}>❌</button>
+
+            <AvailabilityForm
+              resource={selectedResource}
+              refresh={refresh}
+            />
           </div>
         </div>
       )}

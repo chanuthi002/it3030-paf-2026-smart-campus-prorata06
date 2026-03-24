@@ -13,3 +13,17 @@ export const updateResource = (id, data) =>
 
 export const searchResources = (type, location) =>
   axios.get(`${BASE_URL}/search?type=${type}&location=${location}`);
+
+export const createBooking = (data) => {
+  return axios.post("http://localhost:8080/api/bookings", data);
+  
+};
+export const getAvailabilityByResource = (resourceId) => {
+  return axios.get(`http://localhost:8080/api/availability/${resourceId}`);
+};
+export const createAvailability = (data) => {
+  return axios.post("http://localhost:8080/api/availability", data);
+};
+export const getBookingsByResource = (resourceId) => {
+  return axios.get(`http://localhost:8080/api/bookings/${resourceId}`);
+};
