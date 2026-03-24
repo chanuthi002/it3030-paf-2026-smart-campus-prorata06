@@ -13,8 +13,19 @@ public class ResourceService {
     @Autowired
     private ResourceRepository repository;
 
+    private String generateCustomId() {
+        long count = repository.count() + 1;
+        return String.format("F%04d", count);
+    }
+
     // CREATE
     public Resource save(Resource resource) {
+
+        // If ID not set → generate
+        if (resource.getId() == null || resource.getId().isEmpty()) {
+            resource.setId(generateCustomId());
+        }
+
         return repository.save(resource);
     }
 

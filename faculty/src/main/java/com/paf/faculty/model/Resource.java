@@ -9,7 +9,7 @@ import lombok.Data;
 public class Resource {
 
     @Id
-    private String id;
+    private String id; // Custom ID (F0001, F0002)
 
     private String name;
     private String type;

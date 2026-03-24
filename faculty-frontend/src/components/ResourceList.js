@@ -8,7 +8,7 @@ import {
 
 function ResourceList() {
   const [resources, setResources] = useState([]);
-  const [allResources, setAllResources] = useState([]); // ✅ store original data
+  const [allResources, setAllResources] = useState([]); 
 
   const [editingId, setEditingId] = useState(null);
   const [editForm, setEditForm] = useState({
