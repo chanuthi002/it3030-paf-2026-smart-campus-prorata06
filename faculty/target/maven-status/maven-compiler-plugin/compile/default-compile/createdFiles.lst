@@ -1,0 +1,5 @@
+com\paf\faculty\FacultyApplication.class
+com\paf\faculty\model\Resource.class
+com\paf\faculty\repository\ResourceRepository.class
+com\paf\faculty\controller\ResourceController.class
+com\paf\faculty\service\ResourceService.class
