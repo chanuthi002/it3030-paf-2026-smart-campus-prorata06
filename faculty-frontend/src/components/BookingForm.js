@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import {
   createBooking,
   getAvailabilityByResource,
-  getBookingsByResource,
+  getBookingsByDate,
 } from "../services/api";
 
 function BookingForm({ resource, refresh }) {
@@ -12,41 +12,56 @@ function BookingForm({ resource, refresh }) {
     startTime: "",
     endTime: "",
     bookedBy: "",
+    userId: "",
   });
 
   const [availability, setAvailability] = useState([]);
   const [bookings, setBookings] = useState([]);
 
-  // ✅ LOAD DATA
+  // ✅ LOAD RESOURCE + USER
   useEffect(() => {
     if (resource) {
+      const user = JSON.parse(localStorage.getItem("user"));
+
       setForm((prev) => ({
         ...prev,
         resourceId: resource.id,
+        bookedBy: user?.name || "",
+        userId: user?.id || "",
       }));
 
+      // load availability
       getAvailabilityByResource(resource.id).then((res) =>
         setAvailability(res.data)
-      );
-
-      getBookingsByResource(resource.id).then((res) =>
-        setBookings(res.data)
       );
     }
   }, [resource]);
 
+  // ✅ LOAD BOOKINGS BY DATE (NEW 🔥)
+  useEffect(() => {
+    if (form.date && resource) {
+      getBookingsByDate(form.date).then((res) => {
+        // filter only this resource
+        const filtered = res.data.filter(
+          (b) => b.resourceId === resource.id
+        );
+        setBookings(filtered);
+      });
+    }
+  }, [form.date, resource]);
+
+  // ✅ HANDLE INPUT
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  // ✅ FILTER BY DATE
+  // ✅ FILTER AVAILABILITY BY DATE
   const filteredAvailability = availability.filter(
-    (a) => a.date.split("T")[0] === form.date
+    (a) => a.date?.slice(0, 10) === form.date
   );
 
-  const filteredBookings = bookings.filter(
-    (b) => b.date.split("T")[0] === form.date
-  );
+  // ✅ FILTER BOOKINGS BY DATE
+  const filteredBookings = bookings;
 
   // 🔥 SLOT SPLITTING (REMAINING TIME)
   const subtractBookings = (slots, bookings) => {
@@ -104,7 +119,12 @@ function BookingForm({ resource, refresh }) {
 
     createBooking(form)
       .then(() => {
-        alert("Booking Successful!");
+        alert("✅ Booking Successful!");
+        setForm({
+          ...form,
+          startTime: "",
+          endTime: "",
+        });
         if (refresh) refresh();
       })
       .catch((err) => {
@@ -116,8 +136,49 @@ function BookingForm({ resource, refresh }) {
     <div>
       <h3>Book: {resource?.name}</h3>
 
-      {/* ✅ REMAINING TIME */}
-      <div style={{ marginBottom: "15px" }}>
+      {/* 📅 DATE */}
+      <input
+        type="date"
+        name="date"
+        value={form.date}
+        onChange={handleChange}
+        required
+      />
+
+      {/* ===================== */}
+      {/* 🔴 BOOKED TIME */}
+      {/* ===================== */}
+      <div style={{ marginTop: "15px" }}>
+        <b>Booked Time:</b>
+
+        {!form.date && <p>Select a date</p>}
+
+        {form.date && filteredBookings.length === 0 && (
+          <p style={{ color: "gray" }}>No bookings</p>
+        )}
+
+        {filteredBookings.map((b, i) => (
+          <div
+            key={i}
+            style={{
+              padding: "8px",
+              marginTop: "5px",
+              border: "1px solid #ccc",
+              borderRadius: "5px",
+              backgroundColor: "#f8d7da",
+              color: "#721c24",
+              textDecoration: "line-through",
+            }}
+          >
+            {b.startTime} - {b.endTime}
+          </div>
+        ))}
+      </div>
+
+      {/* ===================== */}
+      {/* 🟢 AVAILABLE TIME */}
+      {/* ===================== */}
+      <div style={{ marginTop: "15px" }}>
         <b>Remaining Available Time:</b>
 
         {!form.date && <p>Select a date</p>}
@@ -145,48 +206,14 @@ function BookingForm({ resource, refresh }) {
         ))}
       </div>
 
-      {/* ❌ BOOKED TIME DISPLAY */}
-      <div style={{ marginBottom: "15px" }}>
-        <b>Booked Time:</b>
-
-        {!form.date && <p>Select a date</p>}
-
-        {form.date && filteredBookings.length === 0 && (
-          <p style={{ color: "gray" }}>No bookings</p>
-        )}
-
-        {filteredBookings.map((b, i) => (
-          <div
-            key={i}
-            style={{
-              padding: "8px",
-              marginTop: "5px",
-              border: "1px solid #ccc",
-              borderRadius: "5px",
-              backgroundColor: "#f8d7da",
-              color: "#721c24",
-              textDecoration: "line-through",
-            }}
-          >
-            {b.startTime} - {b.endTime}
-          </div>
-        ))}
-      </div>
-
+      {/* ===================== */}
       {/* 📋 FORM */}
+      {/* ===================== */}
       <form
         onSubmit={handleSubmit}
-        style={{ display: "flex", flexDirection: "column", gap: "10px" }}
+        style={{ marginTop: "20px", display: "flex", flexDirection: "column", gap: "10px" }}
       >
         <input value={form.resourceId} disabled />
-
-        <input
-          type="date"
-          name="date"
-          value={form.date}
-          onChange={handleChange}
-          required
-        />
 
         <input
           type="time"
@@ -200,14 +227,6 @@ function BookingForm({ resource, refresh }) {
           type="time"
           name="endTime"
           value={form.endTime}
-          onChange={handleChange}
-          required
-        />
-
-        <input
-          name="bookedBy"
-          placeholder="Booked By"
-          value={form.bookedBy}
           onChange={handleChange}
           required
         />

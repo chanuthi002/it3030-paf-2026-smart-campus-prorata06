@@ -3,14 +3,14 @@ import {
   getAllResources,
   deleteResource,
   updateResource,
-  searchResources,
   getAvailabilityByResource,
 } from "../services/api";
 
-function ResourceList({ reload, onBook, onAddAvailability }) {
-  const [resources, setResources] = useState([]);
-  const [allResources, setAllResources] = useState([]);
+import MyBookingsModal from "./MyBookingsModal";
 
+function ResourceList({ reload, onBook, onAddAvailability }) {
+
+  const [resources, setResources] = useState([]);
   const [availabilityMap, setAvailabilityMap] = useState({});
 
   const [editingId, setEditingId] = useState(null);
@@ -22,16 +22,27 @@ function ResourceList({ reload, onBook, onAddAvailability }) {
     status: "ACTIVE",
   });
 
-  const [filter, setFilter] = useState({
-    type: "",
-    location: "",
-  });
+  const [user, setUser] = useState(null);
 
-  // LOAD DATA
+  // 🔥 NEW STATES
+  const [showMyBookings, setShowMyBookings] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
+
+  const [notifications, setNotifications] = useState([
+    { message: "✅ Booking confirmed", read: false },
+    { message: "⚠️ Time slot updated", read: false },
+  ]);
+
+  // LOAD USER
+  useEffect(() => {
+    const stored = JSON.parse(localStorage.getItem("user"));
+    setUser(stored);
+  }, []);
+
+  // LOAD RESOURCES
   const loadData = () => {
     getAllResources().then((res) => {
       setResources(res.data);
-      setAllResources(res.data);
     });
   };
 
@@ -80,79 +91,97 @@ function ResourceList({ reload, onBook, onAddAvailability }) {
     });
   };
 
-  // FILTER
-  const handleFilter = () => {
-    if (!filter.type && !filter.location) {
-      loadData();
-      return;
-    }
-
-    const filtered = allResources.filter((r) => {
-      const typeMatch = filter.type ? r.type === filter.type : true;
-      const locationMatch = filter.location
-        ? r.location === filter.location
-        : true;
-
-      return typeMatch && locationMatch;
-    });
-
-    setResources(filtered);
-  };
-
-  const uniqueLocations = [
-    ...new Set(allResources.map((r) => r.location)),
-  ];
-
   return (
     <div id="resource-list" style={{ padding: "20px" }}>
-      <h2>Resources</h2>
 
-      {/* FILTER */}
-      <div style={{ marginBottom: "20px" }}>
-        <select
-          value={filter.type}
-          onChange={(e) =>
-            setFilter({ ...filter, type: e.target.value })
-          }
-        >
-          <option value="">Select Type</option>
-          <option value="COMPUTER_LAB">Computer Lab</option>
-          <option value="LECTURE_HALL">Lecture Hall</option>
-          <option value="MEETING_ROOM">Meeting Room</option>
-          <option value="EQUIPMENT">Equipment</option>
-        </select>
+      {/* 🔥 HEADER */}
+      <div style={{
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        marginBottom: "20px"
+      }}>
+        <h2>📋 Resources</h2>
 
-        <select
-          value={filter.location}
-          style={{ marginLeft: "10px" }}
-          onChange={(e) =>
-            setFilter({ ...filter, location: e.target.value })
-          }
-        >
-          <option value="">Select Location</option>
-          {uniqueLocations.map((loc, index) => (
-            <option key={index} value={loc}>
-              {loc}
-            </option>
-          ))}
-        </select>
+        <div style={{ display: "flex", gap: "10px" }}>
 
-        <button onClick={handleFilter} style={{ marginLeft: "10px" }}>
-          Search
-        </button>
+          {/* 🔔 NOTIFICATIONS */}
+          <button
+            onClick={() => setShowNotifications(!showNotifications)}
+            style={{
+              backgroundColor: "#ffc107",
+              borderRadius: "5px",
+              padding: "8px 12px"
+            }}
+          >
+            🔔 ({notifications.filter(n => !n.read).length})
+          </button>
 
-        <button
-          onClick={() => {
-            setFilter({ type: "", location: "" });
-            loadData();
-          }}
-          style={{ marginLeft: "10px" }}
-        >
-          Reset
-        </button>
+          {/* 📅 MY BOOKINGS */}
+          <button
+            onClick={() => setShowMyBookings(true)}
+            style={{
+              backgroundColor: "#6f42c1",
+              color: "white",
+              padding: "8px 15px",
+              borderRadius: "5px"
+            }}
+          >
+            📅 Your Bookings
+          </button>
+        </div>
       </div>
 
-      {/* CARDS */}
+      {/* 🔔 NOTIFICATION DROPDOWN */}
+      {showNotifications && (
+        <div style={{
+          position: "absolute",
+          right: "20px",
+          top: "70px",
+          background: "white",
+          border: "1px solid #ccc",
+          padding: "10px",
+          borderRadius: "5px",
+          width: "250px",
+          zIndex: 1000
+        }}>
+          <b>Notifications</b>
+
+          {/* ❌ CLEAR BUTTON */}
+          <button
+            onClick={() => setNotifications([])}
+            style={{
+              marginTop: "5px",
+              marginBottom: "10px",
+              backgroundColor: "red",
+              color: "white",
+              border: "none",
+              padding: "5px 10px",
+              borderRadius: "5px",
+              cursor: "pointer"
+            }}
+          >
+            Clear All
+          </button>
+
+          {notifications.length === 0 ? (
+            <p>No notifications</p>
+          ) : (
+            notifications.map((n, i) => (
+              <div key={i} style={{
+                padding: "5px",
+                backgroundColor: n.read ? "#eee" : "#d1e7dd",
+                marginTop: "5px",
+                borderRadius: "3px"
+              }}>
+                {n.message}
+              </div>
+            ))
+          )}
+        </div>
+      )}
+
+      {/* 📦 RESOURCE CARDS */}
       <div style={{ display: "flex", flexWrap: "wrap", gap: "20px" }}>
         {resources.map((r) => (
           <div
@@ -178,18 +207,8 @@ function ResourceList({ reload, onBook, onAddAvailability }) {
                   <option value="EQUIPMENT">Equipment</option>
                 </select>
 
-                <input
-                  name="capacity"
-                  type="number"
-                  value={editForm.capacity}
-                  onChange={handleChange}
-                />
-
-                <input
-                  name="location"
-                  value={editForm.location}
-                  onChange={handleChange}
-                />
+                <input name="capacity" type="number" value={editForm.capacity} onChange={handleChange} />
+                <input name="location" value={editForm.location} onChange={handleChange} />
 
                 <select name="status" value={editForm.status} onChange={handleChange}>
                   <option value="ACTIVE">ACTIVE</option>
@@ -216,49 +235,33 @@ function ResourceList({ reload, onBook, onAddAvailability }) {
                 </p>
 
                 {/* AVAILABILITY */}
-                <div style={{ marginTop: "10px" }}>
+                <div>
                   <b>Availability:</b>
-
-                  {availabilityMap[r.id]?.length > 0 ? (
-                    availabilityMap[r.id].map((a, i) => (
-                      <div key={i} style={{ fontSize: "12px" }}>
-                        {a.date.split("T")[0]}: {a.startTime} - {a.endTime}
-                      </div>
-                    ))
-                  ) : (
-                    <p style={{ fontSize: "12px", color: "gray" }}>
-                      No availability
-                    </p>
-                  )}
+                  {availabilityMap[r.id]?.map((a, i) => (
+                    <div key={i} style={{ fontSize: "12px" }}>
+                      {a.date.split("T")[0]}: {a.startTime} - {a.endTime}
+                    </div>
+                  ))}
                 </div>
 
-                <button onClick={() => handleEdit(r)}>Edit</button>
-                <button onClick={() => handleDelete(r.id)}>Delete</button>
+                {/* ADMIN */}
+                {user?.role === "ADMIN" && (
+                  <>
+                    <button onClick={() => handleEdit(r)}>Edit</button>
+                    <button onClick={() => handleDelete(r.id)}>Delete</button>
+                  </>
+                )}
 
-                {/* ✅ ONLY SHOW IF ACTIVE */}
+                {/* USER ACTIONS */}
                 {r.status === "ACTIVE" && (
                   <>
-                    <button
-                      onClick={() => onBook(r)}
-                      style={{
-                        marginLeft: "10px",
-                        backgroundColor: "#007bff",
-                        color: "white",
-                      }}
-                    >
-                      Book
-                    </button>
+                    <button onClick={() => onBook(r)}>Book</button>
 
-                    <button
-                      onClick={() => onAddAvailability(r)}
-                      style={{
-                        marginLeft: "10px",
-                        backgroundColor: "green",
-                        color: "white",
-                      }}
-                    >
-                      Add Availability
-                    </button>
+                    {user?.role === "ADMIN" && (
+                      <button onClick={() => onAddAvailability(r)}>
+                        Add Availability
+                      </button>
+                    )}
                   </>
                 )}
               </>
@@ -266,6 +269,14 @@ function ResourceList({ reload, onBook, onAddAvailability }) {
           </div>
         ))}
       </div>
+
+      {/* 📅 MY BOOKINGS MODAL */}
+      {showMyBookings && (
+        <MyBookingsModal
+          resources={resources}
+          onClose={() => setShowMyBookings(false)}
+        />
+      )}
     </div>
   );
 }

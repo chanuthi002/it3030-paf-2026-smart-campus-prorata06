@@ -9,4 +9,9 @@ import java.util.List;
 public interface BookingRepository extends MongoRepository<Booking, String> {
 
     List<Booking> findByResourceIdAndDate(String resourceId, LocalDate date);
+    List<Booking> findByUserId(String userId);
+
+    List<Booking> findByDate(LocalDate date);
+
+    List<Booking> findByResourceId(String resourceId); // fix your old issue
 }

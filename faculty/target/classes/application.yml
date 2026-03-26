@@ -1,0 +1,18 @@
+spring:
+  data:
+    mongodb:
+      uri: mongodb://localhost:27017/facultyDB
+
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id:  1028597381505-9as2h7i54ds6mc677qu88t9umt27jgn2.apps.googleusercontent.com
+            client-secret: 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
+            scope:
+              - email
+              - profile
+
+server:
+  port: 8080

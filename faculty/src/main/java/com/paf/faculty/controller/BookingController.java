@@ -3,11 +3,12 @@ package com.paf.faculty.controller;
 import com.paf.faculty.model.Booking;
 import com.paf.faculty.service.BookingService;
 
-import java.util.List;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDate;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/bookings")
@@ -17,7 +18,7 @@ public class BookingController {
     @Autowired
     private BookingService service;
 
-    // CREATE
+    // ✅ CREATE
     @PostMapping
     public ResponseEntity<?> create(@RequestBody Booking booking) {
         try {
@@ -27,9 +28,21 @@ public class BookingController {
         }
     }
 
-    // GET BY RESOURCE
-    @GetMapping("/{resourceId}")
+    // ✅ GET BY RESOURCE
+    @GetMapping("/resource/{resourceId}")
     public List<Booking> getByResource(@PathVariable String resourceId) {
-        return service.getByResource(resourceId); // ✅ FIXED
+        return service.getByResource(resourceId);
+    }
+
+    // ✅ GET BY USER
+    @GetMapping("/user/{userId}")
+    public List<Booking> getByUser(@PathVariable String userId) {
+        return service.getByUserId(userId);
+    }
+
+    // ✅ GET BY DATE
+    @GetMapping("/date/{date}")
+    public List<Booking> getByDate(@PathVariable String date) {
+        return service.getByDate(LocalDate.parse(date));
     }
 }
