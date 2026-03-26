@@ -14,12 +14,10 @@ public class Booking {
 
     @Id
     private String id;
-
     private String resourceId;
-
     private LocalDate date;
     private LocalTime startTime;
     private LocalTime endTime;
-
     private String bookedBy; // optional (user/lecturer name)
+    private String userId;
 }

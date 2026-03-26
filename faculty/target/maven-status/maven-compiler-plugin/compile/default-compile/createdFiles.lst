@@ -1,5 +1,6 @@
 com\paf\faculty\FacultyApplication.class
-com\paf\faculty\model\Resource.class
-com\paf\faculty\repository\ResourceRepository.class
-com\paf\faculty\controller\ResourceController.class
-com\paf\faculty\service\ResourceService.class
+com\paf\faculty\model\User.class
+com\paf\faculty\repository\UserRepository.class
+com\paf\faculty\config\SecurityConfig.class
+com\paf\faculty\model\Role.class
+com\paf\faculty\controller\AvailabilityController.class

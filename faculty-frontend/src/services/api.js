@@ -1,29 +1,52 @@
 import axios from "axios";
 
-const BASE_URL = "http://localhost:8080/api/resources";
+// ✅ AXIOS INSTANCE
+const API = axios.create({
+  baseURL: "http://localhost:8080/api",
+});
 
-export const getAllResources = () => axios.get(BASE_URL);
+// =======================
+// 🔹 RESOURCE APIs
+// =======================
 
-export const createResource = (data) => axios.post(BASE_URL, data);
+export const getAllResources = () => API.get("/resources");
 
-export const deleteResource = (id) => axios.delete(`${BASE_URL}/${id}`);
+export const createResource = (data) => API.post("/resources", data);
+
+export const deleteResource = (id) => API.delete(`/resources/${id}`);
 
 export const updateResource = (id, data) =>
-  axios.put(`${BASE_URL}/${id}`, data);
+  API.put(`/resources/${id}`, data);
 
 export const searchResources = (type, location) =>
-  axios.get(`${BASE_URL}/search?type=${type}&location=${location}`);
+  API.get(`/resources/search?type=${type}&location=${location}`);
 
-export const createBooking = (data) => {
-  return axios.post("http://localhost:8080/api/bookings", data);
-  
-};
-export const getAvailabilityByResource = (resourceId) => {
-  return axios.get(`http://localhost:8080/api/availability/${resourceId}`);
-};
-export const createAvailability = (data) => {
-  return axios.post("http://localhost:8080/api/availability", data);
-};
-export const getBookingsByResource = (resourceId) => {
-  return axios.get(`http://localhost:8080/api/bookings/${resourceId}`);
-};
+// =======================
+// 🔹 BOOKING APIs (UPDATED)
+// =======================
+
+// ✅ CREATE
+export const createBooking = (data) =>
+  API.post("/bookings", data);
+
+// ✅ GET BY RESOURCE
+export const getBookingsByResource = (resourceId) =>
+  API.get(`/bookings/resource/${resourceId}`);
+
+// ✅ GET BY DATE
+export const getBookingsByDate = (date) =>
+  API.get(`/bookings/date/${date}`);
+
+// =======================
+// 🔹 AVAILABILITY APIs
+// =======================
+
+export const getAvailabilityByResource = (resourceId) =>
+  API.get(`/availability/${resourceId}`);
+
+export const createAvailability = (data) =>
+  API.post("/availability", data);
+
+// ✅ GET BY USER (NEW)
+export const getBookingsByUser = (userId) =>
+  API.get(`/bookings/user/${userId}`);

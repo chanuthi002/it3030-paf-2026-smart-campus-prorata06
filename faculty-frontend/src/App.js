@@ -1,37 +1,84 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+
 import ResourceForm from "./components/ResourceForm";
 import ResourceList from "./components/ResourceList";
 import BookingForm from "./components/BookingForm";
-import AvailabilityForm from "./components/AvailabilityForm"; // ✅ NEW
+import AvailabilityForm from "./components/AvailabilityForm";
+import Login from "./components/Login";
 
-function App() {
+
+// 🔐 PROTECTED ROUTE (FIXED)
+const ProtectedRoute = ({ children }) => {
+  const [loading, setLoading] = useState(true);
+  const [isAuth, setIsAuth] = useState(false);
+
+  useEffect(() => {
+    const user = localStorage.getItem("user");
+
+    const params = new URLSearchParams(window.location.search);
+    const hasOAuthData = params.get("email");
+
+    if (user || hasOAuthData) {
+      setIsAuth(true);
+    }
+
+    setLoading(false);
+  }, []);
+
+  if (loading) return <p>Loading...</p>;
+
+  return isAuth ? children : <Navigate to="/" />;
+};
+
+
+// 🎯 DASHBOARD
+const Dashboard = () => {
+
   const [reload, setReload] = useState(false);
   const [showForm, setShowForm] = useState(false);
-
-  // 🔥 BOOKING STATE
   const [showBooking, setShowBooking] = useState(false);
-
-  // 🔥 AVAILABILITY STATE (NEW)
   const [showAvailability, setShowAvailability] = useState(false);
-
-  // 🔥 SELECTED RESOURCE
   const [selectedResource, setSelectedResource] = useState(null);
 
-  // 🔄 REFRESH FUNCTION
-  const refresh = () => {
-    setReload((prev) => !prev);
+  const [user, setUser] = useState(null);
 
+  // ✅ HANDLE OAUTH USER (FIXED)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+
+    const email = params.get("email");
+    const name = params.get("name");
+    const role = params.get("role");
+    const id = params.get("id");
+
+    if (email) {
+      const userData = {
+        email: decodeURIComponent(email),
+        name: decodeURIComponent(name),
+        role: decodeURIComponent(role),
+        id: decodeURIComponent(id),
+      };
+
+      localStorage.setItem("user", JSON.stringify(userData));
+      setUser(userData);
+
+      // ✅ clean URL
+      window.history.replaceState({}, document.title, "/dashboard");
+    } else {
+      const stored = JSON.parse(localStorage.getItem("user"));
+      setUser(stored);
+    }
+  }, []);
+
+  // 🔄 REFRESH
+  const refresh = () => {
+    setReload(prev => !prev);
     setShowForm(false);
     setShowBooking(false);
-    setShowAvailability(false); // ✅ close availability popup
-
-    setTimeout(() => {
-      const list = document.getElementById("resource-list");
-      if (list) list.scrollIntoView({ behavior: "smooth" });
-    }, 100);
+    setShowAvailability(false);
   };
 
-  // 🎨 STYLES
   const overlayStyle = {
     position: "fixed",
     top: 0,
@@ -54,29 +101,49 @@ function App() {
 
   return (
     <div style={{ padding: "20px" }}>
-      <h1>Faculty Resource Management</h1>
 
-      {/* ➕ ADD RESOURCE */}
-      <button onClick={() => setShowForm(true)}>+ Add Resource</button>
+      {/* 🔐 HEADER */}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <h1>📊 Faculty Resource Dashboard</h1>
+
+        <div>
+          {user && (
+            <>
+              <span>{user.name} ({user.role})</span>
+
+              <button
+                style={{ marginLeft: "10px" }}
+                onClick={() => {
+                  localStorage.removeItem("user");
+                  window.location.href = "http://localhost:8080/logout";
+                }}
+              >
+                Logout
+              </button>
+            </>
+          )}
+        </div>
+      </div>
+
+      {/* ➕ ADMIN ONLY */}
+      {user?.role === "ADMIN" && (
+        <button onClick={() => setShowForm(true)}>+ Add Resource</button>
+      )}
 
       {/* 📋 RESOURCE LIST */}
       <ResourceList
         reload={reload}
-
-        // ✅ BOOK BUTTON
         onBook={(resource) => {
           setSelectedResource(resource);
           setShowBooking(true);
         }}
-
-        // ✅ ADD AVAILABILITY BUTTON (NEW)
         onAddAvailability={(resource) => {
           setSelectedResource(resource);
           setShowAvailability(true);
         }}
       />
 
-      {/* 🪟 ADD RESOURCE POPUP */}
+      {/* 🪟 ADD RESOURCE */}
       {showForm && (
         <div style={overlayStyle}>
           <div style={modalStyle}>
@@ -86,34 +153,47 @@ function App() {
         </div>
       )}
 
-      {/* 🪟 BOOKING POPUP */}
+      {/* 🪟 BOOKING */}
       {showBooking && (
         <div style={overlayStyle}>
           <div style={modalStyle}>
             <button onClick={() => setShowBooking(false)}>❌</button>
-
-            <BookingForm
-              resource={selectedResource}
-              refresh={refresh}
-            />
+            <BookingForm resource={selectedResource} refresh={refresh} />
           </div>
         </div>
       )}
 
-      {/* 🪟 AVAILABILITY POPUP (NEW) */}
+      {/* 🪟 AVAILABILITY */}
       {showAvailability && (
         <div style={overlayStyle}>
           <div style={modalStyle}>
             <button onClick={() => setShowAvailability(false)}>❌</button>
-
-            <AvailabilityForm
-              resource={selectedResource}
-              refresh={refresh}
-            />
+            <AvailabilityForm resource={selectedResource} refresh={refresh} />
           </div>
         </div>
       )}
     </div>
+  );
+};
+
+
+// 🚀 ROUTING
+function App() {
+  return (
+    <Router>
+      <Routes>
+        <Route path="/" element={<Login />} />
+
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          }
+        />
+      </Routes>
+    </Router>
   );
 }
 
