@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class NotificationService {
@@ -27,5 +28,25 @@ public class NotificationService {
 
     public List<Notification> getUserNotifications(String userId) {
         return repo.findByUserId(userId);
+    }
+
+    public void markAsRead(String notificationId) {
+        Optional<Notification> notif = repo.findById(notificationId);
+        if (notif.isPresent()) {
+            Notification n = notif.get();
+            n.setRead(true);
+            repo.save(n);
+        } else {
+            throw new RuntimeException("Notification not found");
+        }
+    }
+
+    public void deleteNotification(String notificationId) {
+        repo.deleteById(notificationId);
+    }
+
+    public void clearAllNotifications(String userId) {
+        List<Notification> notifications = repo.findByUserId(userId);
+        repo.deleteAll(notifications);
     }
 }

@@ -4,11 +4,18 @@ import {
   deleteResource,
   updateResource,
   getAvailabilityByResource,
+  createAvailability,
+  updateAvailability,
+  deleteAvailability,
+  getUserNotifications,
+  markNotificationAsRead,
+  deleteNotification,
+  clearAllNotifications,
 } from "../services/api";
 
 import MyBookingsModal from "./MyBookingsModal";
 
-function ResourceList({ reload, onBook, onAddAvailability }) {
+function ResourceList({ reload, userRole, onBook, onAddAvailability }) {
 
   const [resources, setResources] = useState([]);
   const [availabilityMap, setAvailabilityMap] = useState({});
@@ -28,10 +35,7 @@ function ResourceList({ reload, onBook, onAddAvailability }) {
   const [showMyBookings, setShowMyBookings] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
 
-  const [notifications, setNotifications] = useState([
-    { message: "✅ Booking confirmed", read: false },
-    { message: "⚠️ Time slot updated", read: false },
-  ]);
+  const [notifications, setNotifications] = useState([]);
 
   // 🔍 FILTER STATES
   const [filters, setFilters] = useState({
@@ -43,11 +47,71 @@ function ResourceList({ reload, onBook, onAddAvailability }) {
 
   const [showFilters, setShowFilters] = useState(false);
 
+  // ⏰ AVAILABILITY EDIT STATES
+  const [editingAvailabilityId, setEditingAvailabilityId] = useState(null);
+  const [showEditAvailabilityModal, setShowEditAvailabilityModal] = useState(false);
+  const [editingAvailability, setEditingAvailability] = useState(null);
+  const [editAvailabilityForm, setEditAvailabilityForm] = useState({
+    date: "",
+    startTime: "",
+    endTime: "",
+  });
+
   // LOAD USER
   useEffect(() => {
     const stored = JSON.parse(localStorage.getItem("user"));
     setUser(stored);
   }, []);
+
+  // 🔔 LOAD NOTIFICATIONS FROM BACKEND
+  const loadNotifications = () => {
+    if (user?.id) {
+      getUserNotifications(user.id)
+        .then((res) => {
+          setNotifications(res.data || []);
+        })
+        .catch((err) => {
+          console.log("Error loading notifications:", err.message);
+        });
+    }
+  };
+
+  useEffect(() => {
+    loadNotifications();
+  }, [user?.id]);
+
+  // 🔔 HANDLE NOTIFICATION ACTIONS
+  const handleMarkAsRead = (notificationId) => {
+    markNotificationAsRead(notificationId)
+      .then(() => {
+        loadNotifications();
+      })
+      .catch((err) => {
+        console.log("Error marking as read:", err.message);
+      });
+  };
+
+  const handleDeleteNotification = (notificationId) => {
+    deleteNotification(notificationId)
+      .then(() => {
+        loadNotifications();
+      })
+      .catch((err) => {
+        console.log("Error deleting notification:", err.message);
+      });
+  };
+
+  const handleClearAllNotifications = () => {
+    if (!window.confirm("Clear all notifications?")) return;
+
+    clearAllNotifications(user?.id)
+      .then(() => {
+        setNotifications([]);
+      })
+      .catch((err) => {
+        console.log("Error clearing notifications:", err.message);
+      });
+  };
 
   // LOAD RESOURCES
   const loadData = () => {
@@ -125,6 +189,54 @@ function ResourceList({ reload, onBook, onAddAvailability }) {
     });
   };
 
+  // ⏰ AVAILABILITY FUNCTIONS
+  const handleEditAvailability = (availability) => {
+    setEditingAvailability(availability);
+    setEditingAvailabilityId(availability.id);
+    setShowEditAvailabilityModal(true);
+    setEditAvailabilityForm({
+      date: availability.date.split("T")[0],
+      startTime: availability.startTime,
+      endTime: availability.endTime,
+    });
+  };
+
+  const closeEditModal = () => {
+    setShowEditAvailabilityModal(false);
+    setEditingAvailability(null);
+    setEditingAvailabilityId(null);
+  };
+
+  const handleAvailabilityChange = (e) => {
+    const { name, value } = e.target;
+    setEditAvailabilityForm({ ...editAvailabilityForm, [name]: value });
+  };
+
+  const handleUpdateAvailability = () => {
+    updateAvailability(editingAvailabilityId, editAvailabilityForm)
+      .then(() => {
+        alert("✅ Availability updated!");
+        closeEditModal();
+        loadData();
+      })
+      .catch((err) => {
+        alert("❌ Error updating: " + (err.response?.data || err.message));
+      });
+  };
+
+  const handleDeleteAvailability = (availabilityId) => {
+    if (!window.confirm("Delete this availability slot?")) return;
+
+    deleteAvailability(availabilityId)
+      .then(() => {
+        alert("✅ Availability deleted!");
+        loadData();
+      })
+      .catch((err) => {
+        alert("❌ Error deleting: " + (err.response?.data || err.message));
+      });
+  };
+
   return (
     <div id="resource-list" style={{ padding: "20px" }}>
 
@@ -167,18 +279,20 @@ function ResourceList({ reload, onBook, onAddAvailability }) {
             🔔 ({notifications.filter(n => !n.read).length})
           </button>
 
-          {/* 📅 MY BOOKINGS */}
-          <button
-            onClick={() => setShowMyBookings(true)}
-            style={{
-              backgroundColor: "#6f42c1",
-              color: "white",
-              padding: "8px 15px",
-              borderRadius: "5px"
-            }}
-          >
-            📅 Your Bookings
-          </button>
+          {/* 📅 MY BOOKINGS - ONLY ADMIN & USER */}
+          {(userRole === "ADMIN" || userRole === "USER") && (
+            <button
+              onClick={() => setShowMyBookings(true)}
+              style={{
+                backgroundColor: "#6f42c1",
+                color: "white",
+                padding: "8px 15px",
+                borderRadius: "5px"
+              }}
+            >
+              📅 Your Bookings
+            </button>
+          )}
         </div>
       </div>
 
@@ -316,46 +430,112 @@ function ResourceList({ reload, onBook, onAddAvailability }) {
       {/* �🔔 NOTIFICATION DROPDOWN */}
       {showNotifications && (
         <div style={{
-          position: "absolute",
+          position: "fixed",
           right: "20px",
           top: "70px",
           background: "white",
-          border: "1px solid #ccc",
-          padding: "10px",
-          borderRadius: "5px",
-          width: "250px",
-          zIndex: 1000
+          border: "2px solid #ffc107",
+          borderRadius: "8px",
+          width: "350px",
+          maxHeight: "500px",
+          overflowY: "auto",
+          zIndex: 1000,
+          boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)"
         }}>
-          <b>Notifications</b>
-
-          {/* ❌ CLEAR BUTTON */}
-          <button
-            onClick={() => setNotifications([])}
-            style={{
-              marginTop: "5px",
-              marginBottom: "10px",
-              backgroundColor: "red",
-              color: "white",
-              border: "none",
-              padding: "5px 10px",
-              borderRadius: "5px",
-              cursor: "pointer"
-            }}
-          >
-            Clear All
-          </button>
+          <div style={{
+            padding: "12px 15px",
+            borderBottom: "1px solid #eee",
+            backgroundColor: "#fff8e1",
+            fontWeight: "600",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            position: "sticky",
+            top: "0"
+          }}>
+            <span>🔔 Notifications ({notifications.length})</span>
+            {notifications.length > 0 && (
+              <button
+                onClick={handleClearAllNotifications}
+                style={{
+                  backgroundColor: "#dc3545",
+                  color: "white",
+                  border: "none",
+                  padding: "4px 8px",
+                  borderRadius: "4px",
+                  cursor: "pointer",
+                  fontSize: "11px",
+                  fontWeight: "600"
+                }}
+              >
+                ✕ Clear All
+              </button>
+            )}
+          </div>
 
           {notifications.length === 0 ? (
-            <p>No notifications</p>
+            <p style={{ color: "#999", padding: "10px" }}>📭 No notifications</p>
           ) : (
-            notifications.map((n, i) => (
-              <div key={i} style={{
-                padding: "5px",
-                backgroundColor: n.read ? "#eee" : "#d1e7dd",
-                marginTop: "5px",
-                borderRadius: "3px"
+            notifications.map((n) => (
+              <div key={n.id} style={{
+                padding: "10px",
+                backgroundColor: n.read ? "#fafafa" : "#fffbf0",
+                borderBottom: "1px solid #eee",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "flex-start",
+                gap: "8px"
               }}>
-                {n.message}
+                <div style={{ flex: 1, fontSize: "12px" }}>
+                  <p style={{
+                    margin: "0 0 4px 0",
+                    fontWeight: n.read ? "400" : "600",
+                    color: n.read ? "#666" : "#000"
+                  }}>
+                    {n.message}
+                  </p>
+                  <p style={{
+                    margin: "0",
+                    fontSize: "10px",
+                    color: "#999"
+                  }}>
+                    {new Date(n.createdAt).toLocaleString()}
+                  </p>
+                </div>
+                <div style={{ display: "flex", gap: "4px" }}>
+                  {!n.read && (
+                    <button
+                      onClick={() => handleMarkAsRead(n.id)}
+                      title="Mark as read"
+                      style={{
+                        backgroundColor: "#28a745",
+                        color: "white",
+                        border: "none",
+                        padding: "3px 5px",
+                        borderRadius: "3px",
+                        cursor: "pointer",
+                        fontSize: "10px"
+                      }}
+                    >
+                      ✓
+                    </button>
+                  )}
+                  <button
+                    onClick={() => handleDeleteNotification(n.id)}
+                    title="Delete"
+                    style={{
+                      backgroundColor: "#dc3545",
+                      color: "white",
+                      border: "none",
+                      padding: "3px 5px",
+                      borderRadius: "3px",
+                      cursor: "pointer",
+                      fontSize: "10px"
+                    }}
+                  >
+                    ✕
+                  </button>
+                </div>
               </div>
             ))
           )}
@@ -385,7 +565,7 @@ function ResourceList({ reload, onBook, onAddAvailability }) {
               opacity: r.status === "OUT_OF_SERVICE" ? 0.7 : 1,
             }}
           >
-            {editingId === r.id ? (
+            {(editingId === r.id && user?.role === "ADMIN") ? (
               <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
                 <input name="name" value={editForm.name} onChange={handleChange} />
 
@@ -423,17 +603,68 @@ function ResourceList({ reload, onBook, onAddAvailability }) {
                   </span>
                 </p>
 
-                {/* AVAILABILITY */}
-                <div>
-                  <b>Availability:</b>
-                  {availabilityMap[r.id]?.map((a, i) => (
-                    <div key={i} style={{ fontSize: "12px" }}>
-                      {a.date.split("T")[0]}: {a.startTime} - {a.endTime}
-                    </div>
-                  ))}
-                </div>
+                {/* ⏰ AVAILABILITY - SHOW FOR ADMIN & USER */}
+                {(userRole === "ADMIN" || userRole === "USER") && (
+                  <div style={{ marginTop: "10px", padding: "10px", backgroundColor: "#f9f9f9", borderRadius: "5px" }}>
+                    <b style={{ display: "block", marginBottom: "8px" }}>⏰ Availability Slots:</b>
+                    
+                    {availabilityMap[r.id]?.length === 0 ? (
+                      <p style={{ fontSize: "12px", color: "#999", margin: "5px 0" }}>No availability added</p>
+                    ) : (
+                      availabilityMap[r.id]?.map((a, i) => (
+                        <div key={a.id} style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "center",
+                          fontSize: "12px",
+                          padding: "6px",
+                          backgroundColor: "white",
+                          marginBottom: "5px",
+                          borderRadius: "4px",
+                          border: "1px solid #eee"
+                        }}>
+                          <span>
+                            {a.date.split("T")[0]}: {a.startTime} - {a.endTime}
+                          </span>
+                          {user?.role === "ADMIN" && (
+                            <div style={{ display: "flex", gap: "4px" }}>
+                              <button
+                                onClick={() => handleEditAvailability(a)}
+                                style={{
+                                  padding: "2px 6px",
+                                  backgroundColor: "#007bff",
+                                  color: "white",
+                                  border: "none",
+                                  borderRadius: "3px",
+                                  cursor: "pointer",
+                                  fontSize: "10px"
+                                }}
+                              >
+                                ✏️ Edit
+                              </button>
+                              <button
+                                onClick={() => handleDeleteAvailability(a.id)}
+                                style={{
+                                  padding: "2px 6px",
+                                  backgroundColor: "#dc3545",
+                                  color: "white",
+                                  border: "none",
+                                  borderRadius: "3px",
+                                  cursor: "pointer",
+                                  fontSize: "10px"
+                                }}
+                              >
+                                🗑️ Delete
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      ))
+                    )}
+                  </div>
+                )}
 
-                {/* ADMIN */}
+                {/* ADMIN BUTTONS */}
                 {user?.role === "ADMIN" && (
                   <>
                     <button onClick={() => handleEdit(r)}>Edit</button>
@@ -441,8 +672,8 @@ function ResourceList({ reload, onBook, onAddAvailability }) {
                   </>
                 )}
 
-                {/* USER ACTIONS */}
-                {r.status === "ACTIVE" && (
+                {/* USER & ADMIN BOOKING ACTIONS */}
+                {r.status === "ACTIVE" && (userRole === "ADMIN" || userRole === "USER") && (
                   <>
                     <button onClick={() => onBook(r)}>Book</button>
 
@@ -466,6 +697,128 @@ function ResourceList({ reload, onBook, onAddAvailability }) {
           resources={resources}
           onClose={() => setShowMyBookings(false)}
         />
+      )}
+
+      {/* ⏰ EDIT AVAILABILITY MODAL */}
+      {showEditAvailabilityModal && (
+        <div style={{
+          position: "fixed",
+          top: "0",
+          left: "0",
+          width: "100%",
+          height: "100%",
+          backgroundColor: "rgba(0, 0, 0, 0.5)",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          zIndex: 2000
+        }}>
+          <div style={{
+            backgroundColor: "white",
+            borderRadius: "10px",
+            padding: "30px",
+            width: "90%",
+            maxWidth: "400px",
+            boxShadow: "0 4px 20px rgba(0, 0, 0, 0.3)"
+          }}>
+            <h3 style={{ marginBottom: "20px" }}>✏️ Edit Availability Slot</h3>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: "15px" }}>
+              {/* DATE */}
+              <div>
+                <label style={{ display: "block", fontWeight: "600", marginBottom: "5px" }}>Date</label>
+                <input
+                  type="date"
+                  name="date"
+                  value={editAvailabilityForm.date}
+                  onChange={handleAvailabilityChange}
+                  style={{
+                    width: "100%",
+                    padding: "10px",
+                    border: "1px solid #ccc",
+                    borderRadius: "5px",
+                    fontSize: "14px",
+                    boxSizing: "border-box"
+                  }}
+                />
+              </div>
+
+              {/* START TIME */}
+              <div>
+                <label style={{ display: "block", fontWeight: "600", marginBottom: "5px" }}>Start Time</label>
+                <input
+                  type="time"
+                  name="startTime"
+                  value={editAvailabilityForm.startTime}
+                  onChange={handleAvailabilityChange}
+                  style={{
+                    width: "100%",
+                    padding: "10px",
+                    border: "1px solid #ccc",
+                    borderRadius: "5px",
+                    fontSize: "14px",
+                    boxSizing: "border-box"
+                  }}
+                />
+              </div>
+
+              {/* END TIME */}
+              <div>
+                <label style={{ display: "block", fontWeight: "600", marginBottom: "5px" }}>End Time</label>
+                <input
+                  type="time"
+                  name="endTime"
+                  value={editAvailabilityForm.endTime}
+                  onChange={handleAvailabilityChange}
+                  style={{
+                    width: "100%",
+                    padding: "10px",
+                    border: "1px solid #ccc",
+                    borderRadius: "5px",
+                    fontSize: "14px",
+                    boxSizing: "border-box"
+                  }}
+                />
+              </div>
+
+              {/* BUTTONS */}
+              <div style={{ display: "flex", gap: "10px", marginTop: "20px" }}>
+                <button
+                  onClick={handleUpdateAvailability}
+                  style={{
+                    flex: 1,
+                    padding: "12px",
+                    backgroundColor: "#22c55e",
+                    color: "white",
+                    border: "none",
+                    borderRadius: "5px",
+                    cursor: "pointer",
+                    fontWeight: "600",
+                    fontSize: "14px"
+                  }}
+                >
+                  ✅ Save Changes
+                </button>
+                <button
+                  onClick={closeEditModal}
+                  style={{
+                    flex: 1,
+                    padding: "12px",
+                    backgroundColor: "#6c757d",
+                    color: "white",
+                    border: "none",
+                    borderRadius: "5px",
+                    cursor: "pointer",
+                    fontWeight: "600",
+                    fontSize: "14px"
+                  }}
+                >
+                  ❌ Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

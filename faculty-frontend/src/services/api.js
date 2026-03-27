@@ -47,6 +47,12 @@ export const getAvailabilityByResource = (resourceId) =>
 export const createAvailability = (data) =>
   API.post("/availability", data);
 
+export const updateAvailability = (id, data) =>
+  API.put(`/availability/${id}`, data);
+
+export const deleteAvailability = (id) =>
+  API.delete(`/availability/${id}`);
+
 // ✅ GET BY USER (NEW)
 export const getBookingsByUser = (userId) =>
   API.get(`/bookings/user/${userId}`);
@@ -154,3 +160,27 @@ export const getAttachmentById = (attachmentId) =>
 // ✅ DELETE ATTACHMENT
 export const deleteAttachment = (attachmentId) =>
   API.delete(`/attachments/${attachmentId}`);
+
+// =======================
+// 🔹 NOTIFICATION APIs
+// =======================
+
+// ✅ GET USER NOTIFICATIONS
+export const getUserNotifications = (userId) =>
+  API.get(`/notifications/${userId}`);
+
+// ✅ GET UNREAD COUNT
+export const getUnreadNotificationCount = (userId) =>
+  API.get(`/notifications/${userId}/unread-count`);
+
+// ✅ MARK AS READ
+export const markNotificationAsRead = (notificationId) =>
+  API.put(`/notifications/${notificationId}/mark-as-read`);
+
+// ✅ DELETE NOTIFICATION
+export const deleteNotification = (notificationId) =>
+  API.delete(`/notifications/${notificationId}`);
+
+// ✅ CLEAR ALL NOTIFICATIONS
+export const clearAllNotifications = (userId) =>
+  API.delete(`/notifications/${userId}/clear-all`);
