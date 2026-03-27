@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class AvailabilityService {
@@ -44,5 +45,55 @@ public class AvailabilityService {
     // ✅ GET BY RESOURCE + DATE (OPTIONAL - USEFUL)
     public List<Availability> getByResourceAndDate(String resourceId, java.time.LocalDate date) {
         return repository.findByResourceIdAndDate(resourceId, date);
+    }
+
+    // ✅ GET BY ID
+    public Optional<Availability> getById(String availabilityId) {
+        return repository.findById(availabilityId);
+    }
+
+    // ✅ UPDATE AVAILABILITY
+    public Availability updateAvailability(String availabilityId, Availability updatedAvailability) {
+
+        Optional<Availability> existingOpt = repository.findById(availabilityId);
+        if (existingOpt.isEmpty()) {
+            throw new RuntimeException("Availability slot not found: " + availabilityId);
+        }
+
+        Availability existing = existingOpt.get();
+
+        // 🔍 Check for time conflicts with other slots (excluding current one)
+        List<Availability> conflictingSlots = repository.findByResourceIdAndDate(
+                existing.getResourceId(),
+                updatedAvailability.getDate());
+
+        for (Availability slot : conflictingSlots) {
+            // Skip the current slot being updated
+            if (slot.getId().equals(availabilityId)) {
+                continue;
+            }
+
+            boolean overlap = updatedAvailability.getStartTime().isBefore(slot.getEndTime()) &&
+                    updatedAvailability.getEndTime().isAfter(slot.getStartTime());
+
+            if (overlap) {
+                throw new RuntimeException("Time slot conflict detected with another availability!");
+            }
+        }
+
+        // ✅ Update the availability
+        existing.setDate(updatedAvailability.getDate());
+        existing.setStartTime(updatedAvailability.getStartTime());
+        existing.setEndTime(updatedAvailability.getEndTime());
+
+        return repository.save(existing);
+    }
+
+    // ✅ DELETE AVAILABILITY
+    public void deleteAvailability(String availabilityId) {
+        if (!repository.existsById(availabilityId)) {
+            throw new RuntimeException("Availability slot not found: " + availabilityId);
+        }
+        repository.deleteById(availabilityId);
     }
 }

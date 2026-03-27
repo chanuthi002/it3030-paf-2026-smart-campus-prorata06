@@ -157,15 +157,17 @@ const Dashboard = () => {
           </button>
         )}
 
-        {/* ALL USERS - REPORT INCIDENT */}
-        <button 
-          onClick={() => setShowReportIncident(true)}
-          style={{ padding: "10px 20px", backgroundColor: "#ff9800", color: "white", border: "none", borderRadius: "5px", cursor: "pointer" }}
-        >
-          🚨 Report Incident
-        </button>
+        {/* ADMIN & STAFF & USER - REPORT INCIDENT */}
+        {(user?.role === "ADMIN" || user?.role === "STAFF" || user?.role === "USER") && (
+          <button 
+            onClick={() => setShowReportIncident(true)}
+            style={{ padding: "10px 20px", backgroundColor: "#ff9800", color: "white", border: "none", borderRadius: "5px", cursor: "pointer" }}
+          >
+            🚨 Report Incident
+          </button>
+        )}
 
-        {/* ADMIN & STAFF - INCIDENT DASHBOARD */}
+        {/* ADMIN & STAFF ONLY - INCIDENT DASHBOARD */}
         {(user?.role === "STAFF" || user?.role === "ADMIN") && (
           <button 
             onClick={() => setShowIncidentDashboard(true)}
@@ -176,10 +178,11 @@ const Dashboard = () => {
         )}
       </div>
 
-      {/* 📋 RESOURCE LIST (ONLY SHOW IF NOT IN INCIDENT DASHBOARD) */}
-      {!showIncidentDashboard && (
+      {/* 📋 RESOURCE LIST - SHOW FOR ADMIN, STAFF, USER */}
+      {!showIncidentDashboard && (user?.role === "ADMIN" || user?.role === "STAFF" || user?.role === "USER") && (
         <ResourceList
           reload={reload}
+          userRole={user?.role}
           onBook={(resource) => {
             setSelectedResource(resource);
             setShowBooking(true);
@@ -191,7 +194,7 @@ const Dashboard = () => {
         />
       )}
 
-      {/* 🛡️ INCIDENT DASHBOARD (ADMIN & STAFF) */}
+      {/* 🛡️ INCIDENT DASHBOARD (ADMIN & STAFF ONLY) */}
       {showIncidentDashboard && (user?.role === "STAFF" || user?.role === "ADMIN") && (
         <div>
           <button 
