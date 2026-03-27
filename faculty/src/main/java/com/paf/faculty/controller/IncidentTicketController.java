@@ -113,9 +113,10 @@ public class IncidentTicketController {
     @PutMapping("/{ticketId}/resolve")
     public ResponseEntity<?> resolveTicket(
             @PathVariable String ticketId,
-            @RequestParam String resolution) {
+            @RequestParam String resolution,
+            @RequestParam(required = false) String staffMessage) {
         try {
-            return ResponseEntity.ok(service.resolveTicket(ticketId, resolution));
+            return ResponseEntity.ok(service.resolveTicket(ticketId, resolution, staffMessage));
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }

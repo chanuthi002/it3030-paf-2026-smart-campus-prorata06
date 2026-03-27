@@ -7,6 +7,7 @@ import BookingForm from "./components/BookingForm";
 import AvailabilityForm from "./components/AvailabilityForm";
 import ReportIncidentForm from "./components/ReportIncidentForm";
 import IncidentDashboard from "./components/IncidentDashboard";
+import AdminBookingDashboard from "./components/AdminBookingDashboard";
 import Login from "./components/Login";
 
 
@@ -43,6 +44,7 @@ const Dashboard = () => {
   const [showAvailability, setShowAvailability] = useState(false);
   const [showReportIncident, setShowReportIncident] = useState(false);
   const [showIncidentDashboard, setShowIncidentDashboard] = useState(false);
+  const [showAdminDashboard, setShowAdminDashboard] = useState(false);
   const [selectedResource, setSelectedResource] = useState(null);
   const [resources, setResources] = useState([]);
 
@@ -176,10 +178,20 @@ const Dashboard = () => {
             🔧 Incident Dashboard
           </button>
         )}
+
+        {/* ADMIN ONLY - BOOKING DASHBOARD */}
+        {user?.role === "ADMIN" && (
+          <button 
+            onClick={() => setShowAdminDashboard(true)}
+            style={{ padding: "10px 20px", backgroundColor: "#e83e8c", color: "white", border: "none", borderRadius: "5px", cursor: "pointer" }}
+          >
+            📊 Admin Booking Dashboard
+          </button>
+        )}
       </div>
 
       {/* 📋 RESOURCE LIST - SHOW FOR ADMIN, STAFF, USER */}
-      {!showIncidentDashboard && (user?.role === "ADMIN" || user?.role === "STAFF" || user?.role === "USER") && (
+      {!showIncidentDashboard && !showAdminDashboard && (user?.role === "ADMIN" || user?.role === "STAFF" || user?.role === "USER") && (
         <ResourceList
           reload={reload}
           userRole={user?.role}
@@ -204,6 +216,19 @@ const Dashboard = () => {
             ← Back to Resources
           </button>
           <IncidentDashboard user={user} />
+        </div>
+      )}
+
+      {/* 📊 ADMIN BOOKING DASHBOARD (ADMIN ONLY) */}
+      {showAdminDashboard && user?.role === "ADMIN" && (
+        <div>
+          <button 
+            onClick={() => setShowAdminDashboard(false)}
+            style={{ marginBottom: "15px", padding: "8px 16px", backgroundColor: "#ccc" }}
+          >
+            ← Back to Resources
+          </button>
+          <AdminBookingDashboard onClose={() => setShowAdminDashboard(false)} />
         </div>
       )}
 

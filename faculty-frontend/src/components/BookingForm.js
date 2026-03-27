@@ -113,13 +113,17 @@ function BookingForm({ resource, refresh }) {
     });
   };
 
+  const [lastBookingId, setLastBookingId] = useState("");
+
   // ✅ SUBMIT
   const handleSubmit = (e) => {
     e.preventDefault();
 
     createBooking(form)
-      .then(() => {
-        alert("✅ Booking Successful!");
+      .then((res) => {
+        const bookingId = res.data?.id || "(unknown)";
+        setLastBookingId(bookingId);
+        alert(`✅ Booking Successful! ID: ${bookingId}`);
         setForm({
           ...form,
           startTime: "",
@@ -135,6 +139,11 @@ function BookingForm({ resource, refresh }) {
   return (
     <div>
       <h3>Book: {resource?.name}</h3>
+      {lastBookingId && (
+        <p style={{ color: "green", marginBottom: "10px" }}>
+          ✅ Last confirmed Booking ID: <strong>{lastBookingId}</strong>
+        </p>
+      )}
 
       {/* 📅 DATE */}
       <input

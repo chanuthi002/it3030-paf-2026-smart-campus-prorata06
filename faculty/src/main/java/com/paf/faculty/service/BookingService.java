@@ -74,6 +74,7 @@ public class BookingService {
         }
 
         // ✅ SAVE
+        newBooking.setStatus("ACTIVE");
         Booking savedBooking = bookingRepo.save(newBooking);
 
         // 🔔 NOTIFICATION
@@ -103,5 +104,48 @@ public class BookingService {
     // ✅ GET BOOKINGS BY DATE
     public List<Booking> getByDate(LocalDate date) {
         return bookingRepo.findByDate(date);
+    }
+
+    // ✅ GET ALL BOOKINGS (ADMIN)
+    public List<Booking> getAllBookings() {
+        return bookingRepo.findAll();
+    }
+
+    // ✅ CANCEL BOOKING (ADMIN)
+    public Booking cancelBooking(String bookingId) {
+        Optional<Booking> existing = bookingRepo.findById(bookingId);
+        if (existing.isEmpty()) {
+            throw new RuntimeException("Booking not found");
+        }
+
+        Booking booking = existing.get();
+        booking.setStatus("CANCELLED");
+        return bookingRepo.save(booking);
+    }
+
+    // ✅ UPDATE BOOKING
+    public Booking updateBooking(String bookingId, Booking updatedBooking) {
+        Optional<Booking> existing = bookingRepo.findById(bookingId);
+        if (existing.isEmpty()) {
+            throw new RuntimeException("Booking not found");
+        }
+
+        Booking booking = existing.get();
+        booking.setResourceId(updatedBooking.getResourceId());
+        booking.setDate(updatedBooking.getDate());
+        booking.setStartTime(updatedBooking.getStartTime());
+        booking.setEndTime(updatedBooking.getEndTime());
+        booking.setBookedBy(updatedBooking.getBookedBy());
+        booking.setUserId(updatedBooking.getUserId());
+
+        return bookingRepo.save(booking);
+    }
+
+    // ✅ DELETE BOOKING
+    public void deleteBooking(String bookingId) {
+        if (!bookingRepo.existsById(bookingId)) {
+            throw new RuntimeException("Booking not found");
+        }
+        bookingRepo.deleteById(bookingId);
     }
 }

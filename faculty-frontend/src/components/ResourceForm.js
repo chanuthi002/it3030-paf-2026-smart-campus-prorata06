@@ -28,7 +28,7 @@ function ResourceForm({ refresh }) {
     if (!form.type) newErrors.type = "Type is required";
     if (!form.capacity || form.capacity <= 0)
       newErrors.capacity = "Capacity must be greater than 0";
-    if (!form.location.trim()) newErrors.location = "Location is required";
+    if (!form.location) newErrors.location = "Location is required";
 
     return newErrors;
   };
@@ -107,12 +107,16 @@ function ResourceForm({ refresh }) {
       />
       {errors.capacity && <span style={errorStyle}>{errors.capacity}</span>}
 
-      <input
-        name="location"
-        placeholder="Location"
-        value={form.location}
-        onChange={handleChange}
-      />
+      {/* 🔽 LOCATION DROPDOWN */}
+      <select name="location" value={form.location} onChange={handleChange}>
+        <option value="">Select Building</option>
+        <option value="Building A">Building A</option>
+        <option value="Building B">Building B</option>
+        <option value="Building C">Building C</option>
+        <option value="Building D">Building D</option>
+        <option value="Building E">Building E</option>
+        <option value="Building F">Building F</option>
+      </select>
       {errors.location && <span style={errorStyle}>{errors.location}</span>}
 
       <select name="status" value={form.status} onChange={handleChange}>

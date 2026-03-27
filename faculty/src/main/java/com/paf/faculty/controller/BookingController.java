@@ -45,4 +45,41 @@ public class BookingController {
     public List<Booking> getByDate(@PathVariable String date) {
         return service.getByDate(LocalDate.parse(date));
     }
+
+    // ✅ GET ALL BOOKINGS (ADMIN)
+    @GetMapping
+    public List<Booking> getAll() {
+        return service.getAllBookings();
+    }
+
+    // ✅ CANCEL BOOKING (ADMIN)
+    @PutMapping("/{bookingId}/cancel")
+    public ResponseEntity<?> cancel(@PathVariable String bookingId) {
+        try {
+            return ResponseEntity.ok(service.cancelBooking(bookingId));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    // ✅ UPDATE BOOKING
+    @PutMapping("/{bookingId}")
+    public ResponseEntity<?> update(@PathVariable String bookingId, @RequestBody Booking updatedBooking) {
+        try {
+            return ResponseEntity.ok(service.updateBooking(bookingId, updatedBooking));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    // ✅ DELETE BOOKING
+    @DeleteMapping("/{bookingId}")
+    public ResponseEntity<?> delete(@PathVariable String bookingId) {
+        try {
+            service.deleteBooking(bookingId);
+            return ResponseEntity.ok("Booking deleted");
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
 }

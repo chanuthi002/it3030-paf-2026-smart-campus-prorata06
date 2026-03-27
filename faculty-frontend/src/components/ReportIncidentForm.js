@@ -1,31 +1,18 @@
 import { useState } from "react";
+import { Formik, Form, Field, ErrorMessage } from "formik";
 import { createIncident } from "../services/api";
+import { reportIncidentSchema } from "../utils/validationSchemas";
+import { countWords } from "../utils/validationHelpers";
 
 function ReportIncidentForm({ resources, user, onClose, onSuccess }) {
-  const [form, setForm] = useState({
-    title: "",
-    description: "",
-    resourceId: "",
-    priority: "MEDIUM",
-    category: "MAINTENANCE",
-  });
-
   const [attachments, setAttachments] = useState([]);
+  const [fileError, setFileError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [errors, setErrors] = useState({});
-
-  // 🔹 HANDLE TEXT INPUT
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setForm({ ...form, [name]: value });
-    if (errors[name]) {
-      setErrors({ ...errors, [name]: "" });
-    }
-  };
 
   // 🔹 HANDLE FILE INPUT
   const handleFileChange = (e) => {
     const files = Array.from(e.target.files);
+    setFileError("");
     
     // Validate file types (images only)
     const validFiles = files.filter(file => {
@@ -34,7 +21,7 @@ function ReportIncidentForm({ resources, user, onClose, onSuccess }) {
     });
 
     if (validFiles.length !== files.length) {
-      setErrors({ ...errors, file: "Only image files (JPEG, PNG, GIF, WebP) are allowed" });
+      setFileError("Only image files (JPEG, PNG, GIF, WebP) are allowed");
       return;
     }
 
@@ -46,34 +33,18 @@ function ReportIncidentForm({ resources, user, onClose, onSuccess }) {
     setAttachments(attachments.filter((_, i) => i !== index));
   };
 
-  // 🔹 VALIDATION
-  const validate = () => {
-    const newErrors = {};
-    
-    if (!form.title.trim()) newErrors.title = "Title is required";
-    if (!form.description.trim()) newErrors.description = "Description is required";
-    if (!form.resourceId) newErrors.resourceId = "Resource is required";
-    
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  // 🔹 SUBMIT INCIDENT
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    
-    if (!validate()) return;
-
+  // 🔹 SUBMIT INCIDENT (FORMIK HANDLES VALIDATION)
+  const handleSubmit = async (values, { setSubmitting }) => {
     setLoading(true);
 
     try {
       // 1️⃣ CREATE INCIDENT TICKET
       const incidentData = {
-        title: form.title,
-        description: form.description,
-        resourceId: form.resourceId,
-        priority: form.priority,
-        category: form.category,
+        title: values.title.trim(),
+        description: values.description.trim(),
+        resourceId: values.resourceId,
+        priority: values.priority,
+        category: values.category,
         reportedBy: user.name,
         reportedByUserId: user.id,
       };
@@ -105,6 +76,7 @@ function ReportIncidentForm({ resources, user, onClose, onSuccess }) {
       alert("❌ Error reporting incident: " + (err.response?.data || err.message));
     } finally {
       setLoading(false);
+      setSubmitting(false);
     }
   };
 
@@ -241,136 +213,161 @@ function ReportIncidentForm({ resources, user, onClose, onSuccess }) {
       <div style={styles.modal} onClick={(e) => e.stopPropagation()}>
         <div style={styles.title}>📋 Report Incident</div>
 
-        <form style={styles.form} onSubmit={handleSubmit}>
-          {/* TITLE */}
-          <div style={styles.formGroup}>
-            <label style={styles.label}>Title *</label>
-            <input
-              type="text"
-              name="title"
-              placeholder="Brief description of the issue"
-              value={form.title}
-              onChange={handleChange}
-              style={styles.input}
-            />
-            {errors.title && <span style={styles.error}>{errors.title}</span>}
-          </div>
-
-          {/* DESCRIPTION */}
-          <div style={styles.formGroup}>
-            <label style={styles.label}>Description *</label>
-            <textarea
-              name="description"
-              placeholder="Detailed description of the incident"
-              value={form.description}
-              onChange={handleChange}
-              style={styles.textarea}
-            />
-            {errors.description && <span style={styles.error}>{errors.description}</span>}
-          </div>
-
-          {/* RESOURCE */}
-          <div style={styles.formGroup}>
-            <label style={styles.label}>Affected Resource *</label>
-            <select
-              name="resourceId"
-              value={form.resourceId}
-              onChange={handleChange}
-              style={styles.select}
-            >
-              <option value="">Select a resource</option>
-              {resources.map((r) => (
-                <option key={r.id} value={r.id}>
-                  {r.name} ({r.type})
-                </option>
-              ))}
-            </select>
-            {errors.resourceId && <span style={styles.error}>{errors.resourceId}</span>}
-          </div>
-
-          {/* PRIORITY */}
-          <div style={styles.formGroup}>
-            <label style={styles.label}>Priority</label>
-            <select
-              name="priority"
-              value={form.priority}
-              onChange={handleChange}
-              style={styles.select}
-            >
-              <option value="LOW">🟢 Low</option>
-              <option value="MEDIUM">🟡 Medium</option>
-              <option value="HIGH">🔴 High</option>
-              <option value="CRITICAL">⛔ Critical</option>
-            </select>
-          </div>
-
-          {/* CATEGORY */}
-          <div style={styles.formGroup}>
-            <label style={styles.label}>Category</label>
-            <select
-              name="category"
-              value={form.category}
-              onChange={handleChange}
-              style={styles.select}
-            >
-              <option value="MAINTENANCE">🔧 Maintenance</option>
-              <option value="REPAIR">🛠️ Repair</option>
-              <option value="ISSUE">⚠️ Issue</option>
-              <option value="FEEDBACK">💬 Feedback</option>
-              <option value="OTHER">❓ Other</option>
-            </select>
-          </div>
-
-          {/* ATTACHMENTS */}
-          <div style={styles.formGroup}>
-            <label style={styles.label}>📸 Attach Images</label>
-            <input
-              type="file"
-              multiple
-              accept="image/*"
-              onChange={handleFileChange}
-              style={styles.fileInput}
-            />
-            {errors.file && <span style={styles.error}>{errors.file}</span>}
-
-            {attachments.length > 0 && (
-              <div style={styles.attachmentList}>
-                <strong>Attached files ({attachments.length}):</strong>
-                {attachments.map((file, index) => (
-                  <div key={index} style={styles.attachment}>
-                    <span>📷 {file.name} ({(file.size / 1024).toFixed(2)} KB)</span>
-                    <button
-                      type="button"
-                      style={styles.removeBtn}
-                      onClick={() => removeAttachment(index)}
-                    >
-                      Remove
-                    </button>
-                  </div>
-                ))}
+        <Formik
+          initialValues={{
+            title: "",
+            description: "",
+            resourceId: "",
+            priority: "MEDIUM",
+            category: "MAINTENANCE",
+          }}
+          validationSchema={reportIncidentSchema}
+          onSubmit={handleSubmit}
+          validateOnChange={true}
+          validateOnBlur={true}
+        >
+          {({ values, errors, touched, isSubmitting, isValid }) => (
+            <Form style={styles.form}>
+              {/* TITLE */}
+              <div style={styles.formGroup}>
+                <label style={styles.label}>
+                  Title * 
+                  {values.title && (
+                    <span style={{ fontSize: "12px", color: "#666", marginLeft: "5px" }}>
+                      ({countWords(values.title)} words)
+                    </span>
+                  )}
+                </label>
+                <Field
+                  type="text"
+                  name="title"
+                  placeholder="Brief description of the issue"
+                  style={{
+                    ...styles.input,
+                    borderColor: touched.title && errors.title ? "#d32f2f" : "#ddd",
+                  }}
+                />
+                <ErrorMessage name="title" component="span" style={styles.error} />
               </div>
-            )}
-          </div>
 
-          {/* BUTTONS */}
-          <div style={styles.buttonGroup}>
-            <button
-              type="button"
-              style={styles.cancelBtn}
-              onClick={onClose}
-              disabled={loading}
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              style={styles.submitBtn}
-              disabled={loading}
-            >
-              {loading ? "⏳ Reporting..." : "✅ Report Incident"}
-            </button>
-          </div>
-        </form>
+              {/* DESCRIPTION */}
+              <div style={styles.formGroup}>
+                <label style={styles.label}>
+                  Description * 
+                  {values.description && (
+                    <span style={{ fontSize: "12px", color: "#666", marginLeft: "5px" }}>
+                      ({countWords(values.description)} words)
+                    </span>
+                  )}
+                </label>
+                <Field
+                  as="textarea"
+                  name="description"
+                  placeholder="Detailed description of the incident"
+                  style={{
+                    ...styles.textarea,
+                    borderColor: touched.description && errors.description ? "#d32f2f" : "#ddd",
+                  }}
+                />
+                <ErrorMessage name="description" component="span" style={styles.error} />
+              </div>
+
+              {/* RESOURCE */}
+              <div style={styles.formGroup}>
+                <label style={styles.label}>Affected Resource *</label>
+                <Field
+                  as="select"
+                  name="resourceId"
+                  style={{
+                    ...styles.select,
+                    borderColor: touched.resourceId && errors.resourceId ? "#d32f2f" : "#ddd",
+                  }}
+                >
+                  <option value="">Select a resource</option>
+                  {resources.map((r) => (
+                    <option key={r.id} value={r.id}>
+                      {r.name} ({r.type})
+                    </option>
+                  ))}
+                </Field>
+                <ErrorMessage name="resourceId" component="span" style={styles.error} />
+              </div>
+
+              {/* PRIORITY */}
+              <div style={styles.formGroup}>
+                <label style={styles.label}>Priority</label>
+                <Field as="select" name="priority" style={styles.select}>
+                  <option value="LOW">🟢 Low</option>
+                  <option value="MEDIUM">🟡 Medium</option>
+                  <option value="HIGH">🔴 High</option>
+                  <option value="CRITICAL">⛔ Critical</option>
+                </Field>
+              </div>
+
+              {/* CATEGORY */}
+              <div style={styles.formGroup}>
+                <label style={styles.label}>Category</label>
+                <Field as="select" name="category" style={styles.select}>
+                  <option value="MAINTENANCE">🔧 Maintenance</option>
+                  <option value="REPAIR">🛠️ Repair</option>
+                  <option value="ISSUE">⚠️ Issue</option>
+                  <option value="FEEDBACK">💬 Feedback</option>
+                  <option value="OTHER">❓ Other</option>
+                </Field>
+              </div>
+
+              {/* ATTACHMENTS */}
+              <div style={styles.formGroup}>
+                <label style={styles.label}>📸 Attach Images</label>
+                <input
+                  type="file"
+                  multiple
+                  accept="image/*"
+                  onChange={handleFileChange}
+                  style={styles.fileInput}
+                />
+                {fileError && <span style={styles.error}>{fileError}</span>}
+
+                {attachments.length > 0 && (
+                  <div style={styles.attachmentList}>
+                    <strong>Attached files ({attachments.length}):</strong>
+                    {attachments.map((file, index) => (
+                      <div key={index} style={styles.attachment}>
+                        <span>📷 {file.name} ({(file.size / 1024).toFixed(2)} KB)</span>
+                        <button
+                          type="button"
+                          style={styles.removeBtn}
+                          onClick={() => removeAttachment(index)}
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* BUTTONS */}
+              <div style={styles.buttonGroup}>
+                <button
+                  type="button"
+                  style={styles.cancelBtn}
+                  onClick={onClose}
+                  disabled={loading || isSubmitting}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  style={styles.submitBtn}
+                  disabled={loading || isSubmitting || !isValid}
+                >
+                  {loading ? "⏳ Reporting..." : "✅ Report Incident"}
+                </button>
+              </div>
+            </Form>
+          )}
+        </Formik>
       </div>
     </div>
   );

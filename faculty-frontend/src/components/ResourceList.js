@@ -11,9 +11,13 @@ import {
   markNotificationAsRead,
   deleteNotification,
   clearAllNotifications,
+  getIncidentsByReporter,
 } from "../services/api";
 
 import MyBookingsModal from "./MyBookingsModal";
+import MyIncidentsModal from "./MyIncidentsModal";
+import BookingHistoryModal from "./BookingHistoryModal";
+import AdminBookingDashboard from "./AdminBookingDashboard";
 
 function ResourceList({ reload, userRole, onBook, onAddAvailability }) {
 
@@ -33,7 +37,11 @@ function ResourceList({ reload, userRole, onBook, onAddAvailability }) {
 
   // 🔥 NEW STATES
   const [showMyBookings, setShowMyBookings] = useState(false);
+  const [showBookingHistory, setShowBookingHistory] = useState(false);
+  const [showAdminDashboard, setShowAdminDashboard] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [showMyIncidents, setShowMyIncidents] = useState(false);
+  const [myIncidents, setMyIncidents] = useState([]);
 
   const [notifications, setNotifications] = useState([]);
 
@@ -112,6 +120,26 @@ function ResourceList({ reload, userRole, onBook, onAddAvailability }) {
         console.log("Error clearing notifications:", err.message);
       });
   };
+
+  // 🚨 LOAD USER'S INCIDENTS
+  const loadMyIncidents = () => {
+    if (user?.id) {
+      getIncidentsByReporter(user.id)
+        .then((res) => {
+          setMyIncidents(res.data || []);
+        })
+        .catch((err) => {
+          console.log("Error loading incidents:", err.message);
+        });
+    }
+  };
+
+  // LOAD USER'S INCIDENTS WHEN MODAL OPENS
+  useEffect(() => {
+    if (showMyIncidents) {
+      loadMyIncidents();
+    }
+  }, [showMyIncidents, user?.id]);
 
   // LOAD RESOURCES
   const loadData = () => {
@@ -293,7 +321,37 @@ function ResourceList({ reload, userRole, onBook, onAddAvailability }) {
               📅 Your Bookings
             </button>
           )}
-        </div>
+
+          {/* � BOOKING HISTORY - ONLY ADMIN & USER */}
+          {(userRole === "ADMIN" || userRole === "USER") && (
+            <button
+              onClick={() => setShowBookingHistory(true)}
+              style={{
+                backgroundColor: "#28a745",
+                color: "white",
+                padding: "8px 15px",
+                borderRadius: "5px"
+              }}
+            >
+              📚 Booking History
+            </button>
+          )}
+
+          {/* �🚨 MY INCIDENTS - ADMIN, STAFF, USER */}
+          {(userRole === "ADMIN" || userRole === "STAFF" || userRole === "USER") && (
+            <button
+              onClick={() => setShowMyIncidents(true)}
+              style={{
+                backgroundColor: "#ff5722",
+                color: "white",
+                padding: "8px 15px",
+                borderRadius: "5px"
+              }}
+            >
+              🚨 My Incidents ({myIncidents.length})
+            </button>
+          )}
+                </div>
       </div>
 
       {/* 🔍 FILTER PANEL */}
@@ -696,6 +754,31 @@ function ResourceList({ reload, userRole, onBook, onAddAvailability }) {
         <MyBookingsModal
           resources={resources}
           onClose={() => setShowMyBookings(false)}
+        />
+      )}
+
+      {/* � BOOKING HISTORY MODAL */}
+      {showBookingHistory && (
+        <BookingHistoryModal
+          resources={resources}
+          onClose={() => setShowBookingHistory(false)}
+        />
+      )}
+      {/* 📊 ADMIN BOOKING DASHBOARD MODAL */}
+      {showAdminDashboard && (
+        <AdminBookingDashboard
+          onClose={() => setShowAdminDashboard(false)}
+        />
+      )}
+      {/* �🚨 MY INCIDENTS MODAL */}
+      {showMyIncidents && (
+        <MyIncidentsModal
+          myIncidents={myIncidents}
+          onClose={() => setShowMyIncidents(false)}
+          onResolved={() => {
+            setShowMyIncidents(false);
+            loadMyIncidents();
+          }}
         />
       )}
 
