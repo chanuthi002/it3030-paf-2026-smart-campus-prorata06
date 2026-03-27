@@ -33,6 +33,16 @@ function ResourceList({ reload, onBook, onAddAvailability }) {
     { message: "⚠️ Time slot updated", read: false },
   ]);
 
+  // 🔍 FILTER STATES
+  const [filters, setFilters] = useState({
+    type: "",
+    capacity: "",
+    location: "",
+    status: "",
+  });
+
+  const [showFilters, setShowFilters] = useState(false);
+
   // LOAD USER
   useEffect(() => {
     const stored = JSON.parse(localStorage.getItem("user"));
@@ -63,6 +73,30 @@ function ResourceList({ reload, onBook, onAddAvailability }) {
         .catch(() => {});
     });
   }, [resources]);
+
+  // 🔍 HANDLE FILTER CHANGE
+  const handleFilterChange = (e) => {
+    const { name, value } = e.target;
+    setFilters({ ...filters, [name]: value });
+  };
+
+  // 🔍 APPLY FILTERS
+  const getFilteredResources = () => {
+    return resources.filter((r) => {
+      if (filters.type && r.type !== filters.type) return false;
+      if (filters.capacity && r.capacity < parseInt(filters.capacity)) return false;
+      if (filters.location && !r.location.toLowerCase().includes(filters.location.toLowerCase())) return false;
+      if (filters.status && r.status !== filters.status) return false;
+      return true;
+    });
+  };
+
+  const filteredResources = getFilteredResources();
+
+  // 🔍 GET UNIQUE VALUES FOR FILTERS
+  const uniqueTypes = [...new Set(resources.map((r) => r.type))];
+  const uniqueLocations = [...new Set(resources.map((r) => r.location))];
+  const uniqueCapacities = [...new Set(resources.map((r) => r.capacity))].sort((a, b) => a - b);
 
   // DELETE
   const handleDelete = (id) => {
@@ -105,6 +139,22 @@ function ResourceList({ reload, onBook, onAddAvailability }) {
 
         <div style={{ display: "flex", gap: "10px" }}>
 
+          {/* � FILTER BUTTON */}
+          <button
+            onClick={() => setShowFilters(!showFilters)}
+            style={{
+              backgroundColor: "#17a2b8",
+              color: "white",
+              borderRadius: "5px",
+              padding: "8px 12px",
+              cursor: "pointer",
+              border: "none",
+              fontWeight: "600"
+            }}
+          >
+            🔍 Filters {Object.values(filters).some(v => v) && "✓"}
+          </button>
+
           {/* 🔔 NOTIFICATIONS */}
           <button
             onClick={() => setShowNotifications(!showNotifications)}
@@ -132,7 +182,138 @@ function ResourceList({ reload, onBook, onAddAvailability }) {
         </div>
       </div>
 
-      {/* 🔔 NOTIFICATION DROPDOWN */}
+      {/* 🔍 FILTER PANEL */}
+      {showFilters && (
+        <div style={{
+          backgroundColor: "#f9f9f9",
+          border: "2px solid #17a2b8",
+          padding: "15px",
+          borderRadius: "8px",
+          marginBottom: "20px",
+          display: "flex",
+          gap: "15px",
+          flexWrap: "wrap",
+          alignItems: "flex-end"
+        }}>
+          {/* TYPE FILTER */}
+          <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
+            <label style={{ fontWeight: "600", fontSize: "13px" }}>Type</label>
+            <select
+              name="type"
+              value={filters.type}
+              onChange={handleFilterChange}
+              style={{
+                padding: "8px 10px",
+                border: "1px solid #ccc",
+                borderRadius: "5px",
+                fontSize: "13px",
+                minWidth: "150px"
+              }}
+            >
+              <option value="">All Types</option>
+              {uniqueTypes.map((type) => (
+                <option key={type} value={type}>
+                  {type}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* CAPACITY FILTER */}
+          <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
+            <label style={{ fontWeight: "600", fontSize: "13px" }}>Min Capacity</label>
+            <input
+              type="number"
+              name="capacity"
+              placeholder="Min capacity"
+              value={filters.capacity}
+              onChange={handleFilterChange}
+              style={{
+                padding: "8px 10px",
+                border: "1px solid #ccc",
+                borderRadius: "5px",
+                fontSize: "13px",
+                minWidth: "120px"
+              }}
+            />
+          </div>
+
+          {/* LOCATION FILTER */}
+          <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
+            <label style={{ fontWeight: "600", fontSize: "13px" }}>Location</label>
+            <select
+              name="location"
+              value={filters.location}
+              onChange={handleFilterChange}
+              style={{
+                padding: "8px 10px",
+                border: "1px solid #ccc",
+                borderRadius: "5px",
+                fontSize: "13px",
+                minWidth: "150px"
+              }}
+            >
+              <option value="">All Locations</option>
+              {uniqueLocations.map((location) => (
+                <option key={location} value={location}>
+                  {location}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* STATUS FILTER */}
+          <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
+            <label style={{ fontWeight: "600", fontSize: "13px" }}>Status</label>
+            <select
+              name="status"
+              value={filters.status}
+              onChange={handleFilterChange}
+              style={{
+                padding: "8px 10px",
+                border: "1px solid #ccc",
+                borderRadius: "5px",
+                fontSize: "13px",
+                minWidth: "150px"
+              }}
+            >
+              <option value="">All Status</option>
+              <option value="ACTIVE">ACTIVE</option>
+              <option value="OUT_OF_SERVICE">OUT_OF_SERVICE</option>
+            </select>
+          </div>
+
+          {/* RESET FILTERS */}
+          {Object.values(filters).some(v => v) && (
+            <button
+              onClick={() => setFilters({ type: "", capacity: "", location: "", status: "" })}
+              style={{
+                padding: "8px 16px",
+                backgroundColor: "#dc3545",
+                color: "white",
+                border: "none",
+                borderRadius: "5px",
+                cursor: "pointer",
+                fontWeight: "600"
+              }}
+            >
+              🔄 Reset Filters
+            </button>
+          )}
+        </div>
+      )}
+
+      {/* � RESULTS COUNTER */}
+      <div style={{
+        marginBottom: "15px",
+        fontSize: "14px",
+        color: "#666",
+        fontWeight: "500"
+      }}>
+        Showing <strong>{filteredResources.length}</strong> of <strong>{resources.length}</strong> resources
+      </div>
+
+      {/* �🔔 NOTIFICATION DROPDOWN */}
       {showNotifications && (
         <div style={{
           position: "absolute",
@@ -183,7 +364,15 @@ function ResourceList({ reload, onBook, onAddAvailability }) {
 
       {/* 📦 RESOURCE CARDS */}
       <div style={{ display: "flex", flexWrap: "wrap", gap: "20px" }}>
-        {resources.map((r) => (
+        {filteredResources.length === 0 ? (
+          <div style={{ width: "100%", textAlign: "center", padding: "40px", color: "#999" }}>
+            <p style={{ fontSize: "18px" }}>📭 No resources found matching your filters</p>
+            {Object.values(filters).some(v => v) && (
+              <p style={{ fontSize: "14px" }}>Try adjusting your filter criteria</p>
+            )}
+          </div>
+        ) : (
+          filteredResources.map((r) => (
           <div
             key={r.id}
             style={{
@@ -267,7 +456,8 @@ function ResourceList({ reload, onBook, onAddAvailability }) {
               </>
             )}
           </div>
-        ))}
+        ))
+        )}
       </div>
 
       {/* 📅 MY BOOKINGS MODAL */}
