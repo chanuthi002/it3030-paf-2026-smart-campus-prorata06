@@ -1,5 +1,6 @@
 mvn clean
 mvn spring-boot:run
+mvn clean install
 
  client-id: 1028597381505-9as2h7i54ds6mc677qu88t9umt27jgn2.apps.googleusercontent.com
 client-secret: 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

@@ -138,7 +138,7 @@ public class IncidentTicketService {
     }
 
     // ✅ ADD RESOLUTION
-    public IncidentTicket resolveTicket(String ticketId, String resolution) {
+    public IncidentTicket resolveTicket(String ticketId, String resolution, String staffMessage) {
 
         Optional<IncidentTicket> ticketOpt = repository.findById(ticketId);
         if (ticketOpt.isEmpty()) {
@@ -151,10 +151,15 @@ public class IncidentTicketService {
         ticket.setResolvedAt(LocalDateTime.now());
         ticket.setUpdatedAt(LocalDateTime.now());
 
-        // 🔔 SEND NOTIFICATION TO REPORTER
+        // 🔔 SEND NOTIFICATION TO REPORTER WITH STAFF MESSAGE
+        String notificationMessage = "✅ Your ticket has been resolved: " + ticket.getTitle();
+        if (staffMessage != null && !staffMessage.trim().isEmpty()) {
+            notificationMessage += "\n\n💬 Staff Message: " + staffMessage;
+        }
+
         notificationService.createNotification(
                 ticket.getReportedByUserId(),
-                "✅ Your ticket has been resolved: " + ticket.getTitle());
+                notificationMessage);
 
         return repository.save(ticket);
     }

@@ -1,6 +1,5 @@
 package com.paf.faculty.model;
 
-
 import lombok.Data;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -20,4 +19,5 @@ public class Booking {
     private LocalTime endTime;
     private String bookedBy; // optional (user/lecturer name)
     private String userId;
+    private String status = "ACTIVE"; // ACTIVE, CANCELLED, COMPLETED
 }

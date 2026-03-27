@@ -5,6 +5,7 @@ import {
   getIncidentUpdates,
   updateIncidentStatus,
   getAttachmentsByTicket,
+  resolveIncident,
 } from "../services/api";
 
 function IncidentDashboard({ user }) {
@@ -17,7 +18,26 @@ function IncidentDashboard({ user }) {
   const [loading, setLoading] = useState(false);
   const [statusMap, setStatusMap] = useState({});
 
-  // 🔄 LOAD INCIDENTS
+  // � RESOLVE MODAL STATE
+  const [showResolveModal, setShowResolveModal] = useState(false);
+  const [resolutionText, setResolutionText] = useState("");
+  const [staffMessage, setStaffMessage] = useState("");
+
+  const enforceWordLimit = (value, limit = 50) => {
+    const words = value.trim().split(/\s+/).filter(Boolean);
+    if (words.length <= limit) return value;
+    return words.slice(0, limit).join(" ");
+  };
+
+  const handleResolutionTextChange = (e) => {
+    setResolutionText(enforceWordLimit(e.target.value, 50));
+  };
+
+  const handleStaffMessageChange = (e) => {
+    setStaffMessage(enforceWordLimit(e.target.value, 50));
+  };
+
+  // �🔄 LOAD INCIDENTS
   useEffect(() => {
     loadIncidents();
   }, []);
@@ -61,6 +81,12 @@ function IncidentDashboard({ user }) {
 
   // 🔄 UPDATE STATUS
   const changeStatus = async (ticketId, newStatus) => {
+    if (newStatus === "RESOLVED") {
+      // Open resolve modal instead of direct status change
+      setShowResolveModal(true);
+      return;
+    }
+
     try {
       await updateIncidentStatus(ticketId, newStatus);
       alert("✅ Status updated successfully!");
@@ -68,6 +94,26 @@ function IncidentDashboard({ user }) {
       setSelectedIncident(null);
     } catch (err) {
       alert("❌ Error updating status: " + err.message);
+    }
+  };
+
+  // ✅ RESOLVE INCIDENT WITH MESSAGE
+  const handleResolve = async () => {
+    if (!resolutionText.trim()) {
+      alert("❌ Please provide a resolution description.");
+      return;
+    }
+
+    try {
+      await resolveIncident(selectedIncident.id, resolutionText, staffMessage);
+      alert("✅ Incident resolved successfully!");
+      setShowResolveModal(false);
+      setResolutionText("");
+      setStaffMessage("");
+      loadIncidents();
+      setSelectedIncident(null);
+    } catch (err) {
+      alert("❌ Error resolving incident: " + err.message);
     }
   };
 
@@ -285,6 +331,29 @@ function IncidentDashboard({ user }) {
       backgroundColor: "#6c757d",
       color: "white",
     },
+    primaryBtn: {
+      backgroundColor: "#28a745",
+      color: "white",
+    },
+    formGroup: {
+      marginBottom: "15px",
+    },
+    label: {
+      display: "block",
+      marginBottom: "5px",
+      fontWeight: "bold",
+      fontSize: "14px",
+      color: "#333",
+    },
+    textarea: {
+      width: "100%",
+      padding: "10px",
+      border: "1px solid #ddd",
+      borderRadius: "4px",
+      fontSize: "14px",
+      resize: "vertical",
+      fontFamily: "inherit",
+    },
     statusUpdateGroup: {
       display: "flex",
       gap: "8px",
@@ -328,6 +397,80 @@ function IncidentDashboard({ user }) {
       default:
         return {};
     }
+  };
+
+  // RESOLVE MODAL COMPONENT
+  const ResolveModal = () => {
+    if (!showResolveModal || !selectedIncident) return null;
+
+    return (
+      <div style={styles.modalOverlay} onClick={() => setShowResolveModal(false)}>
+        <div style={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+          <div style={styles.modalTitle}>
+            ✅ Resolve Incident: {selectedIncident.title}
+            <button
+              onClick={() => setShowResolveModal(false)}
+              style={{
+                float: "right",
+                background: "none",
+                border: "none",
+                fontSize: "24px",
+                cursor: "pointer",
+              }}
+            >
+              ×
+            </button>
+          </div>
+
+          <div style={styles.section}>
+            <div style={styles.sectionTitle}>Resolution Details</div>
+
+            <div style={styles.formGroup}>
+              <label style={styles.label}>Resolution Description *</label>
+              <textarea
+                style={styles.textarea}
+                value={resolutionText}
+                onChange={handleResolutionTextChange}
+                placeholder="Describe how the incident was resolved..."
+                rows={4}
+              />
+              <div style={{ marginTop: "6px", fontSize: "12px", color: "#555" }}>
+                {resolutionText.trim().split(/\s+/).filter(Boolean).length}/50 words
+              </div>
+            </div>
+
+            <div style={styles.formGroup}>
+              <label style={styles.label}>Staff Message to User (Optional)</label>
+              <textarea
+                style={styles.textarea}
+                value={staffMessage}
+                onChange={handleStaffMessageChange}
+                placeholder="Add a personal message to the user about this resolution..."
+                rows={3}
+              />
+              <div style={{ marginTop: "6px", fontSize: "12px", color: "#555" }}>
+                {staffMessage.trim().split(/\s+/).filter(Boolean).length}/50 words
+              </div>
+            </div>
+          </div>
+
+          <div style={styles.buttonGroup}>
+            <button
+              style={{ ...styles.actionBtn, ...styles.primaryBtn }}
+              onClick={handleResolve}
+            >
+              ✅ Resolve Incident
+            </button>
+            <button
+              style={{ ...styles.actionBtn, ...styles.closeBtn }}
+              onClick={() => setShowResolveModal(false)}
+            >
+              ✕ Cancel
+            </button>
+          </div>
+        </div>
+      </div>
+    );
   };
 
   return (
@@ -479,9 +622,25 @@ function IncidentDashboard({ user }) {
                     <span>
                       📸 <strong>{att.fileName}</strong> ({(att.fileSize / 1024).toFixed(2)} KB)
                     </span>
-                    <span style={{ fontSize: "12px", color: "#888" }}>
-                      by {att.uploadedBy}
-                    </span>
+                    <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                      <span style={{ fontSize: "12px", color: "#888" }}>
+                        by {att.uploadedBy}
+                      </span>
+                      <button
+                        style={{
+                          padding: "4px 8px",
+                          backgroundColor: "#007bff",
+                          color: "white",
+                          border: "none",
+                          borderRadius: "4px",
+                          cursor: "pointer",
+                          fontSize: "11px",
+                        }}
+                        onClick={() => window.open(`/api/attachments/${att.id}/download`, "_blank")}
+                      >
+                        👁️ View
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -505,6 +664,9 @@ function IncidentDashboard({ user }) {
           </div>
         </div>
       )}
+
+      {/* RESOLVE MODAL */}
+      <ResolveModal />
     </div>
   );
 }

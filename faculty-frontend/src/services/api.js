@@ -37,6 +37,14 @@ export const getBookingsByResource = (resourceId) =>
 export const getBookingsByDate = (date) =>
   API.get(`/bookings/date/${date}`);
 
+// ✅ GET ALL BOOKINGS (ADMIN)
+export const getAllBookings = () =>
+  API.get("/bookings");
+
+// ✅ CANCEL BOOKING (ADMIN)
+export const cancelBooking = (bookingId) =>
+  API.put(`/bookings/${bookingId}/cancel`);
+
 // =======================
 // 🔹 AVAILABILITY APIs
 // =======================
@@ -56,6 +64,14 @@ export const deleteAvailability = (id) =>
 // ✅ GET BY USER (NEW)
 export const getBookingsByUser = (userId) =>
   API.get(`/bookings/user/${userId}`);
+
+// ✅ UPDATE BOOKING
+export const updateBooking = (bookingId, data) =>
+  API.put(`/bookings/${bookingId}`, data);
+
+// ✅ DELETE BOOKING
+export const deleteBooking = (bookingId) =>
+  API.delete(`/bookings/${bookingId}`);
 
 // =======================
 // 🔹 INCIDENT TICKET APIs
@@ -112,9 +128,9 @@ export const updateIncidentPriority = (ticketId, newPriority) =>
   });
 
 // ✅ RESOLVE INCIDENT
-export const resolveIncident = (ticketId, resolution) =>
+export const resolveIncident = (ticketId, resolution, staffMessage) =>
   API.put(`/incidents/${ticketId}/resolve`, null, {
-    params: { resolution },
+    params: { resolution, staffMessage },
   });
 
 // ✅ DELETE INCIDENT
