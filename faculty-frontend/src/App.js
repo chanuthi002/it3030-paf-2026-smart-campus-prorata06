@@ -5,6 +5,8 @@ import ResourceForm from "./components/ResourceForm";
 import ResourceList from "./components/ResourceList";
 import BookingForm from "./components/BookingForm";
 import AvailabilityForm from "./components/AvailabilityForm";
+import ReportIncidentForm from "./components/ReportIncidentForm";
+import IncidentDashboard from "./components/IncidentDashboard";
 import Login from "./components/Login";
 
 
@@ -39,7 +41,10 @@ const Dashboard = () => {
   const [showForm, setShowForm] = useState(false);
   const [showBooking, setShowBooking] = useState(false);
   const [showAvailability, setShowAvailability] = useState(false);
+  const [showReportIncident, setShowReportIncident] = useState(false);
+  const [showIncidentDashboard, setShowIncidentDashboard] = useState(false);
   const [selectedResource, setSelectedResource] = useState(null);
+  const [resources, setResources] = useState([]);
 
   const [user, setUser] = useState(null);
 
@@ -77,7 +82,22 @@ const Dashboard = () => {
     setShowForm(false);
     setShowBooking(false);
     setShowAvailability(false);
+    setShowReportIncident(false);
   };
+
+  // 📦 LOAD RESOURCES FOR INCIDENT FORM
+  useEffect(() => {
+    const loadResources = async () => {
+      try {
+        const res = await fetch("http://localhost:8080/api/resources");
+        const data = await res.json();
+        setResources(data);
+      } catch (err) {
+        console.error("Error loading resources:", err);
+      }
+    };
+    loadResources();
+  }, []);
 
   const overlayStyle = {
     position: "fixed",
@@ -103,16 +123,16 @@ const Dashboard = () => {
     <div style={{ padding: "20px" }}>
 
       {/* 🔐 HEADER */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
         <h1>📊 Faculty Resource Dashboard</h1>
 
-        <div>
+        <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
           {user && (
             <>
-              <span>{user.name} ({user.role})</span>
+              <span style={{ fontSize: "14px" }}>{user.name} ({user.role})</span>
 
               <button
-                style={{ marginLeft: "10px" }}
+                style={{ padding: "8px 16px", backgroundColor: "#f0f0f0" }}
                 onClick={() => {
                   localStorage.removeItem("user");
                   window.location.href = "http://localhost:8080/logout";
@@ -125,23 +145,64 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* ➕ ADMIN ONLY */}
-      {user?.role === "ADMIN" && (
-        <button onClick={() => setShowForm(true)}>+ Add Resource</button>
+      {/* 🔧 QUICK ACTIONS */}
+      <div style={{ display: "flex", gap: "10px", marginBottom: "20px", flexWrap: "wrap" }}>
+        {/* ADMIN ONLY - ADD RESOURCE */}
+        {user?.role === "ADMIN" && (
+          <button 
+            onClick={() => setShowForm(true)}
+            style={{ padding: "10px 20px", backgroundColor: "#007bff", color: "white", border: "none", borderRadius: "5px", cursor: "pointer" }}
+          >
+            ➕ Add Resource
+          </button>
+        )}
+
+        {/* ALL USERS - REPORT INCIDENT */}
+        <button 
+          onClick={() => setShowReportIncident(true)}
+          style={{ padding: "10px 20px", backgroundColor: "#ff9800", color: "white", border: "none", borderRadius: "5px", cursor: "pointer" }}
+        >
+          🚨 Report Incident
+        </button>
+
+        {/* ADMIN & STAFF - INCIDENT DASHBOARD */}
+        {(user?.role === "STAFF" || user?.role === "ADMIN") && (
+          <button 
+            onClick={() => setShowIncidentDashboard(true)}
+            style={{ padding: "10px 20px", backgroundColor: "#22c55e", color: "white", border: "none", borderRadius: "5px", cursor: "pointer" }}
+          >
+            🔧 Incident Dashboard
+          </button>
+        )}
+      </div>
+
+      {/* 📋 RESOURCE LIST (ONLY SHOW IF NOT IN INCIDENT DASHBOARD) */}
+      {!showIncidentDashboard && (
+        <ResourceList
+          reload={reload}
+          onBook={(resource) => {
+            setSelectedResource(resource);
+            setShowBooking(true);
+          }}
+          onAddAvailability={(resource) => {
+            setSelectedResource(resource);
+            setShowAvailability(true);
+          }}
+        />
       )}
 
-      {/* 📋 RESOURCE LIST */}
-      <ResourceList
-        reload={reload}
-        onBook={(resource) => {
-          setSelectedResource(resource);
-          setShowBooking(true);
-        }}
-        onAddAvailability={(resource) => {
-          setSelectedResource(resource);
-          setShowAvailability(true);
-        }}
-      />
+      {/* 🛡️ INCIDENT DASHBOARD (ADMIN & STAFF) */}
+      {showIncidentDashboard && (user?.role === "STAFF" || user?.role === "ADMIN") && (
+        <div>
+          <button 
+            onClick={() => setShowIncidentDashboard(false)}
+            style={{ marginBottom: "15px", padding: "8px 16px", backgroundColor: "#ccc" }}
+          >
+            ← Back to Resources
+          </button>
+          <IncidentDashboard user={user} />
+        </div>
+      )}
 
       {/* 🪟 ADD RESOURCE */}
       {showForm && (
@@ -171,6 +232,18 @@ const Dashboard = () => {
             <AvailabilityForm resource={selectedResource} refresh={refresh} />
           </div>
         </div>
+      )}
+
+      {/* 🚨 REPORT INCIDENT */}
+      {showReportIncident && (
+        <ReportIncidentForm
+          resources={resources}
+          user={user}
+          onClose={() => setShowReportIncident(false)}
+          onSuccess={() => {
+            setReload(prev => !prev);
+          }}
+        />
       )}
     </div>
   );
