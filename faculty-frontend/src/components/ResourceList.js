@@ -635,7 +635,19 @@ function ResourceList({ reload, userRole, onBook, onAddAvailability }) {
                 </select>
 
                 <input name="capacity" type="number" value={editForm.capacity} onChange={handleChange} />
-                <input name="location" value={editForm.location} onChange={handleChange} />
+                <select 
+  name="location" 
+  value={editForm.location} 
+  onChange={handleChange}
+>
+  <option value="">Select Building</option>
+  <option value="Building A">Building A</option>
+  <option value="Building B">Building B</option>
+  <option value="Building C">Building C</option>
+  <option value="Building D">Building D</option>
+  <option value="Building E">Building E</option>
+  <option value="Building F">Building F</option>
+</select>
 
                 <select name="status" value={editForm.status} onChange={handleChange}>
                   <option value="ACTIVE">ACTIVE</option>

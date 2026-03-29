@@ -8,6 +8,8 @@ import AvailabilityForm from "./components/AvailabilityForm";
 import ReportIncidentForm from "./components/ReportIncidentForm";
 import IncidentDashboard from "./components/IncidentDashboard";
 import AdminBookingDashboard from "./components/AdminBookingDashboard";
+import ResourceAdminDashboard from "./components/ResourceAdminDashboard";
+import IncidentAdminDashboard from "./components/IncidentAdminDashboard";
 import Login from "./components/Login";
 
 
@@ -45,10 +47,13 @@ const Dashboard = () => {
   const [showReportIncident, setShowReportIncident] = useState(false);
   const [showIncidentDashboard, setShowIncidentDashboard] = useState(false);
   const [showAdminDashboard, setShowAdminDashboard] = useState(false);
+  const [showResourceAdminDashboard, setShowResourceAdminDashboard] = useState(false);
+  const [showIncidentAdminDashboard, setShowIncidentAdminDashboard] = useState(false);
   const [selectedResource, setSelectedResource] = useState(null);
   const [resources, setResources] = useState([]);
 
   const [user, setUser] = useState(null);
+  const isStaffOnly = user?.role === "STAFF";
 
   // ✅ HANDLE OAUTH USER (FIXED)
   useEffect(() => {
@@ -78,6 +83,20 @@ const Dashboard = () => {
     }
   }, []);
 
+  // 🔒 STAFF can access only Incident Dashboard
+  useEffect(() => {
+    if (isStaffOnly) {
+      setShowIncidentDashboard(true);
+      setShowForm(false);
+      setShowBooking(false);
+      setShowAvailability(false);
+      setShowReportIncident(false);
+      setShowAdminDashboard(false);
+      setShowResourceAdminDashboard(false);
+      setShowIncidentAdminDashboard(false);
+    }
+  }, [isStaffOnly]);
+
   // 🔄 REFRESH
   const refresh = () => {
     setReload(prev => !prev);
@@ -85,6 +104,8 @@ const Dashboard = () => {
     setShowBooking(false);
     setShowAvailability(false);
     setShowReportIncident(false);
+    setShowResourceAdminDashboard(false);
+    setShowIncidentAdminDashboard(false);
   };
 
   // 📦 LOAD RESOURCES FOR INCIDENT FORM
@@ -119,6 +140,29 @@ const Dashboard = () => {
     padding: "20px",
     borderRadius: "10px",
     width: "400px",
+  };
+
+  const adminPopupStyle = {
+    backgroundColor: "#fff",
+    width: "95%",
+    maxWidth: "1200px",
+    maxHeight: "90vh",
+    overflowY: "auto",
+    borderRadius: "12px",
+    padding: "20px",
+    position: "relative",
+  };
+
+  const adminCloseButtonStyle = {
+    position: "absolute",
+    top: "12px",
+    right: "12px",
+    border: "none",
+    backgroundColor: "#efefef",
+    borderRadius: "6px",
+    padding: "6px 10px",
+    cursor: "pointer",
+    fontWeight: "600",
   };
 
   return (
@@ -160,12 +204,12 @@ const Dashboard = () => {
         )}
 
         {/* ADMIN & STAFF & USER - REPORT INCIDENT */}
-        {(user?.role === "ADMIN" || user?.role === "STAFF" || user?.role === "USER") && (
+        {(user?.role === "ADMIN" || user?.role === "USER") && (
           <button 
             onClick={() => setShowReportIncident(true)}
             style={{ padding: "10px 20px", backgroundColor: "#ff9800", color: "white", border: "none", borderRadius: "5px", cursor: "pointer" }}
           >
-            🚨 Report Incident
+            🚨 Report Incident 
           </button>
         )}
 
@@ -188,10 +232,40 @@ const Dashboard = () => {
             📊 Admin Booking Dashboard
           </button>
         )}
+
+        {/* ADMIN ONLY - RESOURCE ADMIN DASHBOARD */}
+        {user?.role === "ADMIN" && (
+          <button
+            onClick={() => {
+              setShowResourceAdminDashboard(true);
+              setShowAdminDashboard(false);
+              setShowIncidentDashboard(false);
+              setShowIncidentAdminDashboard(false);
+            }}
+            style={{ padding: "10px 20px", backgroundColor: "#0f766e", color: "white", border: "none", borderRadius: "5px", cursor: "pointer" }}
+          >
+            🧭 Resource Admin Dashboard
+          </button>
+        )}
+
+        {/* ADMIN ONLY - INCIDENT ADMIN DASHBOARD */}
+        {user?.role === "ADMIN" && (
+          <button
+            onClick={() => {
+              setShowIncidentAdminDashboard(true);
+              setShowAdminDashboard(false);
+              setShowIncidentDashboard(false);
+              setShowResourceAdminDashboard(false);
+            }}
+            style={{ padding: "10px 20px", backgroundColor: "#7c2d12", color: "white", border: "none", borderRadius: "5px", cursor: "pointer" }}
+          >
+            🛠️ Incident Admin Dashboard
+          </button>
+        )}
       </div>
 
       {/* 📋 RESOURCE LIST - SHOW FOR ADMIN, STAFF, USER */}
-      {!showIncidentDashboard && !showAdminDashboard && (user?.role === "ADMIN" || user?.role === "STAFF" || user?.role === "USER") && (
+      {!isStaffOnly && !showIncidentDashboard && !showAdminDashboard && !showResourceAdminDashboard && !showIncidentAdminDashboard && (user?.role === "ADMIN" || user?.role === "USER") && (
         <ResourceList
           reload={reload}
           userRole={user?.role}
@@ -209,12 +283,14 @@ const Dashboard = () => {
       {/* 🛡️ INCIDENT DASHBOARD (ADMIN & STAFF ONLY) */}
       {showIncidentDashboard && (user?.role === "STAFF" || user?.role === "ADMIN") && (
         <div>
-          <button 
-            onClick={() => setShowIncidentDashboard(false)}
-            style={{ marginBottom: "15px", padding: "8px 16px", backgroundColor: "#ccc" }}
-          >
-            ← Back to Resources
-          </button>
+          {!isStaffOnly && (
+            <button 
+              onClick={() => setShowIncidentDashboard(false)}
+              style={{ marginBottom: "15px", padding: "8px 16px", backgroundColor: "#ccc" }}
+            >
+              ← Back to Resources
+            </button>
+          )}
           <IncidentDashboard user={user} />
         </div>
       )}
@@ -229,6 +305,36 @@ const Dashboard = () => {
             ← Back to Resources
           </button>
           <AdminBookingDashboard onClose={() => setShowAdminDashboard(false)} />
+        </div>
+      )}
+
+      {/* 🧭 RESOURCE ADMIN DASHBOARD (ADMIN ONLY) */}
+      {showResourceAdminDashboard && user?.role === "ADMIN" && (
+        <div style={overlayStyle} onClick={() => setShowResourceAdminDashboard(false)}>
+          <div style={adminPopupStyle} onClick={(e) => e.stopPropagation()}>
+            <button
+              onClick={() => setShowResourceAdminDashboard(false)}
+              style={adminCloseButtonStyle}
+            >
+              Close
+            </button>
+            <ResourceAdminDashboard />
+          </div>
+        </div>
+      )}
+
+      {/* 🛠️ INCIDENT ADMIN DASHBOARD (ADMIN ONLY) */}
+      {showIncidentAdminDashboard && user?.role === "ADMIN" && (
+        <div style={overlayStyle} onClick={() => setShowIncidentAdminDashboard(false)}>
+          <div style={adminPopupStyle} onClick={(e) => e.stopPropagation()}>
+            <button
+              onClick={() => setShowIncidentAdminDashboard(false)}
+              style={adminCloseButtonStyle}
+            >
+              Close
+            </button>
+            <IncidentAdminDashboard />
+          </div>
         </div>
       )}
 

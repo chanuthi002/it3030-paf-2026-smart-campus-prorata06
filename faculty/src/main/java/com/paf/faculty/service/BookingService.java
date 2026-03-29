@@ -17,6 +17,9 @@ import java.util.Optional;
 @Service
 public class BookingService {
 
+    private static final String BOOKING_ID_PREFIX = "FB";
+    private static final int BOOKING_ID_WIDTH = 6;
+
     @Autowired
     private BookingRepository bookingRepo;
 
@@ -31,6 +34,10 @@ public class BookingService {
 
     // ✅ CREATE BOOKING
     public Booking createBooking(Booking newBooking) {
+
+        if (newBooking.getId() == null || newBooking.getId().isBlank()) {
+            newBooking.setId(generateNextBookingId());
+        }
 
         // 🔥 AUTO SET USER NAME
         if (newBooking.getUserId() != null) {
@@ -147,5 +154,19 @@ public class BookingService {
             throw new RuntimeException("Booking not found");
         }
         bookingRepo.deleteById(bookingId);
+    }
+
+    private String generateNextBookingId() {
+        Optional<Booking> latest = bookingRepo.findTopByIdStartingWithOrderByIdDesc(BOOKING_ID_PREFIX);
+
+        if (latest.isEmpty()) {
+            return BOOKING_ID_PREFIX + String.format("%0" + BOOKING_ID_WIDTH + "d", 0);
+        }
+
+        String latestId = latest.get().getId();
+        String numericPart = latestId.substring(BOOKING_ID_PREFIX.length());
+        int nextNumber = Integer.parseInt(numericPart) + 1;
+
+        return BOOKING_ID_PREFIX + String.format("%0" + BOOKING_ID_WIDTH + "d", nextNumber);
     }
 }

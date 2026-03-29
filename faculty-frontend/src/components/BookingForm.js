@@ -6,6 +6,13 @@ import {
 } from "../services/api";
 
 function BookingForm({ resource, refresh }) {
+  const today = new Date();
+  const maxDateObj = new Date(today);
+  maxDateObj.setMonth(maxDateObj.getMonth() + 1);
+
+  const minDate = today.toISOString().split("T")[0];
+  const maxDate = maxDateObj.toISOString().split("T")[0];
+
   const [form, setForm] = useState({
     resourceId: "",
     date: "",
@@ -17,6 +24,14 @@ function BookingForm({ resource, refresh }) {
 
   const [availability, setAvailability] = useState([]);
   const [bookings, setBookings] = useState([]);
+  const [dateError, setDateError] = useState("");
+
+  const validateDateRange = (dateValue) => {
+    if (!dateValue) return "";
+    if (dateValue < minDate) return "Past dates are not allowed";
+    if (dateValue > maxDate) return "You can only book within one month";
+    return "";
+  };
 
   // ✅ LOAD RESOURCE + USER
   useEffect(() => {
@@ -39,7 +54,7 @@ function BookingForm({ resource, refresh }) {
 
   // ✅ LOAD BOOKINGS BY DATE (NEW 🔥)
   useEffect(() => {
-    if (form.date && resource) {
+    if (form.date && resource && !dateError) {
       getBookingsByDate(form.date).then((res) => {
         // filter only this resource
         const filtered = res.data.filter(
@@ -47,12 +62,19 @@ function BookingForm({ resource, refresh }) {
         );
         setBookings(filtered);
       });
+    } else if (dateError) {
+      setBookings([]);
     }
-  }, [form.date, resource]);
+  }, [form.date, resource, dateError]);
 
   // ✅ HANDLE INPUT
   const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setForm({ ...form, [name]: value });
+
+    if (name === "date") {
+      setDateError(validateDateRange(value));
+    }
   };
 
   // ✅ FILTER AVAILABILITY BY DATE
@@ -119,6 +141,12 @@ function BookingForm({ resource, refresh }) {
   const handleSubmit = (e) => {
     e.preventDefault();
 
+    const dateValidationError = validateDateRange(form.date);
+    if (dateValidationError) {
+      setDateError(dateValidationError);
+      return;
+    }
+
     createBooking(form)
       .then((res) => {
         const bookingId = res.data?.id || "(unknown)";
@@ -150,9 +178,16 @@ function BookingForm({ resource, refresh }) {
         type="date"
         name="date"
         value={form.date}
+        min={minDate}
+        max={maxDate}
         onChange={handleChange}
         required
       />
+      {dateError && (
+        <p style={{ color: "#d32f2f", marginTop: "6px", marginBottom: "0" }}>
+          {dateError}
+        </p>
+      )}
 
       {/* ===================== */}
       {/* 🔴 BOOKED TIME */}
@@ -162,7 +197,7 @@ function BookingForm({ resource, refresh }) {
 
         {!form.date && <p>Select a date</p>}
 
-        {form.date && filteredBookings.length === 0 && (
+        {form.date && !dateError && filteredBookings.length === 0 && (
           <p style={{ color: "gray" }}>No bookings</p>
         )}
 
@@ -192,11 +227,11 @@ function BookingForm({ resource, refresh }) {
 
         {!form.date && <p>Select a date</p>}
 
-        {form.date && remainingSlots.length === 0 && (
+        {form.date && !dateError && remainingSlots.length === 0 && (
           <p style={{ color: "red" }}>No available time</p>
         )}
 
-        {remainingSlots.map((slot, i) => (
+        {!dateError && remainingSlots.map((slot, i) => (
           <div
             key={i}
             onClick={() => handleSlotClick(slot)}
@@ -240,7 +275,7 @@ function BookingForm({ resource, refresh }) {
           required
         />
 
-        <button type="submit">Confirm Booking</button>
+        <button type="submit" disabled={!!dateError}>Confirm Booking</button>
       </form>
     </div>
   );
