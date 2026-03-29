@@ -6,6 +6,7 @@ import com.paf.faculty.model.TicketPriority;
 import org.springframework.data.mongodb.repository.MongoRepository;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface IncidentTicketRepository extends MongoRepository<IncidentTicket, String> {
 
@@ -22,4 +23,6 @@ public interface IncidentTicketRepository extends MongoRepository<IncidentTicket
     List<IncidentTicket> findByStatusOrderByPriorityDesc(TicketStatus status);
 
     long countByStatus(TicketStatus status);
+
+    Optional<IncidentTicket> findTopByIdStartingWithOrderByIdDesc(String prefix);
 }

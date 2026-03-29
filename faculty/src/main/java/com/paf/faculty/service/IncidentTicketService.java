@@ -16,6 +16,9 @@ import java.util.Optional;
 @Service
 public class IncidentTicketService {
 
+    private static final String INCIDENT_ID_PREFIX = "FI";
+    private static final int INCIDENT_ID_WIDTH = 9;
+
     @Autowired
     private IncidentTicketRepository repository;
 
@@ -24,6 +27,10 @@ public class IncidentTicketService {
 
     // ✅ CREATE TICKET
     public IncidentTicket createTicket(IncidentTicket newTicket) {
+
+        if (newTicket.getId() == null || newTicket.getId().isBlank()) {
+            newTicket.setId(generateNextIncidentId());
+        }
 
         // 🔹 SET TIMESTAMPS
         newTicket.setCreatedAt(LocalDateTime.now());
@@ -214,5 +221,19 @@ public class IncidentTicketService {
     // ✅ COUNT BY STATUS
     public long countByStatus(TicketStatus status) {
         return repository.countByStatus(status);
+    }
+
+    private String generateNextIncidentId() {
+        Optional<IncidentTicket> latest = repository.findTopByIdStartingWithOrderByIdDesc(INCIDENT_ID_PREFIX);
+
+        if (latest.isEmpty()) {
+            return INCIDENT_ID_PREFIX + String.format("%0" + INCIDENT_ID_WIDTH + "d", 0);
+        }
+
+        String latestId = latest.get().getId();
+        String numericPart = latestId.substring(INCIDENT_ID_PREFIX.length());
+        int nextNumber = Integer.parseInt(numericPart) + 1;
+
+        return INCIDENT_ID_PREFIX + String.format("%0" + INCIDENT_ID_WIDTH + "d", nextNumber);
     }
 }

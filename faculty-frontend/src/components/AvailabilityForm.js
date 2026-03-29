@@ -1,10 +1,30 @@
-import { useEffect } from "react";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import { createAvailability } from "../services/api";
 import { availabilitySchema } from "../utils/validationSchemas";
 
 function AvailabilityForm({ resource, refresh }) {
+  const today = new Date();
+  const maxDateObj = new Date(today);
+  maxDateObj.setMonth(maxDateObj.getMonth() + 1);
+
+  const minDate = today.toISOString().split("T")[0];
+  const maxDate = maxDateObj.toISOString().split("T")[0];
+
+  const validateDateRange = (dateValue) => {
+    if (!dateValue) return undefined;
+    if (dateValue < minDate) return "Past dates are not allowed";
+    if (dateValue > maxDate) return "You can only book within one month";
+    return undefined;
+  };
+
   const handleSubmit = async (values, { setSubmitting, resetForm }) => {
+    const dateError = validateDateRange(values.date);
+    if (dateError) {
+      alert(dateError);
+      setSubmitting(false);
+      return;
+    }
+
     try {
       await createAvailability(values);
       alert("✅ Availability Added!");
@@ -80,6 +100,14 @@ function AvailabilityForm({ resource, refresh }) {
           endTime: "",
         }}
         validationSchema={availabilitySchema}
+        validate={(values) => {
+          const errors = {};
+          const dateError = validateDateRange(values.date);
+          if (dateError) {
+            errors.date = dateError;
+          }
+          return errors;
+        }}
         onSubmit={handleSubmit}
         validateOnChange={true}
         validateOnBlur={true}
@@ -100,6 +128,8 @@ function AvailabilityForm({ resource, refresh }) {
               <Field
                 type="date"
                 name="date"
+                min={minDate}
+                max={maxDate}
                 style={{
                   ...styles.input,
                   borderColor: touched.date && errors.date ? "#d32f2f" : "#ddd",
