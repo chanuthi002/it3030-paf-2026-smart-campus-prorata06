@@ -327,7 +327,7 @@ export const validateForm = (formData, rules) => {
   return errors;
 };
 
-export default {
+const validationHelpers = {
   countWords,
   validateTitle,
   validateDescription,
@@ -347,3 +347,5 @@ export default {
   validateTimeRange,
   validateForm,
 };
+
+export default validationHelpers;

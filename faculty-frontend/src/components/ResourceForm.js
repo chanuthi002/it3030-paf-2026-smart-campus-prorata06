@@ -1,64 +1,34 @@
-import { useState } from "react";
+import { Formik, Form, Field } from "formik";
 import { createResource } from "../services/api";
+import { resourceSchema } from "../utils/validationSchemas";
+import FormError from "./FormError";
 
 function ResourceForm({ refresh }) {
-  const [form, setForm] = useState({
+  const initialValues = {
     name: "",
     type: "",
     capacity: "",
     location: "",
     status: "ACTIVE",
-  });
-
-  const [errors, setErrors] = useState({});
-
-  // 🔹 HANDLE CHANGE
-  const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-
-    // clear error when user types
-    setErrors({ ...errors, [e.target.name]: "" });
   };
 
-  // 🔹 VALIDATION FUNCTION
-  const validate = () => {
-    let newErrors = {};
+  const handleSubmit = async (values, { setSubmitting, resetForm }) => {
+    try {
+      const payload = {
+        ...values,
+        name: values.name.trim(),
+        capacity: Number(values.capacity),
+      };
 
-    if (!form.name.trim()) newErrors.name = "Name is required";
-    if (!form.type) newErrors.type = "Type is required";
-    if (!form.capacity || form.capacity <= 0)
-      newErrors.capacity = "Capacity must be greater than 0";
-    if (!form.location) newErrors.location = "Location is required";
-
-    return newErrors;
-  };
-
-  // 🔹 SUBMIT
-  const handleSubmit = (e) => {
-    e.preventDefault();
-
-    const validationErrors = validate();
-
-    if (Object.keys(validationErrors).length > 0) {
-      setErrors(validationErrors);
-      return;
-    }
-
-    createResource(form).then(() => {
+      await createResource(payload);
       alert("Resource Added!");
-
+      resetForm();
       if (refresh) refresh();
-
-      setForm({
-        name: "",
-        type: "",
-        capacity: "",
-        location: "",
-        status: "ACTIVE",
-      });
-
-      setErrors({});
-    });
+    } catch (error) {
+      alert(error?.response?.data || "Error adding resource");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   // 🔹 STYLES
@@ -71,61 +41,56 @@ function ResourceForm({ refresh }) {
     gap: "10px",
   };
 
-  const errorStyle = {
-    color: "red",
-    fontSize: "12px",
-  };
-
   return (
-    <form onSubmit={handleSubmit} style={formStyle}>
-      <h3>Add Resource</h3>
+    <Formik
+      initialValues={initialValues}
+      validationSchema={resourceSchema}
+      onSubmit={handleSubmit}
+      validateOnBlur={true}
+      validateOnChange={true}
+    >
+      {({ isSubmitting, isValid }) => (
+        <Form style={formStyle}>
+          <h3>Add Resource</h3>
 
-      <input
-        name="name"
-        placeholder="Name"
-        value={form.name}
-        onChange={handleChange}
-      />
-      {errors.name && <span style={errorStyle}>{errors.name}</span>}
+          <Field name="name" placeholder="Name" />
+          <FormError name="name" />
 
-      {/* 🔽 TYPE DROPDOWN */}
-      <select name="type" value={form.type} onChange={handleChange}>
-        <option value="">Select Type</option>
-        <option value="COMPUTER_LAB">Computer Lab</option>
-        <option value="LECTURE_HALL">Lecture Hall</option>
-        <option value="MEETING_ROOM">Meeting Room</option>
-        <option value="EQUIPMENT">Equipment</option>
-      </select>
-      {errors.type && <span style={errorStyle}>{errors.type}</span>}
+          <Field as="select" name="type">
+            <option value="">Select Type</option>
+            <option value="COMPUTER_LAB">Computer Lab</option>
+            <option value="LECTURE_HALL">Lecture Hall</option>
+            <option value="MEETING_ROOM">Meeting Room</option>
+            <option value="EQUIPMENT">Equipment</option>
+          </Field>
+          <FormError name="type" />
 
-      <input
-        name="capacity"
-        type="number"
-        placeholder="Capacity"
-        value={form.capacity}
-        onChange={handleChange}
-      />
-      {errors.capacity && <span style={errorStyle}>{errors.capacity}</span>}
+          <Field name="capacity" type="number" min="0" placeholder="Capacity" />
+          <FormError name="capacity" />
 
-      {/* 🔽 LOCATION DROPDOWN */}
-      <select name="location" value={form.location} onChange={handleChange}>
-        <option value="">Select Building</option>
-        <option value="Building A">Building A</option>
-        <option value="Building B">Building B</option>
-        <option value="Building C">Building C</option>
-        <option value="Building D">Building D</option>
-        <option value="Building E">Building E</option>
-        <option value="Building F">Building F</option>
-      </select>
-      {errors.location && <span style={errorStyle}>{errors.location}</span>}
+          <Field as="select" name="location">
+            <option value="">Select Building</option>
+            <option value="Building A">Building A</option>
+            <option value="Building B">Building B</option>
+            <option value="Building C">Building C</option>
+            <option value="Building D">Building D</option>
+            <option value="Building E">Building E</option>
+            <option value="Building F">Building F</option>
+          </Field>
+          <FormError name="location" />
 
-      <select name="status" value={form.status} onChange={handleChange}>
-        <option value="ACTIVE">ACTIVE</option>
-        <option value="OUT_OF_SERVICE">OUT_OF_SERVICE</option>
-      </select>
+          <Field as="select" name="status">
+            <option value="ACTIVE">ACTIVE</option>
+            <option value="OUT_OF_SERVICE">OUT_OF_SERVICE</option>
+          </Field>
+          <FormError name="status" />
 
-      <button type="submit">Add Resource</button>
-    </form>
+          <button type="submit" disabled={isSubmitting || !isValid}>
+            {isSubmitting ? "Adding..." : "Add Resource"}
+          </button>
+        </Form>
+      )}
+    </Formik>
   );
 }
 

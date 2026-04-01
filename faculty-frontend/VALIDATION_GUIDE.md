@@ -21,6 +21,7 @@ This documentation provides a comprehensive guide to the global form validation 
 ## 🔧 Installation
 
 ### Prerequisites
+
 - Node.js 14+ installed
 - React 16.8+ (for hooks support)
 
@@ -31,6 +32,7 @@ npm install formik yup
 ```
 
 This installs:
+
 - **Formik**: Form state management library
 - **Yup**: Schema validation library
 
@@ -83,6 +85,7 @@ All valid → Submit enabled
 ### Text Field Validators
 
 #### 1. `countWords(text)`
+
 Count words in a string.
 
 ```javascript
@@ -93,6 +96,7 @@ countWords(""); // Returns: 0
 ```
 
 #### 2. `validateTitle(value)`
+
 Validate title field (max 10 words, required).
 
 ```javascript
@@ -100,11 +104,12 @@ import { validateTitle } from "../utils/validationHelpers";
 
 validateTitle(""); // "Title is required"
 validateTitle("A"); // "Title must be at least 2 characters"
-validateTitle("This is a title with way too many words for the field limit"); 
+validateTitle("This is a title with way too many words for the field limit");
 // "Title cannot exceed 10 words (12 words)"
 ```
 
 #### 3. `validateDescription(value)`
+
 Validate description field (max 50 words, required).
 
 ```javascript
@@ -116,28 +121,31 @@ validateDescription("...very long text..."); // "Description cannot exceed 50 wo
 ```
 
 #### 4. `validateWordCount(value, maxWords, fieldName)`
+
 Generic word count validator for any field.
 
 ```javascript
 import { validateWordCount } from "../utils/validationHelpers";
 
 validateWordCount("Hello World", 5, "Custom Field"); // OK
-validateWordCount("Hello World Test Extra Words", 3, "Custom Field"); 
+validateWordCount("Hello World Test Extra Words", 3, "Custom Field");
 // "Custom Field cannot exceed 3 words (5 words)"
 ```
 
 #### 5. `validateTextLength(value, maxLength, fieldName)`
+
 Validate character length.
 
 ```javascript
 import { validateTextLength } from "../utils/validationHelpers";
 
 validateTextLength("Hello World", 20, "Name"); // OK
-validateTextLength("Hello World Extra", 10, "Name"); 
+validateTextLength("Hello World Extra", 10, "Name");
 // "Name cannot exceed 10 characters (17/10)"
 ```
 
 #### 6. `validateEmail(value)`
+
 Validate email format.
 
 ```javascript
@@ -151,6 +159,7 @@ validateEmail("invalid-email"); // "Invalid email format"
 ### Number Field Validators
 
 #### 1. `validatePositiveNumber(value, fieldName)`
+
 Only allow positive numbers (> 0).
 
 ```javascript
@@ -163,6 +172,7 @@ validatePositiveNumber("", "Count"); // "Count is required"
 ```
 
 #### 2. `validateNonNegativeNumber(value, fieldName)`
+
 Allow zero and positive numbers (≥ 0).
 
 ```javascript
@@ -174,6 +184,7 @@ validateNonNegativeNumber(-1, "Count"); // "Count cannot be negative"
 ```
 
 #### 3. `validateNumberRange(value, min, max, fieldName)`
+
 Validate number is within a range.
 
 ```javascript
@@ -186,6 +197,7 @@ validateNumberRange(15, 1, 10, "Rating"); // "Rating must be between 1 and 10"
 ### Utility Validators
 
 #### 1. `trimValue(value)`
+
 Remove leading/trailing whitespace.
 
 ```javascript
@@ -195,6 +207,7 @@ trimValue("  Hello  "); // "Hello"
 ```
 
 #### 2. `normalizeWhitespace(value)`
+
 Remove extra spaces between words.
 
 ```javascript
@@ -204,6 +217,7 @@ normalizeWhitespace("Hello    World"); // "Hello World"
 ```
 
 #### 3. `validateSelect(value, fieldName)`
+
 Ensure a select field is not empty.
 
 ```javascript
@@ -214,6 +228,7 @@ validateSelect("HIGH", "Priority"); // OK
 ```
 
 #### 4. `validateDate(value, fieldName)`
+
 Validate date format (YYYY-MM-DD).
 
 ```javascript
@@ -224,6 +239,7 @@ validateDate("27-03-2024", "Date"); // "Date format must be YYYY-MM-DD"
 ```
 
 #### 5. `validateTime(value, fieldName)`
+
 Validate time format (HH:MM).
 
 ```javascript
@@ -234,6 +250,7 @@ validateTime("2:30 PM", "Start Time"); // "Time format must be HH:MM (24-hour)"
 ```
 
 #### 6. `validateTimeRange(startTime, endTime)`
+
 Ensure end time is after start time.
 
 ```javascript
@@ -244,6 +261,7 @@ validateTimeRange("17:00", "09:00"); // "End time must be after start time"
 ```
 
 #### 7. `validateFile(file, allowedTypes, maxSizeMB)`
+
 Validate file type and size.
 
 ```javascript
@@ -258,20 +276,25 @@ validateFile(file, ["application/pdf"], 5); // "Only these file types are allowe
 ### Batch Validation
 
 #### `validateForm(formData, rules)`
+
 Validate multiple fields at once.
 
 ```javascript
-import { validateForm, validateTitle, validateEmail } from "../utils/validationHelpers";
+import {
+  validateForm,
+  validateTitle,
+  validateEmail,
+} from "../utils/validationHelpers";
 
 const errors = validateForm(
   {
     title: "",
-    email: "invalid"
+    email: "invalid",
   },
   {
     title: (val) => validateTitle(val),
-    email: (val) => validateEmail(val)
-  }
+    email: (val) => validateEmail(val),
+  },
 );
 
 // Returns:
@@ -298,21 +321,22 @@ These are pre-built Yup field validators that can be composed into custom schema
 ```javascript
 import { validators } from "../utils/validationSchemas";
 
-validators.title          // 10 words max, required
-validators.description    // 50 words max, required
-validators.descriptionOptional  // 50 words max, optional
-validators.email          // Email format, required
-validators.select         // Select required
-validators.number         // Positive number, required
-validators.numberOptional // Optional positive number
-validators.date           // Date (YYYY-MM-DD), required
-validators.time           // Time (HH:MM), required
-validators.file           // Image file, required
+validators.title; // 10 words max, required
+validators.description; // 50 words max, required
+validators.descriptionOptional; // 50 words max, optional
+validators.email; // Email format, required
+validators.select; // Select required
+validators.number; // Positive number, required
+validators.numberOptional; // Optional positive number
+validators.date; // Date (YYYY-MM-DD), required
+validators.time; // Time (HH:MM), required
+validators.file; // Image file, required
 ```
 
 ### Pre-built Form Schemas
 
 #### 1. `reportIncidentSchema`
+
 For reporting incidents/tickets.
 
 ```javascript
@@ -327,10 +351,13 @@ Fields:
 - category: string (required)
 */
 
-const errors = await reportIncidentSchema.validate(formData).catch(err => err);
+const errors = await reportIncidentSchema
+  .validate(formData)
+  .catch((err) => err);
 ```
 
 #### 2. `availabilitySchema`
+
 For adding availability slots.
 
 ```javascript
@@ -346,6 +373,7 @@ Fields:
 ```
 
 #### 3. `bookingSchema`
+
 For creating bookings.
 
 ```javascript
@@ -363,6 +391,7 @@ Fields:
 ```
 
 #### 4. `resourceSchema`
+
 For resource management.
 
 ```javascript
@@ -379,6 +408,7 @@ Fields:
 ```
 
 #### 5. `loginSchema`
+
 For user login.
 
 ```javascript
@@ -392,6 +422,7 @@ Fields:
 ```
 
 #### 6. `userProfileSchema`
+
 For user profile editing.
 
 ```javascript
@@ -506,8 +537,8 @@ function AdvancedForm() {
     <Formik
       initialValues={{ title: "", description: "" }}
       validationSchema={schema}
-      validateOnChange={true}  // Validate as user types
-      validateOnBlur={true}    // Validate when field loses focus
+      validateOnChange={true} // Validate as user types
+      validateOnBlur={true} // Validate when field loses focus
       onSubmit={(values) => {
         console.log("Submitted:", values);
       }}
@@ -517,9 +548,7 @@ function AdvancedForm() {
           <div>
             <label>
               Title
-              {values.title && (
-                <span>({countWords(values.title)} words)</span>
-              )}
+              {values.title && <span>({countWords(values.title)} words)</span>}
             </label>
             <Field
               type="text"
@@ -542,7 +571,8 @@ function AdvancedForm() {
               as="textarea"
               name="description"
               style={{
-                borderColor: touched.description && errors.description ? "red" : "gray",
+                borderColor:
+                  touched.description && errors.description ? "red" : "gray",
               }}
             />
             <ErrorMessage name="description" />
@@ -569,7 +599,7 @@ function DynamicForm() {
       yup.object().shape({
         name: validators.title,
         price: validators.number,
-      })
+      }),
     ),
   });
 
@@ -647,7 +677,10 @@ function DynamicForm() {
 
 ```javascript
 // In Yup schema (automatic)
-yup.string().required().transform(val => val?.trim?.() || "")
+yup
+  .string()
+  .required()
+  .transform((val) => val?.trim?.() || "");
 
 // Or manually in component
 const trimmedValue = value.trim();
@@ -698,32 +731,35 @@ if (error) {
 
 ```javascript
 // ✅ Good
-"Title cannot exceed 10 words (15 words)"
+"Title cannot exceed 10 words (15 words)";
 
 // ❌ Bad
-"maxWords validation failed"
+"maxWords validation failed";
 ```
 
 ### 7. Validate Before Hiding Fields
 
 ```javascript
 // Always display error messages until explicitly addressed
-{touched.field && errors.field && (
-  <span style={{ color: "red" }}>{errors.field}</span>
-)}
+{
+  touched.field && errors.field && (
+    <span style={{ color: "red" }}>{errors.field}</span>
+  );
+}
 ```
 
 ### 8. Handle Async Validation
 
 ```javascript
 const schema = yup.object().shape({
-  email: yup.string()
+  email: yup
+    .string()
     .email()
     .required()
-    .test('unique-email', 'Email already exists', async (value) => {
+    .test("unique-email", "Email already exists", async (value) => {
       const response = await checkEmailExists(value);
       return !response.exists;
-    })
+    }),
 });
 ```
 
@@ -734,6 +770,7 @@ const schema = yup.object().shape({
 ### Problem: Validation not triggering
 
 **Solution:** Set both `validateOnChange` and `validateOnBlur`:
+
 ```javascript
 <Formik
   validateOnChange={true}
@@ -745,27 +782,32 @@ const schema = yup.object().shape({
 ### Problem: Errors not showing
 
 **Solution:** Use `touched` to only show errors after user interaction:
+
 ```javascript
-{touched.field && errors.field && <ErrorMessage name="field" />}
+{
+  touched.field && errors.field && <ErrorMessage name="field" />;
+}
 ```
 
 ### Problem: Custom validation not working
 
 **Solution:** Ensure Yup method is added before schema:
+
 ```javascript
-yup.addMethod(yup.string, "customRule", function() {
+yup.addMethod(yup.string, "customRule", function () {
   // Custom validation logic
 });
 
 // Use after adding the method
 const schema = yup.object().shape({
-  field: yup.string().customRule()
+  field: yup.string().customRule(),
 });
 ```
 
 ### Problem: Form submitting despite errors
 
 **Solution:** Check `isValid` before enabling submit:
+
 ```javascript
 <button disabled={!isValid || isSubmitting}>Submit</button>
 ```
@@ -773,6 +815,7 @@ const schema = yup.object().shape({
 ### Problem: Word count validator not working
 
 **Solution:** Import `countWords` from helpers:
+
 ```javascript
 import { countWords } from "../utils/validationHelpers";
 
@@ -785,7 +828,7 @@ import { countWords } from "../utils/validationHelpers";
 
 - **Validation Helpers**: `src/utils/validationHelpers.js`
 - **Validation Schemas**: `src/utils/validationSchemas.js`
-- **Example Forms**: 
+- **Example Forms**:
   - `src/components/ReportIncidentForm.js`
   - `src/components/AvailabilityForm.js`
 
@@ -793,24 +836,25 @@ import { countWords } from "../utils/validationHelpers";
 
 ## 🔗 Quick Reference
 
-| Validator | Purpose | Usage |
-|-----------|---------|-------|
-| `countWords()` | Count words | `countWords("text")` |
-| `validateTitle()` | Title (10 words max) | Manual validation |
-| `validateDescription()` | Description (50 words max) | Manual validation |
-| `validateEmail()` | Email format | Manual validation |
-| `validateDate()` | Date format (YYYY-MM-DD) | Manual validation |
-| `validateTime()` | Time format (HH:MM) | Manual validation |
-| `validatePositiveNumber()` | Positive numbers only | Manual validation |
-| `reportIncidentSchema` | Incident form validation | `validationSchema={reportIncidentSchema}` |
-| `availabilitySchema` | Availability form validation | `validationSchema={availabilitySchema}` |
-| `createFormSchema()` | Build custom schemas | `createFormSchema({...})` |
+| Validator                  | Purpose                      | Usage                                     |
+| -------------------------- | ---------------------------- | ----------------------------------------- |
+| `countWords()`             | Count words                  | `countWords("text")`                      |
+| `validateTitle()`          | Title (10 words max)         | Manual validation                         |
+| `validateDescription()`    | Description (50 words max)   | Manual validation                         |
+| `validateEmail()`          | Email format                 | Manual validation                         |
+| `validateDate()`           | Date format (YYYY-MM-DD)     | Manual validation                         |
+| `validateTime()`           | Time format (HH:MM)          | Manual validation                         |
+| `validatePositiveNumber()` | Positive numbers only        | Manual validation                         |
+| `reportIncidentSchema`     | Incident form validation     | `validationSchema={reportIncidentSchema}` |
+| `availabilitySchema`       | Availability form validation | `validationSchema={availabilitySchema}`   |
+| `createFormSchema()`       | Build custom schemas         | `createFormSchema({...})`                 |
 
 ---
 
 ## 📞 Support
 
 For questions or issues:
+
 1. Check the troubleshooting section
 2. Review implementation examples
 3. Consult Formik docs: https://formik.org

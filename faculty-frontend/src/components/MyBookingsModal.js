@@ -5,7 +5,11 @@ function MyBookingsModal({ resources, onClose }) {
   const [myBookings, setMyBookings] = useState([]);
   const [selectedDate, setSelectedDate] = useState("");
   const [editingBookingId, setEditingBookingId] = useState(null);
+  const [editingBooking, setEditingBooking] = useState(null);
   const [editData, setEditData] = useState({ date: "", startTime: "", endTime: "" });
+  const [editError, setEditError] = useState("");
+  const [availableSlots, setAvailableSlots] = useState([]);
+  const [loadingSlots, setLoadingSlots] = useState(false);
 
   useEffect(() => {
     loadMyBookings();
@@ -67,23 +71,98 @@ function MyBookingsModal({ resources, onClose }) {
 
   const handleEditClick = (booking) => {
     setEditingBookingId(booking.id);
+    setEditingBooking(booking);
+    setEditError("");
     setEditData({
       date: formatDate(booking.date),
       startTime: booking.startTime,
       endTime: booking.endTime,
     });
+    loadAvailableSlots(booking, formatDate(booking.date));
   };
 
   const handleEditChange = (field, value) => {
+    setEditError("");
     setEditData({ ...editData, [field]: value });
+
+    if (field === "date" && editingBooking) {
+      loadAvailableSlots(editingBooking, value);
+    }
+  };
+
+  const loadAvailableSlots = async (booking, selectedEditDate) => {
+    if (!booking || !selectedEditDate) {
+      setAvailableSlots([]);
+      return;
+    }
+
+    const resource = resources.find((r) => r.id === booking.resourceId);
+    if (!resource) {
+      setAvailableSlots([]);
+      return;
+    }
+
+    try {
+      setLoadingSlots(true);
+
+      const availRes = await getAvailabilityByResource(resource.id);
+      const availability = availRes.data.filter(
+        (a) => a.date?.slice(0, 10) === selectedEditDate
+      );
+
+      const bookRes = await getBookingsByDate(selectedEditDate);
+      const allBookings = bookRes.data.filter(
+        (b) => b.resourceId === resource.id && b.id !== booking.id
+      );
+
+      const remainingSlots = subtractBookings(availability, allBookings);
+      setAvailableSlots(remainingSlots);
+    } catch (err) {
+      console.error("Error loading available slots", err);
+      setAvailableSlots([]);
+    } finally {
+      setLoadingSlots(false);
+    }
+  };
+
+  const validateEditInput = () => {
+    if (!editData.date || !editData.startTime || !editData.endTime) {
+      return "Date, start time, and end time are required.";
+    }
+
+    if (editData.endTime <= editData.startTime) {
+      return "End time must be after start time.";
+    }
+
+    return "";
+  };
+
+  const getAvailableSlotsText = () => {
+    if (loadingSlots) {
+      return "Loading...";
+    }
+
+    if (availableSlots.length === 0) {
+      return "No available slots for this date.";
+    }
+
+    return availableSlots
+      .map((slot) => `${slot.startTime} - ${slot.endTime}`)
+      .join(", ");
   };
 
   const saveEditBooking = async (booking) => {
     try {
+      const inputError = validateEditInput();
+      if (inputError) {
+        setEditError(inputError);
+        return;
+      }
+
       // ✅ VALIDATION: Check availability and conflicts
       const resource = resources.find((r) => r.id === booking.resourceId);
       if (!resource) {
-        alert("Resource not found!");
+        setEditError("Resource not found.");
         return;
       }
 
@@ -102,6 +181,11 @@ function MyBookingsModal({ resources, onClose }) {
       // Calculate remaining slots
       const remainingSlots = subtractBookings(availability, allBookings);
 
+      if (remainingSlots.length === 0) {
+        setEditError("No available time slots for the selected date.");
+        return;
+      }
+
       // Check if the new time fits in remaining slots
       const isValid = remainingSlots.some(
         (slot) =>
@@ -110,7 +194,12 @@ function MyBookingsModal({ resources, onClose }) {
       );
 
       if (!isValid) {
-        alert("❌ Invalid time slot! No availability or conflicting booking at this time.");
+        const slotHint = remainingSlots
+          .map((slot) => `${slot.startTime} - ${slot.endTime}`)
+          .join(", ");
+        setEditError(
+          `Invalid time slot. Please choose a time within available slots: ${slotHint}`
+        );
         return;
       }
 
@@ -122,10 +211,11 @@ function MyBookingsModal({ resources, onClose }) {
         endTime: editData.endTime,
       });
       setEditingBookingId(null);
+      setEditError("");
       loadMyBookings();
     } catch (err) {
       console.error("Error updating booking", err);
-      alert("Unable to update booking: " + (err.response?.data || err.message));
+      setEditError("Unable to update booking: " + (err.response?.data || err.message));
     }
   };
 
@@ -166,13 +256,13 @@ function MyBookingsModal({ resources, onClose }) {
         {filteredBookings.length === 0 ? (
           <p>No bookings found</p>
         ) : (
-          filteredBookings.map((b, i) => {
+          filteredBookings.map((b) => {
             const resource = resources.find(
               (r) => r.id === b.resourceId
             );
 
             return (
-              <div key={i} style={cardStyle}>
+              <div key={b.id} style={cardStyle}>
                   <p><b>Booking ID:</b> {b.id}</p>
                   <p><b>Resource:</b> {resource?.name || b.resourceId}</p>
                   {editingBookingId === b.id ? (
@@ -199,6 +289,10 @@ function MyBookingsModal({ resources, onClose }) {
                           onChange={(e) => handleEditChange("endTime", e.target.value)}
                         />
                       </div>
+                      <div style={slotHintStyle}>
+                        <b>Available Slots:</b> <span>{getAvailableSlotsText()}</span>
+                      </div>
+                      {editError && <p style={errorTextStyle}>{editError}</p>}
                     </>
                   ) : (
                     <p><b>Date:</b> {formatDate(b.date)}</p>
@@ -216,7 +310,17 @@ function MyBookingsModal({ resources, onClose }) {
                     {editingBookingId === b.id ? (
                       <>
                         <button onClick={() => saveEditBooking(b)} style={buttonStyle}>Save</button>
-                        <button onClick={() => setEditingBookingId(null)} style={buttonStyle}>Cancel</button>
+                        <button
+                          onClick={() => {
+                            setEditingBookingId(null);
+                            setEditingBooking(null);
+                            setAvailableSlots([]);
+                            setEditError("");
+                          }}
+                          style={buttonStyle}
+                        >
+                          Cancel
+                        </button>
                       </>
                     ) : (
                       <>
@@ -271,6 +375,21 @@ const buttonStyle = {
   cursor: "pointer",
   backgroundColor: "#007bff",
   color: "white",
+  fontSize: "12px",
+};
+
+const errorTextStyle = {
+  marginTop: "8px",
+  marginBottom: 0,
+  color: "#d32f2f",
+  fontSize: "12px",
+  fontWeight: 600,
+};
+
+const slotHintStyle = {
+  marginTop: "8px",
+  marginBottom: 0,
+  color: "#1f2937",
   fontSize: "12px",
 };
 
