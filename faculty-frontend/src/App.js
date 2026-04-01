@@ -166,11 +166,16 @@ const Dashboard = () => {
   };
 
   return (
-    <div style={{ padding: "20px" }}>
+    <div style={{ padding: "20px",backgroundColor: "#ffffff", minHeight: "100vh" }}>
 
       {/* 🔐 HEADER */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
-        <h1>📊 Faculty Resource Dashboard</h1>
+      <div style={{ position: "relative", display: "flex", justifyContent: "flex-end", alignItems: "center", marginBottom: "20px", minHeight: "72px",backgroundColor: "#D9DDDC", padding: "0 20px", borderRadius: "8px" ,minHeight: "120px",}}>
+        <div style={{ position: "absolute", left: "50%", transform: "translateX(-50%)", textAlign: "center",color: "#1c73ff", }}>
+          <h1 style={{ margin: 0, color: "#1c73ff",fontSize: "50px" }}>CBH Campus</h1>
+          <p style={{ margin: "4px 0 0", fontSize: "20px", fontWeight: "600", color: "#374151" }}>
+            Faculty Resource Dashboard
+          </p>
+        </div>
 
         <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
           {user && (
