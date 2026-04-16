@@ -261,221 +261,456 @@ function ResourceAdminDashboard() {
   const typeOptions = [...new Set(resourceRows.map((resource) => resource.type))];
   const locationOptions = [...new Set(resourceRows.map((resource) => resource.location))];
 
-  const cardStyle = {
-    background: "#ffffff",
-    borderRadius: "12px",
-    padding: "16px",
-    boxShadow: "0 2px 10px rgba(0,0,0,0.08)",
+  // 🎨 Modern Styles
+  const pageStyle = {
+    padding: "24px",
+    background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+    minHeight: "100vh",
+    fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
   };
 
+  const contentStyle = {
+    maxWidth: "1400px",
+    margin: "0 auto",
+  };
+
+  const headerStyle = {
+    marginBottom: "24px",
+  };
+
+  const titleStyle = {
+    fontSize: "32px",
+    fontWeight: "700",
+    color: "white",
+    margin: "0 0 8px 0",
+    textShadow: "2px 2px 4px rgba(0,0,0,0.1)",
+  };
+
+  const subtitleStyle = {
+    color: "rgba(255,255,255,0.9)",
+    marginTop: 0,
+    fontSize: "14px",
+  };
+
+  const cardStyle = {
+    background: "white",
+    borderRadius: "16px",
+    padding: "20px",
+    boxShadow: "0 10px 25px rgba(0,0,0,0.1)",
+    transition: "transform 0.3s ease, box-shadow 0.3s ease",
+  };
+
+  const statsGridStyle = {
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+    gap: "20px",
+    marginBottom: "24px",
+  };
+
+  const statCardStyle = (color) => ({
+    background: "white",
+    borderRadius: "16px",
+    padding: "20px",
+    boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+    borderLeft: `4px solid ${color}`,
+    transition: "transform 0.3s ease",
+  });
+
+  const analyticsCardStyle = {
+    background: "white",
+    borderRadius: "16px",
+    padding: "24px",
+    marginBottom: "24px",
+    boxShadow: "0 10px 25px rgba(0,0,0,0.1)",
+  };
+
+  const filterBarStyle = {
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+    gap: "12px",
+    marginBottom: "24px",
+  };
+
+  const selectStyle = {
+    padding: "10px 12px",
+    border: "2px solid #e0e0e0",
+    borderRadius: "8px",
+    fontSize: "14px",
+    transition: "all 0.3s ease",
+    outline: "none",
+    backgroundColor: "white",
+    cursor: "pointer",
+  };
+
+  const resetButtonStyle = {
+    padding: "10px 16px",
+    border: "2px solid #e0e0e0",
+    borderRadius: "8px",
+    backgroundColor: "white",
+    cursor: "pointer",
+    fontSize: "14px",
+    fontWeight: "600",
+    color: "#dc3545",
+    transition: "all 0.3s ease",
+  };
+
+  const tableStyle = {
+    width: "100%",
+    borderCollapse: "collapse",
+    overflowX: "auto",
+  };
+
+  const tableHeaderStyle = {
+    backgroundColor: "#f8f9fa",
+    borderBottom: "2px solid #e0e0e0",
+  };
+
+  const tableHeaderCellStyle = {
+    padding: "14px 12px",
+    textAlign: "left",
+    fontWeight: "600",
+    color: "#4a5568",
+    fontSize: "13px",
+  };
+
+  const tableRowStyle = {
+    borderBottom: "1px solid #e2e8f0",
+    transition: "background-color 0.2s ease",
+  };
+
+  const tableCellStyle = {
+    padding: "12px",
+    fontSize: "13px",
+    color: "#1a1a2e",
+  };
+
+  const statusBadgeStyle = (status) => {
+    const colors = {
+      Available: { bg: "#d4edda", color: "#155724", icon: "🟢" },
+      Booked: { bg: "#fff3cd", color: "#856404", icon: "🟡" },
+      Maintenance: { bg: "#f8d7da", color: "#721c24", icon: "🔴" },
+    };
+    const style = colors[status] || colors.Available;
+    return {
+      display: "inline-block",
+      padding: "4px 10px",
+      borderRadius: "12px",
+      backgroundColor: style.bg,
+      color: style.color,
+      fontSize: "12px",
+      fontWeight: "600",
+    };
+  };
+
+  const loadingOverlayStyle = {
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    padding: "40px",
+    fontSize: "16px",
+    color: "#666",
+  };
+
+  if (loading) {
+    return (
+      <div style={pageStyle}>
+        <div style={contentStyle}>
+          <div style={cardStyle}>
+            <div style={loadingOverlayStyle}>
+              <span>📊 Loading dashboard data...</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div style={{ padding: "8px" }}>
-      <h2 style={{ marginBottom: "6px" }}>Resource Admin Dashboard</h2>
-      <p style={{ color: "#555", marginTop: 0 }}>
-        Overview, availability, usage analytics, and downloadable reporting.
-      </p>
+    <div style={pageStyle}>
+      <div style={contentStyle}>
+        {/* Header */}
+        <div style={headerStyle}>
+          <h1 style={titleStyle}>📊 Resource Admin Dashboard</h1>
+          <p style={subtitleStyle}>Overview, availability, usage analytics, and downloadable reporting</p>
+        </div>
 
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
-          gap: "12px",
-          marginBottom: "18px",
-        }}
-      >
-        <div style={cardStyle}>
-          <div style={{ color: "#666", fontSize: "13px" }}>Total Resources</div>
-          <div style={{ fontSize: "26px", fontWeight: "700" }}>{statusSummary.total}</div>
-        </div>
-        <div style={cardStyle}>
-          <div style={{ color: "#666", fontSize: "13px" }}>Available</div>
-          <div style={{ fontSize: "26px", fontWeight: "700", color: "#166534" }}>{statusSummary.available}</div>
-        </div>
-        <div style={cardStyle}>
-          <div style={{ color: "#666", fontSize: "13px" }}>Booked</div>
-          <div style={{ fontSize: "26px", fontWeight: "700", color: "#92400e" }}>{statusSummary.booked}</div>
-        </div>
-        <div style={cardStyle}>
-          <div style={{ color: "#666", fontSize: "13px" }}>Maintenance</div>
-          <div style={{ fontSize: "26px", fontWeight: "700", color: "#991b1b" }}>
-            {statusSummary.maintenance}
+        {/* Stats Cards */}
+        <div style={statsGridStyle}>
+          <div style={statCardStyle("#4361ee")}>
+            <div style={{ fontSize: "13px", color: "#666", marginBottom: "8px" }}>Total Resources</div>
+            <div style={{ fontSize: "32px", fontWeight: "700", color: "#1a1a2e" }}>{statusSummary.total}</div>
+            <div style={{ fontSize: "11px", color: "#999", marginTop: "8px" }}>All resources</div>
+          </div>
+          <div style={statCardStyle("#22c55e")}>
+            <div style={{ fontSize: "13px", color: "#666", marginBottom: "8px" }}>Available</div>
+            <div style={{ fontSize: "32px", fontWeight: "700", color: "#166534" }}>{statusSummary.available}</div>
+            <div style={{ fontSize: "11px", color: "#999", marginTop: "8px" }}>Ready to book</div>
+          </div>
+          <div style={statCardStyle("#f59e0b")}>
+            <div style={{ fontSize: "13px", color: "#666", marginBottom: "8px" }}>Booked</div>
+            <div style={{ fontSize: "32px", fontWeight: "700", color: "#92400e" }}>{statusSummary.booked}</div>
+            <div style={{ fontSize: "11px", color: "#999", marginTop: "8px" }}>Currently in use</div>
+          </div>
+          <div style={statCardStyle("#ef4444")}>
+            <div style={{ fontSize: "13px", color: "#666", marginBottom: "8px" }}>Maintenance</div>
+            <div style={{ fontSize: "32px", fontWeight: "700", color: "#991b1b" }}>{statusSummary.maintenance}</div>
+            <div style={{ fontSize: "11px", color: "#999", marginTop: "8px" }}>Out of service</div>
           </div>
         </div>
-      </div>
 
-      <div style={{ ...cardStyle, marginBottom: "18px" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "10px" }}>
-          <h3 style={{ margin: 0 }}>Analytics</h3>
-          <button
-            onClick={generatePdfReport}
-            style={{
-              border: "none",
-              borderRadius: "6px",
-              padding: "8px 12px",
-              backgroundColor: "#0f766e",
-              color: "#fff",
-              cursor: "pointer",
-            }}
-          >
-            Generate PDF Report
-          </button>
-        </div>
+        {/* Analytics Section */}
+        <div style={analyticsCardStyle}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "16px", marginBottom: "20px" }}>
+            <h3 style={{ margin: 0, fontSize: "18px", fontWeight: "600", color: "#1a1a2e" }}>📈 Analytics</h3>
+            <button
+              onClick={generatePdfReport}
+              style={{
+                border: "none",
+                borderRadius: "10px",
+                padding: "10px 20px",
+                background: "linear-gradient(135deg, #0f766e 0%, #0d9488 100%)",
+                color: "white",
+                cursor: "pointer",
+                fontWeight: "600",
+                fontSize: "13px",
+                transition: "all 0.3s ease",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = "translateY(-2px)";
+                e.currentTarget.style.boxShadow = "0 4px 12px rgba(13, 148, 136, 0.3)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = "translateY(0)";
+                e.currentTarget.style.boxShadow = "none";
+              }}
+            >
+              📄 Generate PDF Report
+            </button>
+          </div>
 
-        <div
-          style={{
+          <div style={{
             display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
-            gap: "18px",
-            marginTop: "14px",
-          }}
-        >
-          <div>
-            <h4 style={{ margin: "0 0 8px 0" }}>Availability Split</h4>
-            <Pie
-              data={{
-                labels: ["Available", "Booked", "Maintenance"],
-                datasets: [
-                  {
-                    data: [statusSummary.available, statusSummary.booked, statusSummary.maintenance],
-                    backgroundColor: ["#22c55e", "#f59e0b", "#ef4444"],
+            gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
+            gap: "24px",
+          }}>
+            <div style={{ padding: "16px", background: "#f8f9fa", borderRadius: "12px" }}>
+              <h4 style={{ margin: "0 0 12px 0", fontSize: "14px", color: "#4a5568" }}>Resource Availability Split</h4>
+              <Pie
+                data={{
+                  labels: ["Available", "Booked", "Maintenance"],
+                  datasets: [
+                    {
+                      data: [statusSummary.available, statusSummary.booked, statusSummary.maintenance],
+                      backgroundColor: ["#22c55e", "#f59e0b", "#ef4444"],
+                      borderWidth: 0,
+                    },
+                  ],
+                }}
+                options={{
+                  responsive: true,
+                  maintainAspectRatio: true,
+                  plugins: {
+                    legend: {
+                      position: "bottom",
+                    },
                   },
-                ],
-              }}
-            />
-          </div>
+                }}
+              />
+            </div>
 
-          <div>
-            <h4 style={{ margin: "0 0 8px 0" }}>Usage Stats (Daily / Weekly / Monthly)</h4>
-            <Bar
-              data={{
-                labels: ["Daily", "Weekly", "Monthly"],
-                datasets: [
-                  {
-                    label: "Total usage entries",
-                    data: [
-                      Object.values(usageByDay).reduce((sum, value) => sum + value, 0),
-                      Object.values(usageByWeek).reduce((sum, value) => sum + value, 0),
-                      Object.values(usageByMonth).reduce((sum, value) => sum + value, 0),
-                    ],
-                    backgroundColor: ["#0284c7", "#0ea5e9", "#38bdf8"],
+            <div style={{ padding: "16px", background: "#f8f9fa", borderRadius: "12px" }}>
+              <h4 style={{ margin: "0 0 12px 0", fontSize: "14px", color: "#4a5568" }}>Usage Statistics</h4>
+              <Bar
+                data={{
+                  labels: ["Daily", "Weekly", "Monthly"],
+                  datasets: [
+                    {
+                      label: "Total Bookings",
+                      data: [
+                        Object.values(usageByDay).reduce((sum, value) => sum + value, 0),
+                        Object.values(usageByWeek).reduce((sum, value) => sum + value, 0),
+                        Object.values(usageByMonth).reduce((sum, value) => sum + value, 0),
+                      ],
+                      backgroundColor: ["#0284c7", "#0ea5e9", "#38bdf8"],
+                      borderRadius: 8,
+                    },
+                  ],
+                }}
+                options={{
+                  responsive: true,
+                  maintainAspectRatio: true,
+                  plugins: {
+                    legend: {
+                      position: "top",
+                    },
                   },
-                ],
-              }}
-            />
-          </div>
+                }}
+              />
+            </div>
 
-          <div>
-            <h4 style={{ margin: "0 0 8px 0" }}>Most Frequently Used Resources</h4>
-            <Bar
-              data={{
-                labels: mostUsedResources.map(([name]) => name),
-                datasets: [
-                  {
-                    label: "Bookings",
-                    data: mostUsedResources.map(([, value]) => value),
-                    backgroundColor: "#0f766e",
+            <div style={{ padding: "16px", background: "#f8f9fa", borderRadius: "12px" }}>
+              <h4 style={{ margin: "0 0 12px 0", fontSize: "14px", color: "#4a5568" }}>Most Used Resources</h4>
+              <Bar
+                data={{
+                  labels: mostUsedResources.map(([name]) => name.length > 20 ? name.slice(0, 20) + "..." : name),
+                  datasets: [
+                    {
+                      label: "Total Bookings",
+                      data: mostUsedResources.map(([, value]) => value),
+                      backgroundColor: "#0f766e",
+                      borderRadius: 8,
+                    },
+                  ],
+                }}
+                options={{
+                  indexAxis: "y",
+                  responsive: true,
+                  maintainAspectRatio: true,
+                  plugins: {
+                    legend: {
+                      position: "top",
+                    },
                   },
-                ],
-              }}
-              options={{ indexAxis: "y" }}
-            />
+                }}
+              />
+            </div>
           </div>
         </div>
-      </div>
 
-      <div style={cardStyle}>
-        <h3 style={{ marginTop: 0 }}>Current Availability List</h3>
+        {/* Resources Table Section */}
+        <div style={cardStyle}>
+          <h3 style={{ margin: "0 0 20px 0", fontSize: "18px", fontWeight: "600", color: "#1a1a2e" }}>📋 Resource Availability List</h3>
 
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
-            gap: "10px",
-            marginBottom: "12px",
-          }}
-        >
-          <select
-            value={filters.type}
-            onChange={(event) => setFilters((prev) => ({ ...prev, type: event.target.value }))}
-            style={{ padding: "8px" }}
-          >
-            <option value="">All Types</option>
-            {typeOptions.map((type) => (
-              <option key={type} value={type}>
-                {type}
-              </option>
-            ))}
-          </select>
-
-          <select
-            value={filters.location}
-            onChange={(event) => setFilters((prev) => ({ ...prev, location: event.target.value }))}
-            style={{ padding: "8px" }}
-          >
-            <option value="">All Locations</option>
-            {locationOptions.map((location) => (
-              <option key={location} value={location}>
-                {location}
-              </option>
-            ))}
-          </select>
-
-          <select
-            value={filters.status}
-            onChange={(event) => setFilters((prev) => ({ ...prev, status: event.target.value }))}
-            style={{ padding: "8px" }}
-          >
-            <option value="">All Status</option>
-            <option value="Available">Available</option>
-            <option value="Booked">Booked</option>
-            <option value="Maintenance">Maintenance</option>
-          </select>
-
-          <button
-            onClick={() => setFilters({ type: "", location: "", status: "" })}
-            style={{
-              border: "1px solid #ddd",
-              borderRadius: "6px",
-              backgroundColor: "#fff",
-              cursor: "pointer",
-            }}
-          >
-            Reset Filters
-          </button>
-        </div>
-
-        <div style={{ overflowX: "auto" }}>
-          <table style={{ width: "100%", borderCollapse: "collapse" }}>
-            <thead>
-              <tr style={{ backgroundColor: "#f1f5f9" }}>
-                <th style={{ padding: "10px", textAlign: "left" }}>Resource Name</th>
-                <th style={{ padding: "10px", textAlign: "left" }}>Type</th>
-                <th style={{ padding: "10px", textAlign: "left" }}>Location</th>
-                <th style={{ padding: "10px", textAlign: "left" }}>Capacity</th>
-                <th style={{ padding: "10px", textAlign: "left" }}>Status</th>
-                <th style={{ padding: "10px", textAlign: "left" }}>Remaining Time Today</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredResources.map((resource) => (
-                <tr key={resource.id} style={{ borderTop: "1px solid #e2e8f0" }}>
-                  <td style={{ padding: "10px" }}>{resource.name}</td>
-                  <td style={{ padding: "10px" }}>{resource.type}</td>
-                  <td style={{ padding: "10px" }}>{resource.location}</td>
-                  <td style={{ padding: "10px" }}>{resource.capacity}</td>
-                  <td style={{ padding: "10px" }}>{resource.currentStatus}</td>
-                  <td style={{ padding: "10px" }}>{minutesToLabel(resource.remainingMinutes)}</td>
-                </tr>
+          {/* Filters */}
+          <div style={filterBarStyle}>
+            <select
+              value={filters.type}
+              onChange={(event) => setFilters((prev) => ({ ...prev, type: event.target.value }))}
+              style={selectStyle}
+              onFocus={(e) => e.target.style.borderColor = "#4361ee"}
+              onBlur={(e) => e.target.style.borderColor = "#e0e0e0"}
+            >
+              <option value="">All Types</option>
+              {typeOptions.map((type) => (
+                <option key={type} value={type}>
+                  {type}
+                </option>
               ))}
-              {!loading && filteredResources.length === 0 && (
-                <tr>
-                  <td colSpan={6} style={{ padding: "12px", textAlign: "center", color: "#666" }}>
-                    No resources found for selected filters.
-                  </td>
+            </select>
+
+            <select
+              value={filters.location}
+              onChange={(event) => setFilters((prev) => ({ ...prev, location: event.target.value }))}
+              style={selectStyle}
+              onFocus={(e) => e.target.style.borderColor = "#4361ee"}
+              onBlur={(e) => e.target.style.borderColor = "#e0e0e0"}
+            >
+              <option value="">All Locations</option>
+              {locationOptions.map((location) => (
+                <option key={location} value={location}>
+                  {location}
+                </option>
+              ))}
+            </select>
+
+            <select
+              value={filters.status}
+              onChange={(event) => setFilters((prev) => ({ ...prev, status: event.target.value }))}
+              style={selectStyle}
+              onFocus={(e) => e.target.style.borderColor = "#4361ee"}
+              onBlur={(e) => e.target.style.borderColor = "#e0e0e0"}
+            >
+              <option value="">All Status</option>
+              <option value="Available">Available</option>
+              <option value="Booked">Booked</option>
+              <option value="Maintenance">Maintenance</option>
+            </select>
+
+            <button
+              onClick={() => setFilters({ type: "", location: "", status: "" })}
+              style={resetButtonStyle}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = "#dc3545";
+                e.currentTarget.style.color = "white";
+                e.currentTarget.style.borderColor = "#dc3545";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = "white";
+                e.currentTarget.style.color = "#dc3545";
+                e.currentTarget.style.borderColor = "#e0e0e0";
+              }}
+            >
+              🔄 Reset Filters
+            </button>
+          </div>
+
+          {/* Table */}
+          <div style={{ overflowX: "auto" }}>
+            <table style={tableStyle}>
+              <thead>
+                <tr style={tableHeaderStyle}>
+                  <th style={tableHeaderCellStyle}>Resource Name</th>
+                  <th style={tableHeaderCellStyle}>Type</th>
+                  <th style={tableHeaderCellStyle}>Location</th>
+                  <th style={tableHeaderCellStyle}>Capacity</th>
+                  <th style={tableHeaderCellStyle}>Status</th>
+                  <th style={tableHeaderCellStyle}>Remaining Time Today</th>
                 </tr>
-              )}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {filteredResources.map((resource, index) => (
+                  <tr 
+                    key={resource.id} 
+                    style={{
+                      ...tableRowStyle,
+                      backgroundColor: index % 2 === 0 ? "white" : "#fafafa",
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = "#f1f5f9";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = index % 2 === 0 ? "white" : "#fafafa";
+                    }}
+                  >
+                    <td style={tableCellStyle}>
+                      <strong>{resource.name}</strong>
+                    </td>
+                    <td style={tableCellStyle}>{resource.type}</td>
+                    <td style={tableCellStyle}>{resource.location}</td>
+                    <td style={tableCellStyle}>{resource.capacity}</td>
+                    <td style={tableCellStyle}>
+                      <span style={statusBadgeStyle(resource.currentStatus)}>
+                        {resource.currentStatus}
+                      </span>
+                    </td>
+                    <td style={tableCellStyle}>
+                      <span style={{
+                        fontWeight: "600",
+                        color: resource.remainingMinutes > 0 ? "#22c55e" : "#ef4444",
+                      }}>
+                        {minutesToLabel(resource.remainingMinutes)}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+                {!loading && filteredResources.length === 0 && (
+                  <tr>
+                    <td colSpan={6} style={{ padding: "40px", textAlign: "center", color: "#999" }}>
+                      <div>📭 No resources found for selected filters</div>
+                      <div style={{ fontSize: "12px", marginTop: "8px" }}>Try adjusting your filter criteria</div>
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Loading indicator in table */}
+          {loading && (
+            <div style={loadingOverlayStyle}>
+              <span>⏳ Loading resources...</span>
+            </div>
+          )}
         </div>
       </div>
     </div>
