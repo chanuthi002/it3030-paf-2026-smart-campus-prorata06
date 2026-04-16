@@ -237,79 +237,384 @@ function MyBookingsModal({ resources, onClose }) {
       )
     : myBookings;
 
+  // 🎨 Modern UI Styles
+  const overlayStyle = {
+    position: "fixed",
+    top: 0,
+    left: 0,
+    width: "100%",
+    height: "100%",
+    backgroundColor: "rgba(0, 0, 0, 0.6)",
+    backdropFilter: "blur(4px)",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 1000,
+    fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
+  };
+
+  const modalStyle = {
+    backgroundColor: "#fff",
+    borderRadius: "20px",
+    width: "90%",
+    maxWidth: "600px",
+    maxHeight: "85vh",
+    overflow: "hidden",
+    boxShadow: "0 20px 60px rgba(0, 0, 0, 0.3)",
+    animation: "slideIn 0.3s ease-out",
+  };
+
+  const modalHeaderStyle = {
+    background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+    padding: "20px 24px",
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    borderBottom: "1px solid rgba(255,255,255,0.1)",
+  };
+
+  const modalTitleStyle = {
+    color: "white",
+    margin: 0,
+    fontSize: "20px",
+    fontWeight: "600",
+    display: "flex",
+    alignItems: "center",
+    gap: "8px",
+  };
+
+  const closeButtonStyle = {
+    background: "rgba(255,255,255,0.2)",
+    border: "none",
+    color: "white",
+    fontSize: "20px",
+    cursor: "pointer",
+    width: "32px",
+    height: "32px",
+    borderRadius: "8px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    transition: "all 0.2s ease",
+  };
+
+  const modalContentStyle = {
+    padding: "24px",
+    maxHeight: "calc(85vh - 80px)",
+    overflowY: "auto",
+  };
+
+  const filterSectionStyle = {
+    marginBottom: "24px",
+  };
+
+  const filterLabelStyle = {
+    display: "block",
+    fontSize: "13px",
+    fontWeight: "600",
+    color: "#4a5568",
+    marginBottom: "8px",
+  };
+
+  const filterInputStyle = {
+    width: "100%",
+    padding: "10px 12px",
+    border: "2px solid #e0e0e0",
+    borderRadius: "10px",
+    fontSize: "14px",
+    transition: "all 0.3s ease",
+    outline: "none",
+    fontFamily: "inherit",
+  };
+
+  const emptyStateStyle = {
+    textAlign: "center",
+    padding: "60px 20px",
+    color: "#999",
+  };
+
+  const emptyStateIconStyle = {
+    fontSize: "48px",
+    marginBottom: "16px",
+  };
+
+  const bookingCardStyle = {
+    background: "white",
+    border: "1px solid #e0e0e0",
+    borderRadius: "12px",
+    padding: "16px",
+    marginBottom: "16px",
+    transition: "all 0.3s ease",
+    boxShadow: "0 2px 4px rgba(0,0,0,0.05)",
+  };
+
+  const bookingHeaderStyle = {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+    marginBottom: "12px",
+    paddingBottom: "12px",
+    borderBottom: "2px solid #f0f0f0",
+  };
+
+  const bookingIdStyle = {
+    fontSize: "12px",
+    color: "#666",
+    fontWeight: "500",
+  };
+
+  const resourceNameStyle = {
+    fontSize: "16px",
+    fontWeight: "600",
+    color: "#1a1a2e",
+    marginBottom: "4px",
+  };
+
+  const bookingDetailStyle = {
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))",
+    gap: "12px",
+    marginBottom: "12px",
+  };
+
+  const detailItemStyle = {
+    fontSize: "13px",
+  };
+
+  const detailLabelStyle = {
+    fontWeight: "600",
+    color: "#4a5568",
+    marginRight: "6px",
+  };
+
+  const detailValueStyle = {
+    color: "#1a1a2e",
+  };
+
+  const editFormStyle = {
+    background: "#f8f9fa",
+    borderRadius: "10px",
+    padding: "12px",
+    marginBottom: "12px",
+  };
+
+  const editRowStyle = {
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
+    gap: "12px",
+    marginBottom: "12px",
+  };
+
+  const editFieldStyle = {
+    display: "flex",
+    flexDirection: "column",
+    gap: "6px",
+  };
+
+  const editLabelStyle = {
+    fontSize: "12px",
+    fontWeight: "600",
+    color: "#4a5568",
+  };
+
+  const editInputStyle = {
+    padding: "8px 10px",
+    border: "1px solid #ddd",
+    borderRadius: "8px",
+    fontSize: "13px",
+    transition: "all 0.2s ease",
+    outline: "none",
+  };
+
+  const slotHintStyle = {
+    background: "#e3f2fd",
+    padding: "8px 12px",
+    borderRadius: "8px",
+    fontSize: "12px",
+    color: "#1976d2",
+    marginTop: "8px",
+  };
+
+  const errorTextStyle = {
+    marginTop: "8px",
+    marginBottom: 0,
+    color: "#d32f2f",
+    fontSize: "11px",
+    fontWeight: 600,
+    padding: "6px 10px",
+    background: "#ffebee",
+    borderRadius: "6px",
+  };
+
+  const buttonGroupStyle = {
+    display: "flex",
+    gap: "8px",
+    marginTop: "12px",
+  };
+
+  const buttonStyle = (type = "primary") => {
+    const styles = {
+      primary: {
+        padding: "8px 16px",
+        borderRadius: "8px",
+        border: "none",
+        cursor: "pointer",
+        fontSize: "12px",
+        fontWeight: "600",
+        backgroundColor: "#4361ee",
+        color: "white",
+        transition: "all 0.2s ease",
+      },
+      secondary: {
+        padding: "8px 16px",
+        borderRadius: "8px",
+        border: "none",
+        cursor: "pointer",
+        fontSize: "12px",
+        fontWeight: "600",
+        backgroundColor: "#6c757d",
+        color: "white",
+        transition: "all 0.2s ease",
+      },
+      danger: {
+        padding: "8px 16px",
+        borderRadius: "8px",
+        border: "none",
+        cursor: "pointer",
+        fontSize: "12px",
+        fontWeight: "600",
+        backgroundColor: "#dc3545",
+        color: "white",
+        transition: "all 0.2s ease",
+      },
+      edit: {
+        padding: "6px 12px",
+        borderRadius: "6px",
+        border: "none",
+        cursor: "pointer",
+        fontSize: "11px",
+        fontWeight: "600",
+        backgroundColor: "#28a745",
+        color: "white",
+        transition: "all 0.2s ease",
+      },
+    };
+    return styles[type];
+  };
+
   return (
     <div style={overlayStyle}>
       <div style={modalStyle}>
-        <h3>📅 Your Bookings</h3>
+        <div style={modalHeaderStyle}>
+          <h3 style={modalTitleStyle}>
+            <span>📅</span> Your Bookings
+          </h3>
+          <button 
+            onClick={onClose} 
+            style={closeButtonStyle}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.3)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.2)";
+            }}
+          >
+            ✕
+          </button>
+        </div>
 
-        <button onClick={onClose}>❌</button>
+        <div style={modalContentStyle}>
+          {/* 📅 DATE FILTER */}
+          <div style={filterSectionStyle}>
+            <label style={filterLabelStyle}>Filter by Date</label>
+            <input
+              type="date"
+              value={selectedDate}
+              onChange={(e) => setSelectedDate(e.target.value)}
+              style={filterInputStyle}
+              onFocus={(e) => e.target.style.borderColor = "#4361ee"}
+              onBlur={(e) => e.target.style.borderColor = "#e0e0e0"}
+            />
+          </div>
 
-        {/* 📅 DATE FILTER */}
-        <input
-          type="date"
-          value={selectedDate}
-          onChange={(e) => setSelectedDate(e.target.value)}
-          style={{ margin: "10px 0" }}
-        />
+          {/* 📋 LIST */}
+          {filteredBookings.length === 0 ? (
+            <div style={emptyStateStyle}>
+              <div style={emptyStateIconStyle}>📭</div>
+              <p style={{ margin: 0, fontSize: "14px" }}>No bookings found</p>
+              {selectedDate && (
+                <p style={{ fontSize: "12px", color: "#bbb", marginTop: "8px" }}>
+                  No bookings for the selected date
+                </p>
+              )}
+            </div>
+          ) : (
+            filteredBookings.map((b) => {
+              const resource = resources.find(
+                (r) => r.id === b.resourceId
+              );
 
-        {/* 📋 LIST */}
-        {filteredBookings.length === 0 ? (
-          <p>No bookings found</p>
-        ) : (
-          filteredBookings.map((b) => {
-            const resource = resources.find(
-              (r) => r.id === b.resourceId
-            );
+              return (
+                <div key={b.id} style={bookingCardStyle}>
+                  <div style={bookingHeaderStyle}>
+                    <div>
+                      <div style={bookingIdStyle}>Booking #{b.id}</div>
+                      <div style={resourceNameStyle}>{resource?.name || b.resourceId}</div>
+                    </div>
+                  </div>
 
-            return (
-              <div key={b.id} style={cardStyle}>
-                  <p><b>Booking ID:</b> {b.id}</p>
-                  <p><b>Resource:</b> {resource?.name || b.resourceId}</p>
                   {editingBookingId === b.id ? (
-                    <>
-                      <div style={{ marginTop: "8px" }}>
-                        <label style={{ marginRight: "6px" }}>Date:</label>
-                        <input
-                          type="date"
-                          value={editData.date}
-                          onChange={(e) => handleEditChange("date", e.target.value)}
-                        />
+                    <div style={editFormStyle}>
+                      <div style={editRowStyle}>
+                        <div style={editFieldStyle}>
+                          <label style={editLabelStyle}>Date</label>
+                          <input
+                            type="date"
+                            value={editData.date}
+                            onChange={(e) => handleEditChange("date", e.target.value)}
+                            style={editInputStyle}
+                          />
+                        </div>
+                        <div style={editFieldStyle}>
+                          <label style={editLabelStyle}>Start Time</label>
+                          <input
+                            type="time"
+                            value={editData.startTime}
+                            onChange={(e) => handleEditChange("startTime", e.target.value)}
+                            style={editInputStyle}
+                          />
+                        </div>
+                        <div style={editFieldStyle}>
+                          <label style={editLabelStyle}>End Time</label>
+                          <input
+                            type="time"
+                            value={editData.endTime}
+                            onChange={(e) => handleEditChange("endTime", e.target.value)}
+                            style={editInputStyle}
+                          />
+                        </div>
                       </div>
-                      <div style={{ marginTop: "8px" }}>
-                        <label style={{ marginRight: "6px" }}>Start:</label>
-                        <input
-                          type="time"
-                          value={editData.startTime}
-                          onChange={(e) => handleEditChange("startTime", e.target.value)}
-                        />
-                        <label style={{ margin: "0 6px" }}>End:</label>
-                        <input
-                          type="time"
-                          value={editData.endTime}
-                          onChange={(e) => handleEditChange("endTime", e.target.value)}
-                        />
-                      </div>
+
                       <div style={slotHintStyle}>
-                        <b>Available Slots:</b> <span>{getAvailableSlotsText()}</span>
+                        <strong>📅 Available Slots:</strong> {getAvailableSlotsText()}
                       </div>
-                      {editError && <p style={errorTextStyle}>{editError}</p>}
-                    </>
-                  ) : (
-                    <p><b>Date:</b> {formatDate(b.date)}</p>
-                  )}
+                      {editError && <p style={errorTextStyle}>⚠️ {editError}</p>}
 
-                  {editingBookingId === b.id ? (
-                    <p><b>Time:</b> {editData.startTime} - {editData.endTime}</p>
-                  ) : (
-                    <p><b>Time:</b> {b.startTime} - {b.endTime}</p>
-                  )}
-
-                  <p><b>Booked By:</b> {b.bookedBy}</p>
-
-                  <div style={{ marginTop: "8px", display: "flex", gap: "8px" }}>
-                    {editingBookingId === b.id ? (
-                      <>
-                        <button onClick={() => saveEditBooking(b)} style={buttonStyle}>Save</button>
+                      <div style={buttonGroupStyle}>
+                        <button 
+                          onClick={() => saveEditBooking(b)} 
+                          style={buttonStyle("primary")}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.transform = "translateY(-1px)";
+                            e.currentTarget.style.backgroundColor = "#2b3cb0";
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.transform = "translateY(0)";
+                            e.currentTarget.style.backgroundColor = "#4361ee";
+                          }}
+                        >
+                          💾 Save Changes
+                        </button>
                         <button
                           onClick={() => {
                             setEditingBookingId(null);
@@ -317,80 +622,77 @@ function MyBookingsModal({ resources, onClose }) {
                             setAvailableSlots([]);
                             setEditError("");
                           }}
-                          style={buttonStyle}
+                          style={buttonStyle("secondary")}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.transform = "translateY(-1px)";
+                            e.currentTarget.style.backgroundColor = "#5a6268";
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.transform = "translateY(0)";
+                            e.currentTarget.style.backgroundColor = "#6c757d";
+                          }}
                         >
-                          Cancel
+                          ❌ Cancel
                         </button>
-                      </>
-                    ) : (
-                      <>
-                        <button onClick={() => handleEditClick(b)} style={buttonStyle}>Edit</button>
-                        <button onClick={() => removeBooking(b.id)} style={buttonStyle}>Delete</button>
-                      </>
-                    )}
-                  </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <div style={bookingDetailStyle}>
+                        <div style={detailItemStyle}>
+                          <span style={detailLabelStyle}>📅 Date:</span>
+                          <span style={detailValueStyle}>{formatDate(b.date)}</span>
+                        </div>
+                        <div style={detailItemStyle}>
+                          <span style={detailLabelStyle}>⏰ Time:</span>
+                          <span style={detailValueStyle}>{b.startTime} - {b.endTime}</span>
+                        </div>
+                        <div style={detailItemStyle}>
+                          <span style={detailLabelStyle}>👤 Booked By:</span>
+                          <span style={detailValueStyle}>{b.bookedBy}</span>
+                        </div>
+                      </div>
+
+                      <div style={buttonGroupStyle}>
+                        <button 
+                          onClick={() => handleEditClick(b)} 
+                          style={buttonStyle("edit")}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.transform = "translateY(-1px)";
+                            e.currentTarget.style.backgroundColor = "#218838";
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.transform = "translateY(0)";
+                            e.currentTarget.style.backgroundColor = "#28a745";
+                          }}
+                        >
+                          ✏️ Edit
+                        </button>
+                        <button 
+                          onClick={() => removeBooking(b.id)} 
+                          style={buttonStyle("danger")}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.transform = "translateY(-1px)";
+                            e.currentTarget.style.backgroundColor = "#c82333";
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.transform = "translateY(0)";
+                            e.currentTarget.style.backgroundColor = "#dc3545";
+                          }}
+                        >
+                          🗑️ Delete
+                        </button>
+                      </div>
+                    </>
+                  )}
                 </div>
-            );
-          })
-        )}
+              );
+            })
+          )}
+        </div>
       </div>
     </div>
   );
 }
-
-// 🎨 STYLES
-const overlayStyle = {
-  position: "fixed",
-  top: 0,
-  left: 0,
-  width: "100%",
-  height: "100%",
-  backgroundColor: "rgba(0,0,0,0.5)",
-  display: "flex",
-  justifyContent: "center",
-  alignItems: "center",
-  zIndex: 1000,
-};
-
-const modalStyle = {
-  backgroundColor: "#fff",
-  padding: "20px",
-  borderRadius: "10px",
-  width: "500px",
-  maxHeight: "80vh",
-  overflowY: "auto",
-};
-
-const cardStyle = {
-  border: "1px solid #ccc",
-  padding: "10px",
-  marginTop: "10px",
-  borderRadius: "5px",
-};
-
-const buttonStyle = {
-  padding: "6px 10px",
-  borderRadius: "5px",
-  border: "none",
-  cursor: "pointer",
-  backgroundColor: "#007bff",
-  color: "white",
-  fontSize: "12px",
-};
-
-const errorTextStyle = {
-  marginTop: "8px",
-  marginBottom: 0,
-  color: "#d32f2f",
-  fontSize: "12px",
-  fontWeight: 600,
-};
-
-const slotHintStyle = {
-  marginTop: "8px",
-  marginBottom: 0,
-  color: "#1f2937",
-  fontSize: "12px",
-};
 
 export default MyBookingsModal;
