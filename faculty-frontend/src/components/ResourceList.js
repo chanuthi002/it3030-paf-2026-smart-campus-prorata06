@@ -826,7 +826,7 @@ function ResourceList({ reload, userRole, onBook, onAddAvailability }) {
                       <>
                         <button onClick={() => onBook(r)} style={cardButtonPrimaryStyle}>📖 Book</button>
                         {user?.role === "ADMIN" && (
-                          <button onClick={() => onAddAvailability(r)} style={cardButtonStyle}>➕ Add Availability</button>
+                          <button onClick={() => onAddAvailability(r)} style={addAvailabilityButtonStyle}>➕ Add Availability</button>
                         )}
                       </>
                     )}
@@ -1000,6 +1000,19 @@ const cardButtonPrimaryStyle = {
   fontSize: "12px",
   fontWeight: "600",
   backgroundColor: "#4361ee",
+  color: "white",
+  transition: "all 0.2s ease"
+};
+
+// 🟠 NEW COLOR FOR ADD AVAILABILITY BUTTON - Orange/Amber Theme
+const addAvailabilityButtonStyle = {
+  padding: "8px 12px",
+  borderRadius: "8px",
+  border: "none",
+  cursor: "pointer",
+  fontSize: "12px",
+  fontWeight: "600",
+  background: "linear-gradient(135deg, #f59e0b 0%, #d97706 100%)",
   color: "white",
   transition: "all 0.2s ease"
 };
