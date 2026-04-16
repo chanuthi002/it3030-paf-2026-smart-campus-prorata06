@@ -666,7 +666,7 @@ function ResourceList({ reload, userRole, onBook, onAddAvailability }) {
       )}
 
       {/* 📦 MODERN RESOURCE CARDS */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: "24px" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: "24px" }}>
         {filteredResources.length === 0 ? (
           <div style={{ width: "100%", textAlign: "center", padding: "60px 20px", background: "white", borderRadius: "12px", gridColumn: "1/-1" }}>
             <p style={{ fontSize: "18px", color: "#999", margin: 0 }}>📭 No resources found matching your filters</p>
@@ -813,22 +813,86 @@ function ResourceList({ reload, userRole, onBook, onAddAvailability }) {
                     </div>
                   )}
 
-                  {/* Action Buttons */}
-                  <div style={{ display: "flex", gap: "8px", marginTop: "16px", flexWrap: "wrap" }}>
+                  {/* Action Buttons - IMPROVED LAYOUT */}
+                  <div style={{ marginTop: "20px" }}>
+                    {/* Admin Actions */}
                     {user?.role === "ADMIN" && (
-                      <>
-                        <button onClick={() => handleEdit(r)} style={cardButtonStyle}>✏️ Edit</button>
-                        <button onClick={() => handleDelete(r.id)} style={{ ...cardButtonStyle, backgroundColor: "#dc3545" }}>🗑️ Delete</button>
-                      </>
+                      <div style={{
+                        display: "grid",
+                        gridTemplateColumns: "1fr 1fr",
+                        gap: "10px",
+                        marginBottom: "12px"
+                      }}>
+                        <button 
+                          onClick={() => handleEdit(r)} 
+                          style={cardButtonStyle}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor = "#5a6268";
+                            e.currentTarget.style.transform = "translateY(-1px)";
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor = "#6c757d";
+                            e.currentTarget.style.transform = "translateY(0)";
+                          }}
+                        >
+                          ✏️ Edit
+                        </button>
+                        <button 
+                          onClick={() => handleDelete(r.id)} 
+                          style={{ ...cardButtonStyle, backgroundColor: "#dc3545" }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor = "#c82333";
+                            e.currentTarget.style.transform = "translateY(-1px)";
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor = "#dc3545";
+                            e.currentTarget.style.transform = "translateY(0)";
+                          }}
+                        >
+                          🗑️ Delete
+                        </button>
+                      </div>
                     )}
 
+                    {/* User Actions */}
                     {r.status === "ACTIVE" && (userRole === "ADMIN" || userRole === "USER") && (
-                      <>
-                        <button onClick={() => onBook(r)} style={cardButtonPrimaryStyle}>📖 Book</button>
+                      <div style={{
+                        display: "grid",
+                        gridTemplateColumns: user?.role === "ADMIN" ? "1fr 1fr" : "1fr",
+                        gap: "10px"
+                      }}>
+                        <button 
+                          onClick={() => onBook(r)} 
+                          style={cardButtonPrimaryStyle}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor = "#2b3cb0";
+                            e.currentTarget.style.transform = "translateY(-1px)";
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor = "#4361ee";
+                            e.currentTarget.style.transform = "translateY(0)";
+                          }}
+                        >
+                          📖 Book
+                        </button>
+                        
                         {user?.role === "ADMIN" && (
-                          <button onClick={() => onAddAvailability(r)} style={addAvailabilityButtonStyle}>➕ Add Availability</button>
+                          <button 
+                            onClick={() => onAddAvailability(r)} 
+                            style={addAvailabilityButtonStyle}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.transform = "translateY(-1px)";
+                              e.currentTarget.style.boxShadow = "0 4px 12px rgba(245, 158, 11, 0.3)";
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.transform = "translateY(0)";
+                              e.currentTarget.style.boxShadow = "none";
+                            }}
+                          >
+                            ➕ Add Availability
+                          </button>
                         )}
-                      </>
+                      </div>
                     )}
                   </div>
                 </div>
@@ -981,40 +1045,43 @@ const infoValueStyle = {
 };
 
 const cardButtonStyle = {
-  padding: "8px 12px",
+  padding: "10px 12px",
   borderRadius: "8px",
   border: "none",
   cursor: "pointer",
-  fontSize: "12px",
+  fontSize: "13px",
   fontWeight: "600",
   backgroundColor: "#6c757d",
   color: "white",
-  transition: "all 0.2s ease"
+  transition: "all 0.2s ease",
+  width: "100%"
 };
 
 const cardButtonPrimaryStyle = {
-  padding: "8px 12px",
+  padding: "10px 12px",
   borderRadius: "8px",
   border: "none",
   cursor: "pointer",
-  fontSize: "12px",
+  fontSize: "13px",
   fontWeight: "600",
   backgroundColor: "#4361ee",
   color: "white",
-  transition: "all 0.2s ease"
+  transition: "all 0.2s ease",
+  width: "100%"
 };
 
-// 🟠 NEW COLOR FOR ADD AVAILABILITY BUTTON - Orange/Amber Theme
+// 🟠 ADD AVAILABILITY BUTTON - Orange/Amber Theme
 const addAvailabilityButtonStyle = {
-  padding: "8px 12px",
+  padding: "10px 12px",
   borderRadius: "8px",
   border: "none",
   cursor: "pointer",
-  fontSize: "12px",
+  fontSize: "13px",
   fontWeight: "600",
   background: "linear-gradient(135deg, #f59e0b 0%, #d97706 100%)",
   color: "white",
-  transition: "all 0.2s ease"
+  transition: "all 0.2s ease",
+  width: "100%"
 };
 
 const smallButtonStyle = {
