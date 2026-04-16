@@ -436,18 +436,28 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* 🔧 QUICK ACTIONS - NEW LAYOUT */}
+      {/* 🔧 QUICK ACTIONS - REORGANIZED LAYOUT */}
       <div style={{ 
         display: "flex", 
-        justifyContent: "space-between", 
+        justifyContent: "center",
         alignItems: "center",
         marginBottom: "24px", 
         flexWrap: "wrap",
-        gap: "12px"
+        gap: "12px",
+        background: "white",
+        padding: "16px 24px",
+        borderRadius: "12px",
+        boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
       }}>
-        {/* LEFT SIDE BUTTONS */}
-        <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
-          {/* ADMIN ONLY - ADD RESOURCE */}
+        {/* GROUP 1: Resource Management */}
+        <div style={{ 
+          display: "flex", 
+          gap: "10px", 
+          alignItems: "center",
+          paddingRight: "12px",
+          borderRight: "1px solid #e0e0e0"
+        }}>
+          <span style={{ fontSize: "12px", color: "#666", fontWeight: "500" }}>Resources:</span>
           {user?.role === "ADMIN" && (
             <button 
               onClick={() => setShowForm(true)}
@@ -465,7 +475,6 @@ const Dashboard = () => {
             </button>
           )}
 
-          {/* ADMIN ONLY - RESOURCE ADMIN DASHBOARD */}
           {user?.role === "ADMIN" && (
             <button
               onClick={() => {
@@ -484,14 +493,20 @@ const Dashboard = () => {
                 e.currentTarget.style.boxShadow = "0 2px 4px rgba(0,0,0,0.1)";
               }}
             >
-              🧭 Resource Admin Dashboard
+              🧭 Resource Dashboard
             </button>
           )}
         </div>
 
-        {/* RIGHT SIDE BUTTONS */}
-        <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
-          {/* ADMIN & STAFF & USER - REPORT INCIDENT */}
+        {/* GROUP 2: Incident Management */}
+        <div style={{ 
+          display: "flex", 
+          gap: "10px", 
+          alignItems: "center",
+          paddingRight: "12px",
+          borderRight: "1px solid #e0e0e0"
+        }}>
+          <span style={{ fontSize: "12px", color: "#666", fontWeight: "500" }}>Incidents:</span>
           {(user?.role === "ADMIN" || user?.role === "USER") && (
             <button 
               onClick={() => setShowReportIncident(true)}
@@ -509,7 +524,6 @@ const Dashboard = () => {
             </button>
           )}
 
-          {/* ADMIN & STAFF ONLY - INCIDENT DASHBOARD */}
           {(user?.role === "STAFF" || user?.role === "ADMIN") && (
             <button 
               onClick={() => setShowIncidentDashboard(true)}
@@ -527,25 +541,6 @@ const Dashboard = () => {
             </button>
           )}
 
-          {/* ADMIN ONLY - BOOKING DASHBOARD */}
-          {user?.role === "ADMIN" && (
-            <button 
-              onClick={() => setShowAdminDashboard(true)}
-              style={adminBookingButtonStyle}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = "translateY(-2px)";
-                e.currentTarget.style.boxShadow = "0 6px 12px rgba(232, 62, 140, 0.3)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = "translateY(0)";
-                e.currentTarget.style.boxShadow = "0 2px 4px rgba(0,0,0,0.1)";
-              }}
-            >
-              📊 Admin Booking Dashboard
-            </button>
-          )}
-
-          {/* ADMIN ONLY - INCIDENT ADMIN DASHBOARD */}
           {user?.role === "ADMIN" && (
             <button
               onClick={() => {
@@ -564,10 +559,31 @@ const Dashboard = () => {
                 e.currentTarget.style.boxShadow = "0 2px 4px rgba(0,0,0,0.1)";
               }}
             >
-              🛠️ Incident Admin Dashboard
+              🛠️ Admin Incident Dashboard
             </button>
           )}
         </div>
+
+        {/* GROUP 3: Booking Management */}
+        {user?.role === "ADMIN" && (
+          <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+            <span style={{ fontSize: "12px", color: "#666", fontWeight: "500" }}>Bookings:</span>
+            <button 
+              onClick={() => setShowAdminDashboard(true)}
+              style={adminBookingButtonStyle}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = "translateY(-2px)";
+                e.currentTarget.style.boxShadow = "0 6px 12px rgba(232, 62, 140, 0.3)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = "translateY(0)";
+                e.currentTarget.style.boxShadow = "0 2px 4px rgba(0,0,0,0.1)";
+              }}
+            >
+              📊 Admin Booking Dashboard
+            </button>
+          </div>
+        )}
       </div>
 
       {/* 📋 RESOURCE LIST - SHOW FOR ADMIN, STAFF, USER */}
