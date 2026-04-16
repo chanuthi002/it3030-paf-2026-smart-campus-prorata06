@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import {
   getAllResources,
   deleteResource,
@@ -7,910 +7,500 @@ import {
   createAvailability,
   updateAvailability,
   deleteAvailability,
-  getUserNotifications,
-  markNotificationAsRead,
-  deleteNotification,
-  clearAllNotifications,
-  getIncidentsByReporter,
 } from "../services/api";
 
-import MyBookingsModal from "./MyBookingsModal";
-import MyIncidentsModal from "./MyIncidentsModal";
-import BookingHistoryModal from "./BookingHistoryModal";
-import AdminBookingDashboard from "./AdminBookingDashboard";
-
-function ResourceList({ reload, userRole, onBook, onAddAvailability }) {
-
+function ResourceList({ reload }) {
   const [resources, setResources] = useState([]);
   const [availabilityMap, setAvailabilityMap] = useState({});
-
-  const [editingId, setEditingId] = useState(null);
-  const [editForm, setEditForm] = useState({
-    name: "",
-    type: "",
-    capacity: "",
-    location: "",
-    status: "ACTIVE",
-  });
-
   const [user, setUser] = useState(null);
 
-  // 🔥 NEW STATES
-  const [showMyBookings, setShowMyBookings] = useState(false);
-  const [showBookingHistory, setShowBookingHistory] = useState(false);
-  const [showAdminDashboard, setShowAdminDashboard] = useState(false);
-  const [showNotifications, setShowNotifications] = useState(false);
-  const [showMyIncidents, setShowMyIncidents] = useState(false);
-  const [myIncidents, setMyIncidents] = useState([]);
-
-  const [notifications, setNotifications] = useState([]);
-
-  // 🔍 FILTER STATES
+  // Filter States
+  const [showFilterModal, setShowFilterModal] = useState(false);
   const [filters, setFilters] = useState({
-    type: "",
-    capacity: "",
-    location: "",
-    status: "",
+    type: "All Types",
+    minCapacity: "",
+    location: "All Locations",
+    status: "All Status"
   });
 
-  const [showFilters, setShowFilters] = useState(false);
-
-  // ⏰ AVAILABILITY EDIT STATES
-  const [editingAvailabilityId, setEditingAvailabilityId] = useState(null);
+  // Modal States
+  const [showEditResourceModal, setShowEditResourceModal] = useState(false);
   const [showEditAvailabilityModal, setShowEditAvailabilityModal] = useState(false);
-  const [editingAvailability, setEditingAvailability] = useState(null);
-  const [editAvailabilityForm, setEditAvailabilityForm] = useState({
-    date: "",
-    startTime: "",
-    endTime: "",
-  });
+  const [showAddAvailabilityModal, setShowAddAvailabilityModal] = useState(false);
+  const [showBookingModal, setShowBookingModal] = useState(false);
+  const [showNotificationsModal, setShowNotificationsModal] = useState(false);
+  const [showYourBookingsModal, setShowYourBookingsModal] = useState(false);
+  const [showBookingHistoryModal, setShowBookingHistoryModal] = useState(false);
+  const [showIncidentModal, setShowIncidentModal] = useState(false);
 
-  // LOAD USER
+  const [selectedResource, setSelectedResource] = useState(null);
+  const [selectedAvailability, setSelectedAvailability] = useState(null);
+
+  // Form States
+  const [editForm, setEditForm] = useState({ name: "", location: "", capacity: "", status: "" });
+  const [availabilityForm, setAvailabilityForm] = useState({ startTime: "", endTime: "" });
+  const [bookingForm, setBookingForm] = useState({ date: "", startTime: "", endTime: "" });
+
+  // Dummy Bookings
+  const [yourBookings] = useState([
+    {
+      id: "69c5f3ed4d8c006295553202",
+      resourceName: "Projector",
+      date: "2026-03-30",
+      startTime: "08:38:00",
+      endTime: "00:38:00",
+      bookedBy: "chanuthi wakista"
+    }
+  ]);
+
+  // Filtered Resources
+  const filteredResources = useMemo(() => {
+    return resources.filter((r) => {
+      if (filters.type !== "All Types" && r.type !== filters.type) return false;
+      if (filters.minCapacity && Number(r.capacity) < Number(filters.minCapacity)) return false;
+      if (filters.location !== "All Locations" && r.location !== filters.location) return false;
+      if (filters.status !== "All Status" && r.status !== filters.status) return false;
+      return true;
+    });
+  }, [resources, filters]);
+
+  // Styles
+  const buttonBase = {
+    padding: "10px 16px",
+    borderRadius: "8px",
+    border: "none",
+    cursor: "pointer",
+    fontSize: "13px",
+    fontWeight: "600",
+    transition: "all 0.25s ease",
+    display: "flex",
+    alignItems: "center",
+    gap: "6px",
+  };
+
+  const buttonStyles = {
+    primary: { ...buttonBase, background: "linear-gradient(135deg, #6366f1, #4f46e5)", color: "#fff" },
+    success: { ...buttonBase, background: "linear-gradient(135deg, #22c55e, #16a34a)", color: "#fff" },
+    danger: { ...buttonBase, background: "linear-gradient(135deg, #ef4444, #dc2626)", color: "#fff" },
+    warning: { ...buttonBase, background: "linear-gradient(135deg, #f59e0b, #d97706)", color: "#fff" },
+    small: { padding: "6px 10px", fontSize: "11px" },
+  };
+
+  const navButtonStyle = {
+    padding: "10px 16px",
+    background: "transparent",
+    border: "none",
+    color: "#374151",
+    fontSize: "14px",
+    fontWeight: "500",
+    cursor: "pointer",
+    borderRadius: "8px",
+    transition: "all 0.2s ease",
+    display: "flex",
+    alignItems: "center",
+    gap: "6px",
+  };
+
+  const modalOverlay = {
+    position: "fixed", top: 0, left: 0, right: 0, bottom: 0,
+    backgroundColor: "rgba(0,0,0,0.65)", display: "flex",
+    alignItems: "center", justifyContent: "center", zIndex: 1000
+  };
+
+  const modalContent = {
+    background: "#fff", padding: "24px", borderRadius: "12px",
+    width: "460px", maxWidth: "92%", boxShadow: "0 15px 35px rgba(0,0,0,0.25)"
+  };
+
   useEffect(() => {
     const stored = JSON.parse(localStorage.getItem("user"));
     setUser(stored);
   }, []);
 
-  // 🔔 LOAD NOTIFICATIONS FROM BACKEND
-  const loadNotifications = () => {
-    if (user?.id) {
-      getUserNotifications(user.id)
-        .then((res) => {
-          setNotifications(res.data || []);
-        })
-        .catch((err) => {
-          console.log("Error loading notifications:", err.message);
-        });
-    }
-  };
-
-  useEffect(() => {
-    loadNotifications();
-  }, [user?.id]);
-
-  // 🔔 HANDLE NOTIFICATION ACTIONS
-  const handleMarkAsRead = (notificationId) => {
-    markNotificationAsRead(notificationId)
-      .then(() => {
-        loadNotifications();
-      })
-      .catch((err) => {
-        console.log("Error marking as read:", err.message);
-      });
-  };
-
-  const handleDeleteNotification = (notificationId) => {
-    deleteNotification(notificationId)
-      .then(() => {
-        loadNotifications();
-      })
-      .catch((err) => {
-        console.log("Error deleting notification:", err.message);
-      });
-  };
-
-  const handleClearAllNotifications = () => {
-    if (!window.confirm("Clear all notifications?")) return;
-
-    clearAllNotifications(user?.id)
-      .then(() => {
-        setNotifications([]);
-      })
-      .catch((err) => {
-        console.log("Error clearing notifications:", err.message);
-      });
-  };
-
-  // 🚨 LOAD USER'S INCIDENTS
-  const loadMyIncidents = () => {
-    if (user?.id) {
-      getIncidentsByReporter(user.id)
-        .then((res) => {
-          setMyIncidents(res.data || []);
-        })
-        .catch((err) => {
-          console.log("Error loading incidents:", err.message);
-        });
-    }
-  };
-
-  // LOAD USER'S INCIDENTS WHEN MODAL OPENS
-  useEffect(() => {
-    if (showMyIncidents) {
-      loadMyIncidents();
-    }
-  }, [showMyIncidents, user?.id]);
-
-  // LOAD RESOURCES
   const loadData = () => {
-    getAllResources().then((res) => {
-      setResources(res.data);
-    });
+    getAllResources().then((res) => setResources(res.data));
   };
 
-  useEffect(() => {
-    loadData();
-  }, [reload]);
+  useEffect(() => { loadData(); }, [reload]);
 
-  // LOAD AVAILABILITY
   useEffect(() => {
     resources.forEach((r) => {
-      getAvailabilityByResource(r.id)
-        .then((res) => {
-          setAvailabilityMap((prev) => ({
-            ...prev,
-            [r.id]: res.data,
-          }));
-        })
-        .catch(() => {});
+      getAvailabilityByResource(r.id).then((res) => {
+        setAvailabilityMap((prev) => ({ ...prev, [r.id]: res.data }));
+      });
     });
   }, [resources]);
 
-  // 🔍 HANDLE FILTER CHANGE
+  // Handlers
   const handleFilterChange = (e) => {
     const { name, value } = e.target;
-    setFilters({ ...filters, [name]: value });
+    setFilters(prev => ({ ...prev, [name]: value }));
   };
 
-  // 🔍 APPLY FILTERS
-  const getFilteredResources = () => {
-    return resources.filter((r) => {
-      if (filters.type && r.type !== filters.type) return false;
-      if (filters.capacity && r.capacity < parseInt(filters.capacity)) return false;
-      if (filters.location && !r.location.toLowerCase().includes(filters.location.toLowerCase())) return false;
-      if (filters.status && r.status !== filters.status) return false;
-      return true;
-    });
+  const applyFilters = () => setShowFilterModal(false);
+  const resetFilters = () => {
+    setFilters({ type: "All Types", minCapacity: "", location: "All Locations", status: "All Status" });
+    setShowFilterModal(false);
   };
 
-  const filteredResources = getFilteredResources();
+  const openEditResource = (r) => {
+    setSelectedResource(r);
+    setEditForm({ name: r.name || "", location: r.location || "", capacity: r.capacity || "", status: r.status || "ACTIVE" });
+    setShowEditResourceModal(true);
+  };
 
-  // 🔍 GET UNIQUE VALUES FOR FILTERS
-  const uniqueTypes = [...new Set(resources.map((r) => r.type))];
-  const uniqueLocations = [...new Set(resources.map((r) => r.location))];
-  const uniqueCapacities = [...new Set(resources.map((r) => r.capacity))].sort((a, b) => a - b);
-
-  // DELETE
-  const handleDelete = (id) => {
-    deleteResource(id).then(() => {
-      alert("Deleted!");
+  const handleUpdateResource = () => {
+    updateResource(selectedResource.id, editForm).then(() => {
+      alert("Resource updated successfully!");
+      setShowEditResourceModal(false);
       loadData();
     });
   };
 
-  // EDIT
-  const handleEdit = (resource) => {
-    setEditingId(resource.id);
-    setEditForm(resource);
-  };
-
-  const handleChange = (e) => {
-    setEditForm({ ...editForm, [e.target.name]: e.target.value });
-  };
-
-  // UPDATE
-  const handleUpdate = () => {
-    updateResource(editingId, editForm).then(() => {
-      alert("Updated!");
-      setEditingId(null);
-      loadData();
-    });
-  };
-
-  // ⏰ AVAILABILITY FUNCTIONS
-  const handleEditAvailability = (availability) => {
-    setEditingAvailability(availability);
-    setEditingAvailabilityId(availability.id);
+  const openEditAvailability = (a) => {
+    setSelectedAvailability(a);
+    setAvailabilityForm({ startTime: a.startTime, endTime: a.endTime });
     setShowEditAvailabilityModal(true);
-    setEditAvailabilityForm({
-      date: availability.date.split("T")[0],
-      startTime: availability.startTime,
-      endTime: availability.endTime,
-    });
-  };
-
-  const closeEditModal = () => {
-    setShowEditAvailabilityModal(false);
-    setEditingAvailability(null);
-    setEditingAvailabilityId(null);
-  };
-
-  const handleAvailabilityChange = (e) => {
-    const { name, value } = e.target;
-    setEditAvailabilityForm({ ...editAvailabilityForm, [name]: value });
   };
 
   const handleUpdateAvailability = () => {
-    updateAvailability(editingAvailabilityId, editAvailabilityForm)
-      .then(() => {
-        alert("✅ Availability updated!");
-        closeEditModal();
-        loadData();
-      })
-      .catch((err) => {
-        alert("❌ Error updating: " + (err.response?.data || err.message));
-      });
+    updateAvailability(selectedAvailability.id, availabilityForm).then(() => {
+      alert("Availability slot updated!");
+      setShowEditAvailabilityModal(false);
+      loadData();
+    });
   };
 
-  const handleDeleteAvailability = (availabilityId) => {
-    if (!window.confirm("Delete this availability slot?")) return;
+  const openAddAvailability = (r) => {
+    setSelectedResource(r);
+    setAvailabilityForm({ startTime: "", endTime: "" });
+    setShowAddAvailabilityModal(true);
+  };
 
-    deleteAvailability(availabilityId)
-      .then(() => {
-        alert("✅ Availability deleted!");
-        loadData();
-      })
-      .catch((err) => {
-        alert("❌ Error deleting: " + (err.response?.data || err.message));
-      });
+  const handleAddAvailability = () => {
+    createAvailability(selectedResource.id, availabilityForm).then(() => {
+      alert("Availability added successfully!");
+      setShowAddAvailabilityModal(false);
+      loadData();
+    });
+  };
+
+  const openBookingModal = (r) => {
+    setSelectedResource(r);
+    setBookingForm({ date: "", startTime: "", endTime: "" });
+    setShowBookingModal(true);
+  };
+
+  const handleBook = () => {
+    alert(`Booking confirmed for ${selectedResource?.name}`);
+    setShowBookingModal(false);
+  };
+
+  const handleDeleteResource = (id) => {
+    if (window.confirm("Delete this resource?")) {
+      deleteResource(id).then(() => { alert("Deleted!"); loadData(); });
+    }
+  };
+
+  const handleDeleteAvailability = (id) => {
+    if (window.confirm("Delete this slot?")) {
+      deleteAvailability(id).then(() => { alert("Slot deleted"); loadData(); });
+    }
   };
 
   return (
-    <div id="resource-list" style={{ padding: "20px" }}>
+    <div style={{ padding: "20px" }}>
+      {/* Navigation */}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "28px", paddingBottom: "16px", borderBottom: "1px solid #e5e7eb" }}>
+        <h2 style={{ margin: 0 }}>Resources</h2>
 
-      {/* 🔥 HEADER */}
-      <div style={{
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
-        marginBottom: "20px"
-      }}>
-        <h2>📋 Resources</h2>
-
-        <div style={{ display: "flex", gap: "10px" }}>
-
-          {/* � FILTER BUTTON */}
-          <button
-            onClick={() => setShowFilters(!showFilters)}
-            style={{
-              backgroundColor: "#17a2b8",
-              color: "white",
-              borderRadius: "5px",
-              padding: "8px 12px",
-              cursor: "pointer",
-              border: "none",
-              fontWeight: "600"
-            }}
-          >
-            🔍 Filters {Object.values(filters).some(v => v) && "✓"}
+        <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+          <button style={navButtonStyle} onClick={() => setShowFilterModal(true)}>🔍 Filters</button>
+          <button style={{ ...navButtonStyle, position: "relative" }} onClick={() => setShowNotificationsModal(true)}>
+            🔔 Notifications <span style={{position:"absolute", top:"-2px", right:"-2px", background:"#ef4444", color:"#fff", fontSize:"10px", padding:"1px 5px", borderRadius:"50%"}}>0</span>
           </button>
-
-          {/* 🔔 NOTIFICATIONS */}
-          <button
-            onClick={() => setShowNotifications(!showNotifications)}
-            style={{
-              backgroundColor: "#ffc107",
-              borderRadius: "5px",
-              padding: "8px 12px"
-            }}
-          >
-            🔔 ({notifications.filter(n => !n.read).length})
-          </button>
-
-          {/* 📅 MY BOOKINGS - ONLY ADMIN & USER */}
-          {(userRole === "ADMIN" || userRole === "USER") && (
-            <button
-              onClick={() => setShowMyBookings(true)}
-              style={{
-                backgroundColor: "#6f42c1",
-                color: "white",
-                padding: "8px 15px",
-                borderRadius: "5px"
-              }}
-            >
-              📅 Your Bookings
-            </button>
-          )}
-
-          {/* � BOOKING HISTORY - ONLY ADMIN & USER */}
-          {(userRole === "ADMIN" || userRole === "USER") && (
-            <button
-              onClick={() => setShowBookingHistory(true)}
-              style={{
-                backgroundColor: "#28a745",
-                color: "white",
-                padding: "8px 15px",
-                borderRadius: "5px"
-              }}
-            >
-              📚 Booking History
-            </button>
-          )}
-
-          {/* �🚨 MY INCIDENTS - ADMIN, STAFF, USER */}
-          {(userRole === "ADMIN" || userRole === "STAFF" || userRole === "USER") && (
-            <button
-              onClick={() => setShowMyIncidents(true)}
-              style={{
-                backgroundColor: "#ff5722",
-                color: "white",
-                padding: "8px 15px",
-                borderRadius: "5px"
-              }}
-            >
-              🚨 My Incidents ({myIncidents.length})
-            </button>
-          )}
-                </div>
+          <button style={navButtonStyle} onClick={() => setShowYourBookingsModal(true)}>📅 Your Bookings</button>
+          <button style={navButtonStyle} onClick={() => setShowBookingHistoryModal(true)}>📚 Booking History</button>
+          <button style={navButtonStyle} onClick={() => setShowIncidentModal(true)}>🚨 My Incidents (0)</button>
+        </div>
       </div>
 
-      {/* 🔍 FILTER PANEL */}
-      {showFilters && (
-        <div style={{
-          backgroundColor: "#f9f9f9",
-          border: "2px solid #17a2b8",
-          padding: "15px",
-          borderRadius: "8px",
-          marginBottom: "20px",
-          display: "flex",
-          gap: "15px",
-          flexWrap: "wrap",
-          alignItems: "flex-end"
-        }}>
-          {/* TYPE FILTER */}
-          <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
-            <label style={{ fontWeight: "600", fontSize: "13px" }}>Type</label>
-            <select
-              name="type"
-              value={filters.type}
-              onChange={handleFilterChange}
-              style={{
-                padding: "8px 10px",
-                border: "1px solid #ccc",
-                borderRadius: "5px",
-                fontSize: "13px",
-                minWidth: "150px"
-              }}
-            >
-              <option value="">All Types</option>
-              {uniqueTypes.map((type) => (
-                <option key={type} value={type}>
-                  {type}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* CAPACITY FILTER */}
-          <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
-            <label style={{ fontWeight: "600", fontSize: "13px" }}>Min Capacity</label>
-            <input
-              type="number"
-              name="capacity"
-              placeholder="Min capacity"
-              value={filters.capacity}
-              onChange={handleFilterChange}
-              style={{
-                padding: "8px 10px",
-                border: "1px solid #ccc",
-                borderRadius: "5px",
-                fontSize: "13px",
-                minWidth: "120px"
-              }}
-            />
-          </div>
-
-          {/* LOCATION FILTER */}
-          <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
-            <label style={{ fontWeight: "600", fontSize: "13px" }}>Location</label>
-            <select
-              name="location"
-              value={filters.location}
-              onChange={handleFilterChange}
-              style={{
-                padding: "8px 10px",
-                border: "1px solid #ccc",
-                borderRadius: "5px",
-                fontSize: "13px",
-                minWidth: "150px"
-              }}
-            >
-              <option value="">All Locations</option>
-              {uniqueLocations.map((location) => (
-                <option key={location} value={location}>
-                  {location}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* STATUS FILTER */}
-          <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
-            <label style={{ fontWeight: "600", fontSize: "13px" }}>Status</label>
-            <select
-              name="status"
-              value={filters.status}
-              onChange={handleFilterChange}
-              style={{
-                padding: "8px 10px",
-                border: "1px solid #ccc",
-                borderRadius: "5px",
-                fontSize: "13px",
-                minWidth: "150px"
-              }}
-            >
-              <option value="">All Status</option>
-              <option value="ACTIVE">ACTIVE</option>
-              <option value="OUT_OF_SERVICE">OUT_OF_SERVICE</option>
-            </select>
-          </div>
-
-          {/* RESET FILTERS */}
-          {Object.values(filters).some(v => v) && (
-            <button
-              onClick={() => setFilters({ type: "", capacity: "", location: "", status: "" })}
-              style={{
-                padding: "8px 16px",
-                backgroundColor: "#dc3545",
-                color: "white",
-                border: "none",
-                borderRadius: "5px",
-                cursor: "pointer",
-                fontWeight: "600"
-              }}
-            >
-              🔄 Reset Filters
-            </button>
-          )}
-        </div>
-      )}
-
-      {/* � RESULTS COUNTER */}
-      <div style={{
-        marginBottom: "15px",
-        fontSize: "14px",
-        color: "#666",
-        fontWeight: "500"
-      }}>
-        Showing <strong>{filteredResources.length}</strong> of <strong>{resources.length}</strong> resources
-      </div>
-
-      {/* �🔔 NOTIFICATION DROPDOWN */}
-      {showNotifications && (
-        <div style={{
-          position: "fixed",
-          right: "20px",
-          top: "70px",
-          background: "white",
-          border: "2px solid #ffc107",
-          borderRadius: "8px",
-          width: "350px",
-          maxHeight: "500px",
-          overflowY: "auto",
-          zIndex: 1000,
-          boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)"
-        }}>
-          <div style={{
-            padding: "12px 15px",
-            borderBottom: "1px solid #eee",
-            backgroundColor: "#fff8e1",
-            fontWeight: "600",
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            position: "sticky",
-            top: "0"
-          }}>
-            <span>🔔 Notifications ({notifications.length})</span>
-            {notifications.length > 0 && (
-              <button
-                onClick={handleClearAllNotifications}
-                style={{
-                  backgroundColor: "#dc3545",
-                  color: "white",
-                  border: "none",
-                  padding: "4px 8px",
-                  borderRadius: "4px",
-                  cursor: "pointer",
-                  fontSize: "11px",
-                  fontWeight: "600"
-                }}
-              >
-                ✕ Clear All
-              </button>
-            )}
-          </div>
-
-          {notifications.length === 0 ? (
-            <p style={{ color: "#999", padding: "10px" }}>📭 No notifications</p>
-          ) : (
-            notifications.map((n) => (
-              <div key={n.id} style={{
-                padding: "10px",
-                backgroundColor: n.read ? "#fafafa" : "#fffbf0",
-                borderBottom: "1px solid #eee",
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "flex-start",
-                gap: "8px"
-              }}>
-                <div style={{ flex: 1, fontSize: "12px" }}>
-                  <p style={{
-                    margin: "0 0 4px 0",
-                    fontWeight: n.read ? "400" : "600",
-                    color: n.read ? "#666" : "#000"
-                  }}>
-                    {n.message}
-                  </p>
-                  <p style={{
-                    margin: "0",
-                    fontSize: "10px",
-                    color: "#999"
-                  }}>
-                    {new Date(n.createdAt).toLocaleString()}
-                  </p>
-                </div>
-                <div style={{ display: "flex", gap: "4px" }}>
-                  {!n.read && (
-                    <button
-                      onClick={() => handleMarkAsRead(n.id)}
-                      title="Mark as read"
-                      style={{
-                        backgroundColor: "#28a745",
-                        color: "white",
-                        border: "none",
-                        padding: "3px 5px",
-                        borderRadius: "3px",
-                        cursor: "pointer",
-                        fontSize: "10px"
-                      }}
-                    >
-                      ✓
-                    </button>
-                  )}
-                  <button
-                    onClick={() => handleDeleteNotification(n.id)}
-                    title="Delete"
-                    style={{
-                      backgroundColor: "#dc3545",
-                      color: "white",
-                      border: "none",
-                      padding: "3px 5px",
-                      borderRadius: "3px",
-                      cursor: "pointer",
-                      fontSize: "10px"
-                    }}
-                  >
-                    ✕
-                  </button>
-                </div>
-              </div>
-            ))
-          )}
-        </div>
-      )}
-
-      {/* 📦 RESOURCE CARDS */}
-      <div style={{ display: "flex", flexWrap: "wrap", gap: "20px" }}>
-        {filteredResources.length === 0 ? (
-          <div style={{ width: "100%", textAlign: "center", padding: "40px", color: "#999" }}>
-            <p style={{ fontSize: "18px" }}>📭 No resources found matching your filters</p>
-            {Object.values(filters).some(v => v) && (
-              <p style={{ fontSize: "14px" }}>Try adjusting your filter criteria</p>
-            )}
-          </div>
-        ) : (
+      {/* Resource Cards */}
+      <div style={{ display: "flex", flexWrap: "wrap", gap: "22px" }}>
+        {filteredResources.length > 0 ? (
           filteredResources.map((r) => (
-          <div
-            key={r.id}
-            style={{
-              border: "1px solid #ccc",
-              borderRadius: "10px",
-              padding: "15px",
-              width: "260px",
-              backgroundColor:
-                r.status === "OUT_OF_SERVICE" ? "#eee" : "#f9f9f9",
-              opacity: r.status === "OUT_OF_SERVICE" ? 0.7 : 1,
-            }}
-          >
-            {(editingId === r.id && user?.role === "ADMIN") ? (
-              <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-                <input name="name" value={editForm.name} onChange={handleChange} />
+            <div
+              key={r.id}
+              style={{
+                width: "280px", padding: "20px", borderRadius: "12px", border: "1px solid #e5e7eb",
+                background: "#fff", boxShadow: "0 4px 15px rgba(0,0,0,0.07)", transition: "all 0.2s ease"
+              }}
+              onMouseOver={(e) => { e.currentTarget.style.transform = "translateY(-4px)"; }}
+              onMouseOut={(e) => { e.currentTarget.style.transform = "translateY(0)"; }}
+            >
+              <h3>{r.name}</h3>
+              <p><b>Type:</b> {r.type}</p>
+              <p><b>Capacity:</b> {r.capacity}</p>
+              <p><b>Location:</b> {r.location}</p>
+              <p><b>Status:</b> <span style={{ color: r.status === "ACTIVE" ? "green" : "red" }}>{r.status}</span></p>
 
-                <select name="type" value={editForm.type} onChange={handleChange}>
-                  <option value="COMPUTER_LAB">Computer Lab</option>
-                  <option value="LECTURE_HALL">Lecture Hall</option>
-                  <option value="MEETING_ROOM">Meeting Room</option>
-                  <option value="EQUIPMENT">Equipment</option>
-                </select>
-
-                <input name="capacity" type="number" value={editForm.capacity} onChange={handleChange} />
-                <select 
-  name="location" 
-  value={editForm.location} 
-  onChange={handleChange}
->
-  <option value="">Select Building</option>
-  <option value="Building A">Building A</option>
-  <option value="Building B">Building B</option>
-  <option value="Building C">Building C</option>
-  <option value="Building D">Building D</option>
-  <option value="Building E">Building E</option>
-  <option value="Building F">Building F</option>
-</select>
-
-                <select name="status" value={editForm.status} onChange={handleChange}>
-                  <option value="ACTIVE">ACTIVE</option>
-                  <option value="OUT_OF_SERVICE">OUT_OF_SERVICE</option>
-                </select>
-
-                <div>
-                  <button onClick={handleUpdate}>Save</button>
-                  <button onClick={() => setEditingId(null)}>Cancel</button>
-                </div>
-              </div>
-            ) : (
-              <>
-                <h3>{r.name}</h3>
-                <p><b>Type:</b> {r.type}</p>
-                <p><b>Capacity:</b> {r.capacity}</p>
-                <p><b>Location:</b> {r.location}</p>
-
-                <p>
-                  <b>Status:</b>{" "}
-                  <span style={{ color: r.status === "ACTIVE" ? "green" : "red" }}>
-                    {r.status}
-                  </span>
-                </p>
-
-                {/* ⏰ AVAILABILITY - SHOW FOR ADMIN & USER */}
-                {(userRole === "ADMIN" || userRole === "USER") && (
-                  <div style={{ marginTop: "10px", padding: "10px", backgroundColor: "#f9f9f9", borderRadius: "5px" }}>
-                    <b style={{ display: "block", marginBottom: "8px" }}>⏰ Availability Slots:</b>
-                    
-                    {availabilityMap[r.id]?.length === 0 ? (
-                      <p style={{ fontSize: "12px", color: "#999", margin: "5px 0" }}>No availability added</p>
-                    ) : (
-                      availabilityMap[r.id]?.map((a, i) => (
-                        <div key={a.id} style={{
-                          display: "flex",
-                          justifyContent: "space-between",
-                          alignItems: "center",
-                          fontSize: "12px",
-                          padding: "6px",
-                          backgroundColor: "white",
-                          marginBottom: "5px",
-                          borderRadius: "4px",
-                          border: "1px solid #eee"
-                        }}>
-                          <span>
-                            {a.date.split("T")[0]}: {a.startTime} - {a.endTime}
-                          </span>
-                          {user?.role === "ADMIN" && (
-                            <div style={{ display: "flex", gap: "4px" }}>
-                              <button
-                                onClick={() => handleEditAvailability(a)}
-                                style={{
-                                  padding: "2px 6px",
-                                  backgroundColor: "#007bff",
-                                  color: "white",
-                                  border: "none",
-                                  borderRadius: "3px",
-                                  cursor: "pointer",
-                                  fontSize: "10px"
-                                }}
-                              >
-                                ✏️ Edit
-                              </button>
-                              <button
-                                onClick={() => handleDeleteAvailability(a.id)}
-                                style={{
-                                  padding: "2px 6px",
-                                  backgroundColor: "#dc3545",
-                                  color: "white",
-                                  border: "none",
-                                  borderRadius: "3px",
-                                  cursor: "pointer",
-                                  fontSize: "10px"
-                                }}
-                              >
-                                🗑️ Delete
-                              </button>
-                            </div>
-                          )}
-                        </div>
-                      ))
-                    )}
+              <div style={{ marginTop: "16px" }}>
+                <b>Availability:</b>
+                {availabilityMap[r.id]?.map((a) => (
+                  <div key={a.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "8px", fontSize: "13px" }}>
+                    <span>{a.startTime} - {a.endTime}</span>
+                    <div style={{ display: "flex", gap: "6px" }}>
+                      <button style={{ ...buttonStyles.primary, ...buttonStyles.small }} onClick={() => openEditAvailability(a)}>✏️</button>
+                      <button style={{ ...buttonStyles.danger, ...buttonStyles.small }} onClick={() => handleDeleteAvailability(a.id)}>🗑</button>
+                    </div>
                   </div>
-                )}
+                ))}
+              </div>
 
-                {/* ADMIN BUTTONS */}
-                {user?.role === "ADMIN" && (
-                  <>
-                    <button onClick={() => handleEdit(r)}>Edit</button>
-                    <button onClick={() => handleDelete(r.id)}>Delete</button>
-                  </>
-                )}
+              {user?.role === "ADMIN" && (
+                <div style={{ marginTop: "16px", display: "flex", gap: "8px" }}>
+                  <button style={buttonStyles.primary} onClick={() => openEditResource(r)}>✏️ Edit</button>
+                  <button style={buttonStyles.danger} onClick={() => handleDeleteResource(r.id)}>🗑 Delete</button>
+                </div>
+              )}
 
-                {/* USER & ADMIN BOOKING ACTIONS */}
-                {r.status === "ACTIVE" && (userRole === "ADMIN" || userRole === "USER") && (
-                  <>
-                    <button onClick={() => onBook(r)}>Book</button>
-
-                    {user?.role === "ADMIN" && (
-                      <button onClick={() => onAddAvailability(r)}>
-                        Add Availability
-                      </button>
-                    )}
-                  </>
-                )}
-              </>
-            )}
-          </div>
-        ))
+              {r.status === "ACTIVE" && (
+                <div style={{ marginTop: "16px", display: "flex", gap: "8px" }}>
+                  <button style={buttonStyles.success} onClick={() => openBookingModal(r)}>📅 Book</button>
+                  {user?.role === "ADMIN" && (
+                    <button style={buttonStyles.warning} onClick={() => openAddAvailability(r)}>➕ Add Slot</button>
+                  )}
+                </div>
+              )}
+            </div>
+          ))
+        ) : (
+          <p style={{ color: "#6b7280", fontStyle: "italic", padding: "40px" }}>No resources match the selected filters.</p>
         )}
       </div>
 
-      {/* 📅 MY BOOKINGS MODAL */}
-      {showMyBookings && (
-        <MyBookingsModal
-          resources={resources}
-          onClose={() => setShowMyBookings(false)}
-        />
+      {/* ====================== MODALS ====================== */}
+
+      {/* Your Bookings Modal - Edit & Delete in SAME LINE */}
+      {showYourBookingsModal && (
+        <div style={modalOverlay}>
+          <div style={{ ...modalContent, width: "520px" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
+              <h3>📅 Your Bookings</h3>
+              <button style={buttonStyles.danger} onClick={() => setShowYourBookingsModal(false)}>❌</button>
+            </div>
+
+            {yourBookings.map((b) => (
+              <div key={b.id} style={{ 
+                border: "1px solid #e5e7eb", 
+                padding: "18px", 
+                borderRadius: "10px", 
+                marginBottom: "16px",
+                background: "#fafafa"
+              }}>
+                <p><b>Booking ID:</b> {b.id}</p>
+                <p><b>Resource:</b> {b.resourceName}</p>
+                <p><b>Date:</b> {b.date}</p>
+                <p><b>Time:</b> {b.startTime} - {b.endTime}</p>
+                <p><b>Booked By:</b> {b.bookedBy}</p>
+
+                {/* FIXED: Edit and Delete buttons in the same line */}
+                <div style={{ marginTop: "16px", display: "flex", gap: "10px" }}>
+                  <button style={buttonStyles.primary}>✏️ Edit</button>
+                  <button style={buttonStyles.danger}>🗑 Delete</button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
       )}
 
-      {/* � BOOKING HISTORY MODAL */}
-      {showBookingHistory && (
-        <BookingHistoryModal
-          resources={resources}
-          onClose={() => setShowBookingHistory(false)}
-        />
-      )}
-      {/* 📊 ADMIN BOOKING DASHBOARD MODAL */}
-      {showAdminDashboard && (
-        <AdminBookingDashboard
-          onClose={() => setShowAdminDashboard(false)}
-        />
-      )}
-      {/* �🚨 MY INCIDENTS MODAL */}
-      {showMyIncidents && (
-        <MyIncidentsModal
-          myIncidents={myIncidents}
-          onClose={() => setShowMyIncidents(false)}
-          onResolved={() => {
-            setShowMyIncidents(false);
-            loadMyIncidents();
-          }}
-        />
+      {/* Filters Modal */}
+      {showFilterModal && (
+        <div style={modalOverlay}>
+          <div style={modalContent}>
+            <h3>🔍 Filters</h3>
+            <div style={{ margin: "18px 0" }}>
+              <label style={{ fontWeight: "600", display: "block", marginBottom: "6px" }}>Type</label>
+              <select name="type" value={filters.type} onChange={handleFilterChange} style={{ width: "100%", padding: "10px", borderRadius: "8px", border: "1px solid #ccc" }}>
+                <option>All Types</option>
+                <option>EQUIPMENT</option>
+                <option>LECTURE_HALL</option>
+                <option>COMPUTER_LAB</option>
+              </select>
+            </div>
+            <div style={{ margin: "18px 0" }}>
+              <label style={{ fontWeight: "600", display: "block", marginBottom: "6px" }}>Min Capacity</label>
+              <input type="number" name="minCapacity" value={filters.minCapacity} onChange={handleFilterChange} placeholder="Enter minimum capacity" style={{ width: "100%", padding: "10px", borderRadius: "8px", border: "1px solid #ccc" }} />
+            </div>
+            <div style={{ margin: "18px 0" }}>
+              <label style={{ fontWeight: "600", display: "block", marginBottom: "6px" }}>Location</label>
+              <select name="location" value={filters.location} onChange={handleFilterChange} style={{ width: "100%", padding: "10px", borderRadius: "8px", border: "1px solid #ccc" }}>
+                <option>All Locations</option>
+                <option>Building A</option>
+                <option>Building B</option>
+                <option>Building D</option>
+              </select>
+            </div>
+            <div style={{ margin: "18px 0 24px 0" }}>
+              <label style={{ fontWeight: "600", display: "block", marginBottom: "6px" }}>Status</label>
+              <select name="status" value={filters.status} onChange={handleFilterChange} style={{ width: "100%", padding: "10px", borderRadius: "8px", border: "1px solid #ccc" }}>
+                <option>All Status</option>
+                <option>ACTIVE</option>
+                <option>OUT_OF_SERVICE</option>
+              </select>
+            </div>
+            <div style={{ display: "flex", gap: "12px" }}>
+              <button style={buttonStyles.primary} onClick={applyFilters}>Apply Filters</button>
+              <button style={buttonStyles.danger} onClick={resetFilters}>Reset</button>
+              <button style={{ ...buttonStyles.danger, background: "#6b7280" }} onClick={() => setShowFilterModal(false)}>Close</button>
+            </div>
+          </div>
+        </div>
       )}
 
-      {/* ⏰ EDIT AVAILABILITY MODAL */}
+      {/* Notifications Modal */}
+      {showNotificationsModal && (
+        <div style={modalOverlay}>
+          <div style={modalContent}>
+            <h3>🔔 Notifications</h3>
+            <p style={{ textAlign: "center", padding: "50px 20px", color: "#6b7280" }}>No new notifications at the moment.</p>
+            <button style={buttonStyles.danger} onClick={() => setShowNotificationsModal(false)}>Close</button>
+          </div>
+        </div>
+      )}
+
+      {/* Booking History Modal */}
+      {showBookingHistoryModal && (
+        <div style={modalOverlay}>
+          <div style={{ ...modalContent, width: "520px" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
+              <h3>📚 Booking History</h3>
+              <button style={buttonStyles.danger} onClick={() => setShowBookingHistoryModal(false)}>❌</button>
+            </div>
+            {yourBookings.map((b) => (
+              <div key={b.id} style={{ border: "1px solid #e5e7eb", padding: "16px", borderRadius: "8px", marginBottom: "12px" }}>
+                <p><b>Booking ID:</b> {b.id}</p>
+                <p><b>Resource:</b> {b.resourceName}</p>
+                <p><b>Date:</b> {b.date}</p>
+                <p><b>Time:</b> {b.startTime} - {b.endTime}</p>
+                <p><b>Booked By:</b> {b.bookedBy}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Incident Modal */}
+      {showIncidentModal && (
+        <div style={modalOverlay}>
+          <div style={{ ...modalContent, width: "460px" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
+              <h3>🚨 My Incident History</h3>
+              <button style={buttonStyles.danger} onClick={() => setShowIncidentModal(false)}>✕ Close</button>
+            </div>
+            <div style={{ textAlign: "center", padding: "40px 20px", color: "#6b7280" }}>
+              <p style={{ fontSize: "48px", margin: "0 0 16px 0" }}>📭</p>
+              <p><strong>No incidents reported yet</strong></p>
+              <p>Click "Report Incident" to create your first incident</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Resource Modal */}
+      {showEditResourceModal && (
+        <div style={modalOverlay}>
+          <div style={modalContent}>
+            <h3>✏️ Edit Resource</h3>
+            <div style={{ margin: "16px 0" }}>
+              <label style={{ fontWeight: "600", display: "block", marginBottom: "6px" }}>Name</label>
+              <input name="name" value={editForm.name} onChange={(e) => setEditForm({ ...editForm, name: e.target.value })} style={{ width: "100%", padding: "10px", borderRadius: "8px", border: "1px solid #ccc" }} />
+            </div>
+            <div style={{ margin: "16px 0" }}>
+              <label style={{ fontWeight: "600", display: "block", marginBottom: "6px" }}>Location</label>
+              <input name="location" value={editForm.location} onChange={(e) => setEditForm({ ...editForm, location: e.target.value })} style={{ width: "100%", padding: "10px", borderRadius: "8px", border: "1px solid #ccc" }} />
+            </div>
+            <div style={{ margin: "16px 0" }}>
+              <label style={{ fontWeight: "600", display: "block", marginBottom: "6px" }}>Capacity</label>
+              <input type="number" name="capacity" value={editForm.capacity} onChange={(e) => setEditForm({ ...editForm, capacity: e.target.value })} style={{ width: "100%", padding: "10px", borderRadius: "8px", border: "1px solid #ccc" }} />
+            </div>
+            <div style={{ margin: "16px 0 24px 0" }}>
+              <label style={{ fontWeight: "600", display: "block", marginBottom: "6px" }}>Status</label>
+              <select name="status" value={editForm.status} onChange={(e) => setEditForm({ ...editForm, status: e.target.value })} style={{ width: "100%", padding: "10px", borderRadius: "8px", border: "1px solid #ccc" }}>
+                <option value="ACTIVE">ACTIVE</option>
+                <option value="OUT_OF_SERVICE">OUT_OF_SERVICE</option>
+              </select>
+            </div>
+            <div style={{ display: "flex", gap: "12px" }}>
+              <button style={buttonStyles.success} onClick={handleUpdateResource}>✅ Save Changes</button>
+              <button style={buttonStyles.danger} onClick={() => setShowEditResourceModal(false)}>❌ Cancel</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Availability Modal */}
       {showEditAvailabilityModal && (
-        <div style={{
-          position: "fixed",
-          top: "0",
-          left: "0",
-          width: "100%",
-          height: "100%",
-          backgroundColor: "rgba(0, 0, 0, 0.5)",
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          zIndex: 2000
-        }}>
-          <div style={{
-            backgroundColor: "white",
-            borderRadius: "10px",
-            padding: "30px",
-            width: "90%",
-            maxWidth: "400px",
-            boxShadow: "0 4px 20px rgba(0, 0, 0, 0.3)"
-          }}>
-            <h3 style={{ marginBottom: "20px" }}>✏️ Edit Availability Slot</h3>
+        <div style={modalOverlay}>
+          <div style={modalContent}>
+            <h3>✏️ Edit Availability Slot</h3>
+            <div style={{ margin: "16px 0" }}>
+              <label>Date</label><br />
+              <input type="date" style={{ width: "100%", padding: "10px", marginTop: "6px", borderRadius: "6px", border: "1px solid #ccc" }} />
+            </div>
+            <div style={{ margin: "16px 0" }}>
+              <label>Start Time</label><br />
+              <input type="time" value={availabilityForm.startTime} onChange={(e) => setAvailabilityForm({ ...availabilityForm, startTime: e.target.value })} style={{ width: "100%", padding: "10px", marginTop: "6px", borderRadius: "6px", border: "1px solid #ccc" }} />
+            </div>
+            <div style={{ margin: "16px 0" }}>
+              <label>End Time</label><br />
+              <input type="time" value={availabilityForm.endTime} onChange={(e) => setAvailabilityForm({ ...availabilityForm, endTime: e.target.value })} style={{ width: "100%", padding: "10px", marginTop: "6px", borderRadius: "6px", border: "1px solid #ccc" }} />
+            </div>
+            <div style={{ display: "flex", gap: "12px", marginTop: "24px" }}>
+              <button style={buttonStyles.success} onClick={handleUpdateAvailability}>✅ Save Changes</button>
+              <button style={buttonStyles.danger} onClick={() => setShowEditAvailabilityModal(false)}>❌ Cancel</button>
+            </div>
+          </div>
+        </div>
+      )}
 
-            <div style={{ display: "flex", flexDirection: "column", gap: "15px" }}>
-              {/* DATE */}
-              <div>
-                <label style={{ display: "block", fontWeight: "600", marginBottom: "5px" }}>Date</label>
-                <input
-                  type="date"
-                  name="date"
-                  value={editAvailabilityForm.date}
-                  onChange={handleAvailabilityChange}
-                  style={{
-                    width: "100%",
-                    padding: "10px",
-                    border: "1px solid #ccc",
-                    borderRadius: "5px",
-                    fontSize: "14px",
-                    boxSizing: "border-box"
-                  }}
-                />
-              </div>
+      {/* Add Availability Modal */}
+      {showAddAvailabilityModal && (
+        <div style={modalOverlay}>
+          <div style={modalContent}>
+            <h3>📅 Add Availability: {selectedResource?.name}</h3>
+            <div style={{ margin: "16px 0" }}>
+              <label>Date *</label><br />
+              <input type="date" style={{ width: "100%", padding: "10px", marginTop: "6px", borderRadius: "6px", border: "1px solid #ccc" }} />
+            </div>
+            <div style={{ margin: "16px 0" }}>
+              <label>Start Time *</label><br />
+              <input type="time" value={availabilityForm.startTime} onChange={(e) => setAvailabilityForm({ ...availabilityForm, startTime: e.target.value })} style={{ width: "100%", padding: "10px", marginTop: "6px", borderRadius: "6px", border: "1px solid #ccc" }} />
+            </div>
+            <div style={{ margin: "16px 0" }}>
+              <label>End Time *</label><br />
+              <input type="time" value={availabilityForm.endTime} onChange={(e) => setAvailabilityForm({ ...availabilityForm, endTime: e.target.value })} style={{ width: "100%", padding: "10px", marginTop: "6px", borderRadius: "6px", border: "1px solid #ccc" }} />
+            </div>
+            <div style={{ display: "flex", gap: "12px", marginTop: "24px" }}>
+              <button style={buttonStyles.success} onClick={handleAddAvailability}>✅ Add Availability</button>
+              <button style={buttonStyles.danger} onClick={() => setShowAddAvailabilityModal(false)}>❌ Cancel</button>
+            </div>
+          </div>
+        </div>
+      )}
 
-              {/* START TIME */}
-              <div>
-                <label style={{ display: "block", fontWeight: "600", marginBottom: "5px" }}>Start Time</label>
-                <input
-                  type="time"
-                  name="startTime"
-                  value={editAvailabilityForm.startTime}
-                  onChange={handleAvailabilityChange}
-                  style={{
-                    width: "100%",
-                    padding: "10px",
-                    border: "1px solid #ccc",
-                    borderRadius: "5px",
-                    fontSize: "14px",
-                    boxSizing: "border-box"
-                  }}
-                />
-              </div>
-
-              {/* END TIME */}
-              <div>
-                <label style={{ display: "block", fontWeight: "600", marginBottom: "5px" }}>End Time</label>
-                <input
-                  type="time"
-                  name="endTime"
-                  value={editAvailabilityForm.endTime}
-                  onChange={handleAvailabilityChange}
-                  style={{
-                    width: "100%",
-                    padding: "10px",
-                    border: "1px solid #ccc",
-                    borderRadius: "5px",
-                    fontSize: "14px",
-                    boxSizing: "border-box"
-                  }}
-                />
-              </div>
-
-              {/* BUTTONS */}
-              <div style={{ display: "flex", gap: "10px", marginTop: "20px" }}>
-                <button
-                  onClick={handleUpdateAvailability}
-                  style={{
-                    flex: 1,
-                    padding: "12px",
-                    backgroundColor: "#22c55e",
-                    color: "white",
-                    border: "none",
-                    borderRadius: "5px",
-                    cursor: "pointer",
-                    fontWeight: "600",
-                    fontSize: "14px"
-                  }}
-                >
-                  ✅ Save Changes
-                </button>
-                <button
-                  onClick={closeEditModal}
-                  style={{
-                    flex: 1,
-                    padding: "12px",
-                    backgroundColor: "#6c757d",
-                    color: "white",
-                    border: "none",
-                    borderRadius: "5px",
-                    cursor: "pointer",
-                    fontWeight: "600",
-                    fontSize: "14px"
-                  }}
-                >
-                  ❌ Cancel
-                </button>
-              </div>
+      {/* Booking Modal */}
+      {showBookingModal && (
+        <div style={modalOverlay}>
+          <div style={modalContent}>
+            <h3>📅 Book Resource</h3>
+            <input type="date" value={bookingForm.date} onChange={(e) => setBookingForm({ ...bookingForm, date: e.target.value })} style={{ width: "100%", padding: "10px", margin: "12px 0", borderRadius: "6px", border: "1px solid #ccc" }} />
+            <input type="time" value={bookingForm.startTime} onChange={(e) => setBookingForm({ ...bookingForm, startTime: e.target.value })} style={{ width: "100%", padding: "10px", margin: "12px 0", borderRadius: "6px", border: "1px solid #ccc" }} />
+            <input type="time" value={bookingForm.endTime} onChange={(e) => setBookingForm({ ...bookingForm, endTime: e.target.value })} style={{ width: "100%", padding: "10px", margin: "12px 0", borderRadius: "6px", border: "1px solid #ccc" }} />
+            <div style={{ marginTop: "24px", display: "flex", gap: "12px" }}>
+              <button style={buttonStyles.success} onClick={handleBook}>✅ Confirm Booking</button>
+              <button style={buttonStyles.danger} onClick={() => setShowBookingModal(false)}>❌ Cancel</button>
             </div>
           </div>
         </div>
