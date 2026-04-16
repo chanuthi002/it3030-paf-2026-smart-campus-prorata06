@@ -320,125 +320,138 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* 🔧 QUICK ACTIONS */}
-      <div style={{ display: "flex", gap: "12px", marginBottom: "24px", flexWrap: "wrap" }}>
-        {/* ADMIN ONLY - ADD RESOURCE */}
-        {user?.role === "ADMIN" && (
-          <button 
-            onClick={() => setShowForm(true)}
-            style={addResourceButtonStyle}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = "translateY(-2px)";
-              e.currentTarget.style.boxShadow = "0 6px 12px rgba(0, 123, 255, 0.3)";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = "translateY(0)";
-              e.currentTarget.style.boxShadow = "0 2px 4px rgba(0,0,0,0.1)";
-            }}
-          >
-            ➕ Add Resource
-          </button>
-        )}
+      {/* 🔧 QUICK ACTIONS - NEW LAYOUT */}
+      <div style={{ 
+        display: "flex", 
+        justifyContent: "space-between", 
+        alignItems: "center",
+        marginBottom: "24px", 
+        flexWrap: "wrap",
+        gap: "12px"
+      }}>
+        {/* LEFT SIDE BUTTONS */}
+        <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
+          {/* ADMIN ONLY - ADD RESOURCE */}
+          {user?.role === "ADMIN" && (
+            <button 
+              onClick={() => setShowForm(true)}
+              style={addResourceButtonStyle}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = "translateY(-2px)";
+                e.currentTarget.style.boxShadow = "0 6px 12px rgba(0, 123, 255, 0.3)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = "translateY(0)";
+                e.currentTarget.style.boxShadow = "0 2px 4px rgba(0,0,0,0.1)";
+              }}
+            >
+              ➕ Add Resource
+            </button>
+          )}
 
-        {/* ADMIN & STAFF & USER - REPORT INCIDENT */}
-        {(user?.role === "ADMIN" || user?.role === "USER") && (
-          <button 
-            onClick={() => setShowReportIncident(true)}
-            style={reportIncidentButtonStyle}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = "translateY(-2px)";
-              e.currentTarget.style.boxShadow = "0 6px 12px rgba(255, 152, 0, 0.3)";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = "translateY(0)";
-              e.currentTarget.style.boxShadow = "0 2px 4px rgba(0,0,0,0.1)";
-            }}
-          >
-            🚨 Report Incident
-          </button>
-        )}
+          {/* ADMIN ONLY - RESOURCE ADMIN DASHBOARD */}
+          {user?.role === "ADMIN" && (
+            <button
+              onClick={() => {
+                setShowResourceAdminDashboard(true);
+                setShowAdminDashboard(false);
+                setShowIncidentDashboard(false);
+                setShowIncidentAdminDashboard(false);
+              }}
+              style={resourceAdminButtonStyle}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = "translateY(-2px)";
+                e.currentTarget.style.boxShadow = "0 6px 12px rgba(15, 118, 110, 0.3)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = "translateY(0)";
+                e.currentTarget.style.boxShadow = "0 2px 4px rgba(0,0,0,0.1)";
+              }}
+            >
+              🧭 Resource Admin Dashboard
+            </button>
+          )}
+        </div>
 
-        {/* ADMIN & STAFF ONLY - INCIDENT DASHBOARD */}
-        {(user?.role === "STAFF" || user?.role === "ADMIN") && (
-          <button 
-            onClick={() => setShowIncidentDashboard(true)}
-            style={incidentDashboardButtonStyle}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = "translateY(-2px)";
-              e.currentTarget.style.boxShadow = "0 6px 12px rgba(34, 197, 94, 0.3)";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = "translateY(0)";
-              e.currentTarget.style.boxShadow = "0 2px 4px rgba(0,0,0,0.1)";
-            }}
-          >
-            🔧 Incident Dashboard
-          </button>
-        )}
+        {/* RIGHT SIDE BUTTONS */}
+        <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
+          {/* ADMIN & STAFF & USER - REPORT INCIDENT */}
+          {(user?.role === "ADMIN" || user?.role === "USER") && (
+            <button 
+              onClick={() => setShowReportIncident(true)}
+              style={reportIncidentButtonStyle}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = "translateY(-2px)";
+                e.currentTarget.style.boxShadow = "0 6px 12px rgba(255, 152, 0, 0.3)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = "translateY(0)";
+                e.currentTarget.style.boxShadow = "0 2px 4px rgba(0,0,0,0.1)";
+              }}
+            >
+              🚨 Report Incident
+            </button>
+          )}
 
-        {/* ADMIN ONLY - BOOKING DASHBOARD */}
-        {user?.role === "ADMIN" && (
-          <button 
-            onClick={() => setShowAdminDashboard(true)}
-            style={adminBookingButtonStyle}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = "translateY(-2px)";
-              e.currentTarget.style.boxShadow = "0 6px 12px rgba(232, 62, 140, 0.3)";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = "translateY(0)";
-              e.currentTarget.style.boxShadow = "0 2px 4px rgba(0,0,0,0.1)";
-            }}
-          >
-            📊 Admin Booking Dashboard
-          </button>
-        )}
+          {/* ADMIN & STAFF ONLY - INCIDENT DASHBOARD */}
+          {(user?.role === "STAFF" || user?.role === "ADMIN") && (
+            <button 
+              onClick={() => setShowIncidentDashboard(true)}
+              style={incidentDashboardButtonStyle}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = "translateY(-2px)";
+                e.currentTarget.style.boxShadow = "0 6px 12px rgba(34, 197, 94, 0.3)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = "translateY(0)";
+                e.currentTarget.style.boxShadow = "0 2px 4px rgba(0,0,0,0.1)";
+              }}
+            >
+              🔧 Incident Dashboard
+            </button>
+          )}
 
-        {/* ADMIN ONLY - RESOURCE ADMIN DASHBOARD */}
-        {user?.role === "ADMIN" && (
-          <button
-            onClick={() => {
-              setShowResourceAdminDashboard(true);
-              setShowAdminDashboard(false);
-              setShowIncidentDashboard(false);
-              setShowIncidentAdminDashboard(false);
-            }}
-            style={resourceAdminButtonStyle}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = "translateY(-2px)";
-              e.currentTarget.style.boxShadow = "0 6px 12px rgba(15, 118, 110, 0.3)";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = "translateY(0)";
-              e.currentTarget.style.boxShadow = "0 2px 4px rgba(0,0,0,0.1)";
-            }}
-          >
-            🧭 Resource Admin Dashboard
-          </button>
-        )}
+          {/* ADMIN ONLY - BOOKING DASHBOARD */}
+          {user?.role === "ADMIN" && (
+            <button 
+              onClick={() => setShowAdminDashboard(true)}
+              style={adminBookingButtonStyle}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = "translateY(-2px)";
+                e.currentTarget.style.boxShadow = "0 6px 12px rgba(232, 62, 140, 0.3)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = "translateY(0)";
+                e.currentTarget.style.boxShadow = "0 2px 4px rgba(0,0,0,0.1)";
+              }}
+            >
+              📊 Admin Booking Dashboard
+            </button>
+          )}
 
-        {/* ADMIN ONLY - INCIDENT ADMIN DASHBOARD */}
-        {user?.role === "ADMIN" && (
-          <button
-            onClick={() => {
-              setShowIncidentAdminDashboard(true);
-              setShowAdminDashboard(false);
-              setShowIncidentDashboard(false);
-              setShowResourceAdminDashboard(false);
-            }}
-            style={incidentAdminButtonStyle}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = "translateY(-2px)";
-              e.currentTarget.style.boxShadow = "0 6px 12px rgba(124, 45, 18, 0.3)";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = "translateY(0)";
-              e.currentTarget.style.boxShadow = "0 2px 4px rgba(0,0,0,0.1)";
-            }}
-          >
-            🛠️ Incident Admin Dashboard
-          </button>
-        )}
+          {/* ADMIN ONLY - INCIDENT ADMIN DASHBOARD */}
+          {user?.role === "ADMIN" && (
+            <button
+              onClick={() => {
+                setShowIncidentAdminDashboard(true);
+                setShowAdminDashboard(false);
+                setShowIncidentDashboard(false);
+                setShowResourceAdminDashboard(false);
+              }}
+              style={incidentAdminButtonStyle}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = "translateY(-2px)";
+                e.currentTarget.style.boxShadow = "0 6px 12px rgba(124, 45, 18, 0.3)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = "translateY(0)";
+                e.currentTarget.style.boxShadow = "0 2px 4px rgba(0,0,0,0.1)";
+              }}
+            >
+              🛠️ Incident Admin Dashboard
+            </button>
+          )}
+        </div>
       </div>
 
       {/* 📋 RESOURCE LIST - SHOW FOR ADMIN, STAFF, USER */}
