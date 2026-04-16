@@ -122,13 +122,65 @@ const Dashboard = () => {
     loadResources();
   }, []);
 
+  // 🎨 MODERN BUTTON STYLES
+  const buttonBaseStyle = {
+    padding: "10px 20px",
+    borderRadius: "8px",
+    border: "none",
+    fontWeight: "600",
+    fontSize: "13px",
+    cursor: "pointer",
+    transition: "all 0.3s ease",
+    display: "inline-flex",
+    alignItems: "center",
+    gap: "8px",
+    boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+  };
+
+  const addResourceButtonStyle = {
+    ...buttonBaseStyle,
+    background: "linear-gradient(135deg, #007bff 0%, #0056b3 100%)",
+    color: "white",
+  };
+
+  const reportIncidentButtonStyle = {
+    ...buttonBaseStyle,
+    background: "linear-gradient(135deg, #ff9800 0%, #e65100 100%)",
+    color: "white",
+  };
+
+  const incidentDashboardButtonStyle = {
+    ...buttonBaseStyle,
+    background: "linear-gradient(135deg, #22c55e 0%, #15803d 100%)",
+    color: "white",
+  };
+
+  const adminBookingButtonStyle = {
+    ...buttonBaseStyle,
+    background: "linear-gradient(135deg, #e83e8c 0%, #c9184a 100%)",
+    color: "white",
+  };
+
+  const resourceAdminButtonStyle = {
+    ...buttonBaseStyle,
+    background: "linear-gradient(135deg, #0f766e 0%, #0d5c5c 100%)",
+    color: "white",
+  };
+
+  const incidentAdminButtonStyle = {
+    ...buttonBaseStyle,
+    background: "linear-gradient(135deg, #7c2d12 0%, #5a1e0c 100%)",
+    color: "white",
+  };
+
   const overlayStyle = {
     position: "fixed",
     top: 0,
     left: 0,
     width: "100%",
     height: "100%",
-    backgroundColor: "rgba(0,0,0,0.5)",
+    backgroundColor: "rgba(0, 0, 0, 0.6)",
+    backdropFilter: "blur(4px)",
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
@@ -137,9 +189,42 @@ const Dashboard = () => {
 
   const modalStyle = {
     backgroundColor: "#fff",
+    borderRadius: "20px",
+    width: "90%",
+    maxWidth: "500px",
+    maxHeight: "85vh",
+    overflow: "hidden",
+    boxShadow: "0 20px 60px rgba(0, 0, 0, 0.3)",
+    animation: "slideIn 0.3s ease-out",
+  };
+
+  const modalHeaderStyle = {
+    background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+    padding: "16px 20px",
+    display: "flex",
+    justifyContent: "flex-end",
+    borderBottom: "1px solid rgba(255,255,255,0.1)",
+  };
+
+  const closeButtonStyle = {
+    background: "rgba(255,255,255,0.2)",
+    border: "none",
+    color: "white",
+    fontSize: "18px",
+    cursor: "pointer",
+    width: "30px",
+    height: "30px",
+    borderRadius: "6px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    transition: "all 0.2s ease",
+  };
+
+  const modalContentStyle = {
     padding: "20px",
-    borderRadius: "10px",
-    width: "400px",
+    maxHeight: "calc(85vh - 70px)",
+    overflowY: "auto",
   };
 
   const adminPopupStyle = {
@@ -148,48 +233,87 @@ const Dashboard = () => {
     maxWidth: "1200px",
     maxHeight: "90vh",
     overflowY: "auto",
-    borderRadius: "12px",
+    borderRadius: "16px",
     padding: "20px",
     position: "relative",
+    boxShadow: "0 20px 60px rgba(0, 0, 0, 0.3)",
   };
 
   const adminCloseButtonStyle = {
     position: "absolute",
-    top: "12px",
-    right: "12px",
+    top: "16px",
+    right: "16px",
     border: "none",
     backgroundColor: "#efefef",
-    borderRadius: "6px",
-    padding: "6px 10px",
+    borderRadius: "8px",
+    padding: "8px 12px",
     cursor: "pointer",
     fontWeight: "600",
+    fontSize: "13px",
+    transition: "all 0.2s ease",
   };
 
   return (
-    <div style={{ padding: "20px",backgroundColor: "#ffffff", minHeight: "100vh" }}>
+    <div style={{ padding: "20px", backgroundColor: "#ffffff", minHeight: "100vh" }}>
 
       {/* 🔐 HEADER */}
-      <div style={{ position: "relative", display: "flex", justifyContent: "flex-end", alignItems: "center", marginBottom: "20px", minHeight: "72px",backgroundColor: "#D9DDDC", padding: "0 20px", borderRadius: "8px" ,minHeight: "120px",}}>
-        <div style={{ position: "absolute", left: "50%", transform: "translateX(-50%)", textAlign: "center",color: "#1c73ff", }}>
-          <h1 style={{ margin: 0, color: "#1c73ff",fontSize: "50px" }}>CBH Campus</h1>
+      <div style={{ 
+        position: "relative", 
+        display: "flex", 
+        justifyContent: "flex-end", 
+        alignItems: "center", 
+        marginBottom: "20px", 
+        minHeight: "120px",
+        backgroundColor: "#D9DDDC", 
+        padding: "0 20px", 
+        borderRadius: "12px",
+        boxShadow: "0 2px 8px rgba(0,0,0,0.05)"
+      }}>
+        <div style={{ 
+          position: "absolute", 
+          left: "50%", 
+          transform: "translateX(-50%)", 
+          textAlign: "center",
+        }}>
+          <h1 style={{ margin: 0, color: "#1c73ff", fontSize: "50px", fontWeight: "700" }}>CBH Campus</h1>
           <p style={{ margin: "4px 0 0", fontSize: "20px", fontWeight: "600", color: "#374151" }}>
             Faculty Resource Dashboard
           </p>
         </div>
 
-        <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+        <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
           {user && (
             <>
-              <span style={{ fontSize: "14px" }}>{user.name} ({user.role})</span>
+              <span style={{ fontSize: "14px", fontWeight: "500", color: "#4a5568" }}>
+                👋 {user.name} ({user.role})
+              </span>
 
               <button
-                style={{ padding: "8px 16px", backgroundColor: "#f0f0f0" }}
+                style={{
+                  padding: "8px 20px",
+                  backgroundColor: "#dc3545",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "8px",
+                  cursor: "pointer",
+                  fontWeight: "600",
+                  fontSize: "13px",
+                  transition: "all 0.2s ease",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = "#c82333";
+                  e.currentTarget.style.transform = "translateY(-1px)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = "#dc3545";
+                  e.currentTarget.style.transform = "translateY(0)";
+                }}
                 onClick={() => {
                   localStorage.removeItem("user");
                   window.location.href = "http://localhost:8080/logout";
                 }}
               >
-                Logout
+                🚪 Logout
               </button>
             </>
           )}
@@ -197,12 +321,20 @@ const Dashboard = () => {
       </div>
 
       {/* 🔧 QUICK ACTIONS */}
-      <div style={{ display: "flex", gap: "10px", marginBottom: "20px", flexWrap: "wrap" }}>
+      <div style={{ display: "flex", gap: "12px", marginBottom: "24px", flexWrap: "wrap" }}>
         {/* ADMIN ONLY - ADD RESOURCE */}
         {user?.role === "ADMIN" && (
           <button 
             onClick={() => setShowForm(true)}
-            style={{ padding: "10px 20px", backgroundColor: "#007bff", color: "white", border: "none", borderRadius: "5px", cursor: "pointer" }}
+            style={addResourceButtonStyle}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = "translateY(-2px)";
+              e.currentTarget.style.boxShadow = "0 6px 12px rgba(0, 123, 255, 0.3)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = "translateY(0)";
+              e.currentTarget.style.boxShadow = "0 2px 4px rgba(0,0,0,0.1)";
+            }}
           >
             ➕ Add Resource
           </button>
@@ -212,9 +344,17 @@ const Dashboard = () => {
         {(user?.role === "ADMIN" || user?.role === "USER") && (
           <button 
             onClick={() => setShowReportIncident(true)}
-            style={{ padding: "10px 20px", backgroundColor: "#ff9800", color: "white", border: "none", borderRadius: "5px", cursor: "pointer" }}
+            style={reportIncidentButtonStyle}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = "translateY(-2px)";
+              e.currentTarget.style.boxShadow = "0 6px 12px rgba(255, 152, 0, 0.3)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = "translateY(0)";
+              e.currentTarget.style.boxShadow = "0 2px 4px rgba(0,0,0,0.1)";
+            }}
           >
-            🚨 Report Incident 
+            🚨 Report Incident
           </button>
         )}
 
@@ -222,7 +362,15 @@ const Dashboard = () => {
         {(user?.role === "STAFF" || user?.role === "ADMIN") && (
           <button 
             onClick={() => setShowIncidentDashboard(true)}
-            style={{ padding: "10px 20px", backgroundColor: "#22c55e", color: "white", border: "none", borderRadius: "5px", cursor: "pointer" }}
+            style={incidentDashboardButtonStyle}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = "translateY(-2px)";
+              e.currentTarget.style.boxShadow = "0 6px 12px rgba(34, 197, 94, 0.3)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = "translateY(0)";
+              e.currentTarget.style.boxShadow = "0 2px 4px rgba(0,0,0,0.1)";
+            }}
           >
             🔧 Incident Dashboard
           </button>
@@ -232,7 +380,15 @@ const Dashboard = () => {
         {user?.role === "ADMIN" && (
           <button 
             onClick={() => setShowAdminDashboard(true)}
-            style={{ padding: "10px 20px", backgroundColor: "#e83e8c", color: "white", border: "none", borderRadius: "5px", cursor: "pointer" }}
+            style={adminBookingButtonStyle}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = "translateY(-2px)";
+              e.currentTarget.style.boxShadow = "0 6px 12px rgba(232, 62, 140, 0.3)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = "translateY(0)";
+              e.currentTarget.style.boxShadow = "0 2px 4px rgba(0,0,0,0.1)";
+            }}
           >
             📊 Admin Booking Dashboard
           </button>
@@ -247,7 +403,15 @@ const Dashboard = () => {
               setShowIncidentDashboard(false);
               setShowIncidentAdminDashboard(false);
             }}
-            style={{ padding: "10px 20px", backgroundColor: "#0f766e", color: "white", border: "none", borderRadius: "5px", cursor: "pointer" }}
+            style={resourceAdminButtonStyle}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = "translateY(-2px)";
+              e.currentTarget.style.boxShadow = "0 6px 12px rgba(15, 118, 110, 0.3)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = "translateY(0)";
+              e.currentTarget.style.boxShadow = "0 2px 4px rgba(0,0,0,0.1)";
+            }}
           >
             🧭 Resource Admin Dashboard
           </button>
@@ -262,7 +426,15 @@ const Dashboard = () => {
               setShowIncidentDashboard(false);
               setShowResourceAdminDashboard(false);
             }}
-            style={{ padding: "10px 20px", backgroundColor: "#7c2d12", color: "white", border: "none", borderRadius: "5px", cursor: "pointer" }}
+            style={incidentAdminButtonStyle}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = "translateY(-2px)";
+              e.currentTarget.style.boxShadow = "0 6px 12px rgba(124, 45, 18, 0.3)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = "translateY(0)";
+              e.currentTarget.style.boxShadow = "0 2px 4px rgba(0,0,0,0.1)";
+            }}
           >
             🛠️ Incident Admin Dashboard
           </button>
@@ -291,7 +463,23 @@ const Dashboard = () => {
           {!isStaffOnly && (
             <button 
               onClick={() => setShowIncidentDashboard(false)}
-              style={{ marginBottom: "15px", padding: "8px 16px", backgroundColor: "#ccc" }}
+              style={{
+                marginBottom: "15px",
+                padding: "8px 16px",
+                backgroundColor: "#6c757d",
+                color: "white",
+                border: "none",
+                borderRadius: "8px",
+                cursor: "pointer",
+                fontWeight: "600",
+                transition: "all 0.2s ease",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = "#5a6268";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = "#6c757d";
+              }}
             >
               ← Back to Resources
             </button>
@@ -305,7 +493,23 @@ const Dashboard = () => {
         <div>
           <button 
             onClick={() => setShowAdminDashboard(false)}
-            style={{ marginBottom: "15px", padding: "8px 16px", backgroundColor: "#ccc" }}
+            style={{
+              marginBottom: "15px",
+              padding: "8px 16px",
+              backgroundColor: "#6c757d",
+              color: "white",
+              border: "none",
+              borderRadius: "8px",
+              cursor: "pointer",
+              fontWeight: "600",
+              transition: "all 0.2s ease",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = "#5a6268";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = "#6c757d";
+            }}
           >
             ← Back to Resources
           </button>
@@ -320,8 +524,14 @@ const Dashboard = () => {
             <button
               onClick={() => setShowResourceAdminDashboard(false)}
               style={adminCloseButtonStyle}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = "#e0e0e0";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = "#efefef";
+              }}
             >
-              Close
+              ✕ Close
             </button>
             <ResourceAdminDashboard />
           </div>
@@ -335,8 +545,14 @@ const Dashboard = () => {
             <button
               onClick={() => setShowIncidentAdminDashboard(false)}
               style={adminCloseButtonStyle}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = "#e0e0e0";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = "#efefef";
+              }}
             >
-              Close
+              ✕ Close
             </button>
             <IncidentAdminDashboard />
           </div>
@@ -345,30 +561,75 @@ const Dashboard = () => {
 
       {/* 🪟 ADD RESOURCE */}
       {showForm && (
-        <div style={overlayStyle}>
-          <div style={modalStyle}>
-            <button onClick={() => setShowForm(false)}>❌</button>
-            <ResourceForm refresh={refresh} />
+        <div style={overlayStyle} onClick={() => setShowForm(false)}>
+          <div style={modalStyle} onClick={(e) => e.stopPropagation()}>
+            <div style={modalHeaderStyle}>
+              <button 
+                onClick={() => setShowForm(false)} 
+                style={closeButtonStyle}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.3)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.2)";
+                }}
+              >
+                ✕
+              </button>
+            </div>
+            <div style={modalContentStyle}>
+              <ResourceForm refresh={refresh} />
+            </div>
           </div>
         </div>
       )}
 
       {/* 🪟 BOOKING */}
       {showBooking && (
-        <div style={overlayStyle}>
-          <div style={modalStyle}>
-            <button onClick={() => setShowBooking(false)}>❌</button>
-            <BookingForm resource={selectedResource} refresh={refresh} />
+        <div style={overlayStyle} onClick={() => setShowBooking(false)}>
+          <div style={modalStyle} onClick={(e) => e.stopPropagation()}>
+            <div style={modalHeaderStyle}>
+              <button 
+                onClick={() => setShowBooking(false)} 
+                style={closeButtonStyle}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.3)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.2)";
+                }}
+              >
+                ✕
+              </button>
+            </div>
+            <div style={modalContentStyle}>
+              <BookingForm resource={selectedResource} refresh={refresh} />
+            </div>
           </div>
         </div>
       )}
 
       {/* 🪟 AVAILABILITY */}
       {showAvailability && (
-        <div style={overlayStyle}>
-          <div style={modalStyle}>
-            <button onClick={() => setShowAvailability(false)}>❌</button>
-            <AvailabilityForm resource={selectedResource} refresh={refresh} />
+        <div style={overlayStyle} onClick={() => setShowAvailability(false)}>
+          <div style={modalStyle} onClick={(e) => e.stopPropagation()}>
+            <div style={modalHeaderStyle}>
+              <button 
+                onClick={() => setShowAvailability(false)} 
+                style={closeButtonStyle}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.3)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.2)";
+                }}
+              >
+                ✕
+              </button>
+            </div>
+            <div style={modalContentStyle}>
+              <AvailabilityForm resource={selectedResource} refresh={refresh} />
+            </div>
           </div>
         </div>
       )}
