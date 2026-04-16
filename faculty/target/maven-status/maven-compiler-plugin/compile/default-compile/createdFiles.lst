@@ -1,6 +1,6 @@
 com\paf\faculty\FacultyApplication.class
-com\paf\faculty\model\User.class
 com\paf\faculty\repository\UserRepository.class
-com\paf\faculty\config\SecurityConfig.class
 com\paf\faculty\model\Role.class
 com\paf\faculty\controller\AvailabilityController.class
+com\paf\faculty\model\User.class
+com\paf\faculty\config\SecurityConfig.class
