@@ -265,6 +265,51 @@ function ResourceList({ reload, userRole, onBook, onAddAvailability }) {
       });
   };
 
+  // 🎨 BUTTON STYLES
+  const buttonBaseStyle = {
+    padding: "10px 20px",
+    borderRadius: "8px",
+    border: "none",
+    fontWeight: "600",
+    fontSize: "14px",
+    cursor: "pointer",
+    transition: "all 0.3s ease",
+    display: "inline-flex",
+    alignItems: "center",
+    gap: "8px",
+    boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+  };
+
+  const filterButtonStyle = {
+    ...buttonBaseStyle,
+    background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+    color: "white",
+  };
+
+  const notificationButtonStyle = {
+    ...buttonBaseStyle,
+    background: "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)",
+    color: "white",
+  };
+
+  const bookingsButtonStyle = {
+    ...buttonBaseStyle,
+    background: "linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)",
+    color: "white",
+  };
+
+  const historyButtonStyle = {
+    ...buttonBaseStyle,
+    background: "linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)",
+    color: "white",
+  };
+
+  const incidentsButtonStyle = {
+    ...buttonBaseStyle,
+    background: "linear-gradient(135deg, #fa709a 0%, #fee140 100%)",
+    color: "white",
+  };
+
   return (
     <div id="resource-list" style={{ padding: "20px" }}>
 
@@ -273,23 +318,25 @@ function ResourceList({ reload, userRole, onBook, onAddAvailability }) {
         display: "flex",
         justifyContent: "space-between",
         alignItems: "center",
-        marginBottom: "20px"
+        marginBottom: "20px",
+        flexWrap: "wrap",
+        gap: "15px"
       }}>
         <h2>📋 Resources</h2>
 
-        <div style={{ display: "flex", gap: "10px" }}>
+        <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
 
-          {/*   FILTER BUTTON */}
+          {/* 🔍 FILTER BUTTON */}
           <button
             onClick={() => setShowFilters(!showFilters)}
-            style={{
-              backgroundColor: "#17a2b8",
-              color: "white",
-              borderRadius: "5px",
-              padding: "8px 12px",
-              cursor: "pointer",
-              border: "none",
-              fontWeight: "600"
+            style={filterButtonStyle}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = "translateY(-2px)";
+              e.currentTarget.style.boxShadow = "0 4px 8px rgba(0,0,0,0.2)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = "translateY(0)";
+              e.currentTarget.style.boxShadow = "0 2px 4px rgba(0,0,0,0.1)";
             }}
           >
             🔍 Filters {Object.values(filters).some(v => v) && "✓"}
@@ -298,10 +345,14 @@ function ResourceList({ reload, userRole, onBook, onAddAvailability }) {
           {/* 🔔 NOTIFICATIONS */}
           <button
             onClick={() => setShowNotifications(!showNotifications)}
-            style={{
-              backgroundColor: "#ffc107",
-              borderRadius: "5px",
-              padding: "8px 12px"
+            style={notificationButtonStyle}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = "translateY(-2px)";
+              e.currentTarget.style.boxShadow = "0 4px 8px rgba(0,0,0,0.2)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = "translateY(0)";
+              e.currentTarget.style.boxShadow = "0 2px 4px rgba(0,0,0,0.1)";
             }}
           >
             🔔 ({notifications.filter(n => !n.read).length})
@@ -311,47 +362,56 @@ function ResourceList({ reload, userRole, onBook, onAddAvailability }) {
           {(userRole === "ADMIN" || userRole === "USER") && (
             <button
               onClick={() => setShowMyBookings(true)}
-              style={{
-                backgroundColor: "#6f42c1",
-                color: "white",
-                padding: "8px 15px",
-                borderRadius: "5px"
+              style={bookingsButtonStyle}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = "translateY(-2px)";
+                e.currentTarget.style.boxShadow = "0 4px 8px rgba(0,0,0,0.2)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = "translateY(0)";
+                e.currentTarget.style.boxShadow = "0 2px 4px rgba(0,0,0,0.1)";
               }}
             >
               📅 Your Bookings
             </button>
           )}
 
-          {/*   BOOKING HISTORY - ONLY ADMIN & USER */}
+          {/* 📚 BOOKING HISTORY - ONLY ADMIN & USER */}
           {(userRole === "ADMIN" || userRole === "USER") && (
             <button
               onClick={() => setShowBookingHistory(true)}
-              style={{
-                backgroundColor: "#28a745",
-                color: "white",
-                padding: "8px 15px",
-                borderRadius: "5px"
+              style={historyButtonStyle}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = "translateY(-2px)";
+                e.currentTarget.style.boxShadow = "0 4px 8px rgba(0,0,0,0.2)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = "translateY(0)";
+                e.currentTarget.style.boxShadow = "0 2px 4px rgba(0,0,0,0.1)";
               }}
             >
               📚 Booking History
             </button>
           )}
 
-          {/*  🚨 MY INCIDENTS - ADMIN, STAFF, USER */}
+          {/* 🚨 MY INCIDENTS - ADMIN, STAFF, USER */}
           {(userRole === "ADMIN" || userRole === "STAFF" || userRole === "USER") && (
             <button
               onClick={() => setShowMyIncidents(true)}
-              style={{
-                backgroundColor: "#ff5722",
-                color: "white",
-                padding: "8px 15px",
-                borderRadius: "5px"
+              style={incidentsButtonStyle}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = "translateY(-2px)";
+                e.currentTarget.style.boxShadow = "0 4px 8px rgba(0,0,0,0.2)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = "translateY(0)";
+                e.currentTarget.style.boxShadow = "0 2px 4px rgba(0,0,0,0.1)";
               }}
             >
               🚨 My Incidents ({myIncidents.length})
             </button>
           )}
-                </div>
+        </div>
       </div>
 
       {/* 🔍 FILTER PANEL */}
@@ -475,7 +535,7 @@ function ResourceList({ reload, userRole, onBook, onAddAvailability }) {
         </div>
       )}
 
-      {/*   RESULTS COUNTER */}
+      {/* 📊 RESULTS COUNTER */}
       <div style={{
         marginBottom: "15px",
         fontSize: "14px",
@@ -485,7 +545,7 @@ function ResourceList({ reload, userRole, onBook, onAddAvailability }) {
         Showing <strong>{filteredResources.length}</strong> of <strong>{resources.length}</strong> resources
       </div>
 
-      {/*  🔔 NOTIFICATION DROPDOWN */}
+      {/* 🔔 NOTIFICATION DROPDOWN */}
       {showNotifications && (
         <div style={{
           position: "fixed",
@@ -769,7 +829,7 @@ function ResourceList({ reload, userRole, onBook, onAddAvailability }) {
         />
       )}
 
-      {/*   BOOKING HISTORY MODAL */}
+      {/* 📚 BOOKING HISTORY MODAL */}
       {showBookingHistory && (
         <BookingHistoryModal
           resources={resources}
@@ -782,7 +842,7 @@ function ResourceList({ reload, userRole, onBook, onAddAvailability }) {
           onClose={() => setShowAdminDashboard(false)}
         />
       )}
-      {/*  🚨 MY INCIDENTS MODAL */}
+      {/* 🚨 MY INCIDENTS MODAL */}
       {showMyIncidents && (
         <MyIncidentsModal
           myIncidents={myIncidents}
