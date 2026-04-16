@@ -254,69 +254,185 @@ const Dashboard = () => {
   };
 
   return (
-    <div style={{ padding: "20px", backgroundColor: "#ffffff", minHeight: "100vh" }}>
+    <div style={{ padding: "20px", backgroundColor: "#f0f2f5", minHeight: "100vh" }}>
 
-      {/* 🔐 HEADER */}
+      {/* 🎨 MODERN HEADER */}
       <div style={{ 
-        position: "relative", 
-        display: "flex", 
-        justifyContent: "flex-end", 
-        alignItems: "center", 
-        marginBottom: "20px", 
-        minHeight: "120px",
-        backgroundColor: "#D9DDDC", 
-        padding: "0 20px", 
-        borderRadius: "12px",
-        boxShadow: "0 2px 8px rgba(0,0,0,0.05)"
+        marginBottom: "24px",
+        borderRadius: "16px",
+        overflow: "hidden",
+        boxShadow: "0 10px 25px rgba(0, 0, 0, 0.1)",
       }}>
+        {/* Gradient Top Bar */}
+        <div style={{
+          height: "4px",
+          background: "linear-gradient(90deg, #007bff, #00f2fe, #43e97b, #fa709a, #667eea)",
+          backgroundSize: "200% 100%",
+          animation: "gradientMove 3s ease infinite",
+        }}></div>
+        
+        {/* Main Header Content */}
         <div style={{ 
-          position: "absolute", 
-          left: "50%", 
-          transform: "translateX(-50%)", 
-          textAlign: "center",
+          background: "linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)",
+          padding: "24px 32px",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          flexWrap: "wrap",
+          gap: "20px",
         }}>
-          <h1 style={{ margin: 0, color: "#1c73ff", fontSize: "50px", fontWeight: "700" }}>CBH Campus</h1>
-          <p style={{ margin: "4px 0 0", fontSize: "20px", fontWeight: "600", color: "#374151" }}>
-            Faculty Resource Dashboard
-          </p>
-        </div>
+          {/* Logo and Title Section */}
+          <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+            <div style={{
+              width: "50px",
+              height: "50px",
+              background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+              borderRadius: "12px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontSize: "28px",
+              boxShadow: "0 4px 10px rgba(0,0,0,0.2)",
+            }}>
+              🏫
+            </div>
+            <div>
+              <h1 style={{ 
+                margin: 0, 
+                fontSize: "28px", 
+                fontWeight: "700",
+                background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+                backgroundClip: "text",
+              }}>
+                CBH Campus
+              </h1>
+              <p style={{ 
+                margin: "4px 0 0", 
+                fontSize: "14px", 
+                color: "#a0aec0",
+                fontWeight: "500"
+              }}>
+                Faculty Resource Management System
+              </p>
+            </div>
+          </div>
 
-        <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
+          {/* User Info and Logout Section */}
           {user && (
-            <>
-              <span style={{ fontSize: "14px", fontWeight: "500", color: "#4a5568" }}>
-                👋 {user.name} ({user.role})
-              </span>
-
+            <div style={{ 
+              display: "flex", 
+              gap: "16px", 
+              alignItems: "center",
+              background: "rgba(255,255,255,0.1)",
+              padding: "8px 20px",
+              borderRadius: "50px",
+              backdropFilter: "blur(10px)",
+            }}>
+              <div style={{ 
+                display: "flex", 
+                alignItems: "center", 
+                gap: "12px",
+              }}>
+                <div style={{
+                  width: "40px",
+                  height: "40px",
+                  background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                  borderRadius: "50%",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontSize: "18px",
+                }}>
+                  👤
+                </div>
+                <div>
+                  <div style={{ 
+                    fontSize: "14px", 
+                    fontWeight: "600", 
+                    color: "white"
+                  }}>
+                    {user.name}
+                  </div>
+                  <div style={{ 
+                    fontSize: "11px", 
+                    color: "#a0aec0",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "4px",
+                    marginTop: "2px"
+                  }}>
+                    <span style={{
+                      display: "inline-block",
+                      width: "8px",
+                      height: "8px",
+                      borderRadius: "50%",
+                      backgroundColor: user.role === "ADMIN" ? "#22c55e" : user.role === "STAFF" ? "#3b82f6" : "#f59e0b",
+                    }}></span>
+                    {user.role}
+                  </div>
+                </div>
+              </div>
+              
               <button
                 style={{
                   padding: "8px 20px",
-                  backgroundColor: "#dc3545",
+                  background: "linear-gradient(135deg, #dc3545 0%, #c82333 100%)",
                   color: "white",
                   border: "none",
-                  borderRadius: "8px",
+                  borderRadius: "40px",
                   cursor: "pointer",
                   fontWeight: "600",
                   fontSize: "13px",
-                  transition: "all 0.2s ease",
+                  transition: "all 0.3s ease",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = "#c82333";
-                  e.currentTarget.style.transform = "translateY(-1px)";
+                  e.currentTarget.style.transform = "translateY(-2px)";
+                  e.currentTarget.style.boxShadow = "0 6px 12px rgba(220, 53, 69, 0.3)";
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = "#dc3545";
                   e.currentTarget.style.transform = "translateY(0)";
+                  e.currentTarget.style.boxShadow = "none";
                 }}
                 onClick={() => {
                   localStorage.removeItem("user");
                   window.location.href = "http://localhost:8080/logout";
                 }}
               >
-                🚪 Logout
+                <span>🚪</span> Logout
               </button>
-            </>
+            </div>
           )}
+        </div>
+        
+        {/* Stats Bar */}
+        <div style={{
+          background: "white",
+          padding: "12px 32px",
+          display: "flex",
+          gap: "24px",
+          borderTop: "1px solid #e0e0e0",
+          flexWrap: "wrap",
+        }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <span style={{ fontSize: "20px" }}>📊</span>
+            <div>
+              <div style={{ fontSize: "11px", color: "#666", fontWeight: "500" }}>Dashboard</div>
+              <div style={{ fontSize: "13px", fontWeight: "600", color: "#1a1a2e" }}>Resource Overview</div>
+            </div>
+          </div>
+          <div style={{ width: "1px", backgroundColor: "#e0e0e0" }}></div>
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <span style={{ fontSize: "20px" }}>🎯</span>
+            <div>
+              <div style={{ fontSize: "11px", color: "#666", fontWeight: "500" }}>Role</div>
+              <div style={{ fontSize: "13px", fontWeight: "600", color: "#1a1a2e" }}>{user?.role || "Loading..."}</div>
+            </div>
+          </div>
         </div>
       </div>
 
