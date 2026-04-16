@@ -311,7 +311,7 @@ function ResourceList({ reload, userRole, onBook, onAddAvailability }) {
   };
 
   return (
-    <div id="resource-list" style={{ padding: "20px" }}>
+    <div id="resource-list" style={{ padding: "20px", background: "#f0f2f5", minHeight: "100vh" }}>
 
       {/* 🔥 HEADER */}
       <div style={{
@@ -322,7 +322,7 @@ function ResourceList({ reload, userRole, onBook, onAddAvailability }) {
         flexWrap: "wrap",
         gap: "15px"
       }}>
-        <h2>📋 Resources</h2>
+        <h2 style={{ color: "#1a1a2e", margin: 0 }}>📋 Resources</h2>
 
         <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
 
@@ -417,19 +417,20 @@ function ResourceList({ reload, userRole, onBook, onAddAvailability }) {
       {/* 🔍 FILTER PANEL */}
       {showFilters && (
         <div style={{
-          backgroundColor: "#f9f9f9",
-          border: "2px solid #17a2b8",
-          padding: "15px",
-          borderRadius: "8px",
+          backgroundColor: "white",
+          border: "1px solid #e0e0e0",
+          padding: "20px",
+          borderRadius: "12px",
           marginBottom: "20px",
           display: "flex",
           gap: "15px",
           flexWrap: "wrap",
-          alignItems: "flex-end"
+          alignItems: "flex-end",
+          boxShadow: "0 2px 8px rgba(0,0,0,0.05)"
         }}>
           {/* TYPE FILTER */}
           <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
-            <label style={{ fontWeight: "600", fontSize: "13px" }}>Type</label>
+            <label style={{ fontWeight: "600", fontSize: "13px", color: "#4a5568" }}>Type</label>
             <select
               name="type"
               value={filters.type}
@@ -453,7 +454,7 @@ function ResourceList({ reload, userRole, onBook, onAddAvailability }) {
 
           {/* CAPACITY FILTER */}
           <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
-            <label style={{ fontWeight: "600", fontSize: "13px" }}>Min Capacity</label>
+            <label style={{ fontWeight: "600", fontSize: "13px", color: "#4a5568" }}>Min Capacity</label>
             <input
               type="number"
               name="capacity"
@@ -472,7 +473,7 @@ function ResourceList({ reload, userRole, onBook, onAddAvailability }) {
 
           {/* LOCATION FILTER */}
           <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
-            <label style={{ fontWeight: "600", fontSize: "13px" }}>Location</label>
+            <label style={{ fontWeight: "600", fontSize: "13px", color: "#4a5568" }}>Location</label>
             <select
               name="location"
               value={filters.location}
@@ -496,7 +497,7 @@ function ResourceList({ reload, userRole, onBook, onAddAvailability }) {
 
           {/* STATUS FILTER */}
           <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
-            <label style={{ fontWeight: "600", fontSize: "13px" }}>Status</label>
+            <label style={{ fontWeight: "600", fontSize: "13px", color: "#4a5568" }}>Status</label>
             <select
               name="status"
               value={filters.status}
@@ -537,10 +538,14 @@ function ResourceList({ reload, userRole, onBook, onAddAvailability }) {
 
       {/* 📊 RESULTS COUNTER */}
       <div style={{
-        marginBottom: "15px",
+        marginBottom: "20px",
         fontSize: "14px",
         color: "#666",
-        fontWeight: "500"
+        fontWeight: "500",
+        padding: "10px",
+        background: "white",
+        borderRadius: "8px",
+        display: "inline-block"
       }}>
         Showing <strong>{filteredResources.length}</strong> of <strong>{resources.length}</strong> resources
       </div>
@@ -660,13 +665,13 @@ function ResourceList({ reload, userRole, onBook, onAddAvailability }) {
         </div>
       )}
 
-      {/* 📦 RESOURCE CARDS */}
-      <div style={{ display: "flex", flexWrap: "wrap", gap: "20px" }}>
+      {/* 📦 MODERN RESOURCE CARDS */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: "24px" }}>
         {filteredResources.length === 0 ? (
-          <div style={{ width: "100%", textAlign: "center", padding: "40px", color: "#999" }}>
-            <p style={{ fontSize: "18px" }}>📭 No resources found matching your filters</p>
+          <div style={{ width: "100%", textAlign: "center", padding: "60px 20px", background: "white", borderRadius: "12px", gridColumn: "1/-1" }}>
+            <p style={{ fontSize: "18px", color: "#999", margin: 0 }}>📭 No resources found matching your filters</p>
             {Object.values(filters).some(v => v) && (
-              <p style={{ fontSize: "14px" }}>Try adjusting your filter criteria</p>
+              <p style={{ fontSize: "14px", color: "#bbb", marginTop: "8px" }}>Try adjusting your filter criteria</p>
             )}
           </div>
         ) : (
@@ -674,146 +679,159 @@ function ResourceList({ reload, userRole, onBook, onAddAvailability }) {
           <div
             key={r.id}
             style={{
-              border: "1px solid #ccc",
-              borderRadius: "10px",
-              padding: "15px",
-              width: "260px",
-              backgroundColor:
-                r.status === "OUT_OF_SERVICE" ? "#eee" : "#f9f9f9",
+              background: "white",
+              borderRadius: "16px",
+              overflow: "hidden",
+              boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+              transition: "all 0.3s ease",
               opacity: r.status === "OUT_OF_SERVICE" ? 0.7 : 1,
+              cursor: "pointer",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = "translateY(-4px)";
+              e.currentTarget.style.boxShadow = "0 8px 24px rgba(0,0,0,0.15)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = "translateY(0)";
+              e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.1)";
             }}
           >
             {(editingId === r.id && user?.role === "ADMIN") ? (
-              <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-                <input name="name" value={editForm.name} onChange={handleChange} />
-
-                <select name="type" value={editForm.type} onChange={handleChange}>
+              <div style={{ padding: "20px", display: "flex", flexDirection: "column", gap: "12px" }}>
+                <h3 style={{ margin: "0 0 8px 0", color: "#1a1a2e" }}>Edit Resource</h3>
+                <input name="name" value={editForm.name} onChange={handleChange} placeholder="Name" style={inputStyle} />
+                <select name="type" value={editForm.type} onChange={handleChange} style={inputStyle}>
                   <option value="COMPUTER_LAB">Computer Lab</option>
                   <option value="LECTURE_HALL">Lecture Hall</option>
                   <option value="MEETING_ROOM">Meeting Room</option>
                   <option value="EQUIPMENT">Equipment</option>
                 </select>
-
-                <input name="capacity" type="number" value={editForm.capacity} onChange={handleChange} />
-                <select 
-  name="location" 
-  value={editForm.location} 
-  onChange={handleChange}
->
-  <option value="">Select Building</option>
-  <option value="Building A">Building A</option>
-  <option value="Building B">Building B</option>
-  <option value="Building C">Building C</option>
-  <option value="Building D">Building D</option>
-  <option value="Building E">Building E</option>
-  <option value="Building F">Building F</option>
-</select>
-
-                <select name="status" value={editForm.status} onChange={handleChange}>
+                <input name="capacity" type="number" value={editForm.capacity} onChange={handleChange} placeholder="Capacity" style={inputStyle} />
+                <select name="location" value={editForm.location} onChange={handleChange} style={inputStyle}>
+                  <option value="">Select Building</option>
+                  <option value="Building A">Building A</option>
+                  <option value="Building B">Building B</option>
+                  <option value="Building C">Building C</option>
+                  <option value="Building D">Building D</option>
+                  <option value="Building E">Building E</option>
+                  <option value="Building F">Building F</option>
+                </select>
+                <select name="status" value={editForm.status} onChange={handleChange} style={inputStyle}>
                   <option value="ACTIVE">ACTIVE</option>
                   <option value="OUT_OF_SERVICE">OUT_OF_SERVICE</option>
                 </select>
-
-                <div>
-                  <button onClick={handleUpdate}>Save</button>
-                  <button onClick={() => setEditingId(null)}>Cancel</button>
+                <div style={{ display: "flex", gap: "10px", marginTop: "8px" }}>
+                  <button onClick={handleUpdate} style={saveButtonStyle}>Save</button>
+                  <button onClick={() => setEditingId(null)} style={cancelButtonStyle}>Cancel</button>
                 </div>
               </div>
             ) : (
               <>
-                <h3>{r.name}</h3>
-                <p><b>Type:</b> {r.type}</p>
-                <p><b>Capacity:</b> {r.capacity}</p>
-                <p><b>Location:</b> {r.location}</p>
-
-                <p>
-                  <b>Status:</b>{" "}
-                  <span style={{ color: r.status === "ACTIVE" ? "green" : "red" }}>
+                {/* Card Header */}
+                <div style={{
+                  background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                  padding: "16px",
+                  color: "white"
+                }}>
+                  <h3 style={{ margin: 0, fontSize: "18px", fontWeight: "600" }}>{r.name}</h3>
+                  <div style={{
+                    display: "inline-block",
+                    padding: "4px 8px",
+                    borderRadius: "12px",
+                    fontSize: "11px",
+                    fontWeight: "600",
+                    marginTop: "8px",
+                    background: r.status === "ACTIVE" ? "rgba(76, 175, 80, 0.9)" : "rgba(244, 67, 54, 0.9)"
+                  }}>
                     {r.status}
-                  </span>
-                </p>
+                  </div>
+                </div>
 
-                {/* ⏰ AVAILABILITY - SHOW FOR ADMIN & USER */}
-                {(userRole === "ADMIN" || userRole === "USER") && (
-                  <div style={{ marginTop: "10px", padding: "10px", backgroundColor: "#f9f9f9", borderRadius: "5px" }}>
-                    <b style={{ display: "block", marginBottom: "8px" }}>⏰ Availability Slots:</b>
-                    
-                    {availabilityMap[r.id]?.length === 0 ? (
-                      <p style={{ fontSize: "12px", color: "#999", margin: "5px 0" }}>No availability added</p>
-                    ) : (
-                      availabilityMap[r.id]?.map((a, i) => (
-                        <div key={a.id} style={{
-                          display: "flex",
-                          justifyContent: "space-between",
-                          alignItems: "center",
-                          fontSize: "12px",
-                          padding: "6px",
-                          backgroundColor: "white",
-                          marginBottom: "5px",
-                          borderRadius: "4px",
-                          border: "1px solid #eee"
-                        }}>
-                          <span>
-                            {a.date.split("T")[0]}: {a.startTime} - {a.endTime}
-                          </span>
-                          {user?.role === "ADMIN" && (
-                            <div style={{ display: "flex", gap: "4px" }}>
-                              <button
-                                onClick={() => handleEditAvailability(a)}
-                                style={{
-                                  padding: "2px 6px",
-                                  backgroundColor: "#007bff",
-                                  color: "white",
-                                  border: "none",
-                                  borderRadius: "3px",
-                                  cursor: "pointer",
-                                  fontSize: "10px"
-                                }}
-                              >
-                                ✏️ Edit
-                              </button>
-                              <button
-                                onClick={() => handleDeleteAvailability(a.id)}
-                                style={{
-                                  padding: "2px 6px",
-                                  backgroundColor: "#dc3545",
-                                  color: "white",
-                                  border: "none",
-                                  borderRadius: "3px",
-                                  cursor: "pointer",
-                                  fontSize: "10px"
-                                }}
-                              >
-                                🗑️ Delete
-                              </button>
-                            </div>
-                          )}
-                        </div>
-                      ))
+                {/* Card Body */}
+                <div style={{ padding: "16px" }}>
+                  <div style={infoRowStyle}>
+                    <span style={infoLabelStyle}>🏷️ Type:</span>
+                    <span style={infoValueStyle}>{r.type}</span>
+                  </div>
+                  <div style={infoRowStyle}>
+                    <span style={infoLabelStyle}>👥 Capacity:</span>
+                    <span style={infoValueStyle}>{r.capacity} people</span>
+                  </div>
+                  <div style={infoRowStyle}>
+                    <span style={infoLabelStyle}>📍 Location:</span>
+                    <span style={infoValueStyle}>{r.location}</span>
+                  </div>
+
+                  {/* ⏰ AVAILABILITY */}
+                  {(userRole === "ADMIN" || userRole === "USER") && (
+                    <div style={{
+                      marginTop: "16px",
+                      padding: "12px",
+                      background: "#f8f9fa",
+                      borderRadius: "8px",
+                      borderLeft: "3px solid #667eea"
+                    }}>
+                      <div style={{ fontWeight: "600", marginBottom: "8px", fontSize: "13px", color: "#4a5568" }}>
+                        ⏰ Availability Slots:
+                      </div>
+                      
+                      {availabilityMap[r.id]?.length === 0 ? (
+                        <p style={{ fontSize: "12px", color: "#999", margin: "5px 0" }}>No availability added</p>
+                      ) : (
+                        availabilityMap[r.id]?.map((a) => (
+                          <div key={a.id} style={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "center",
+                            fontSize: "12px",
+                            padding: "6px 8px",
+                            background: "white",
+                            marginBottom: "4px",
+                            borderRadius: "6px",
+                            border: "1px solid #e0e0e0"
+                          }}>
+                            <span>{a.date.split("T")[0]}: {a.startTime} - {a.endTime}</span>
+                            {user?.role === "ADMIN" && (
+                              <div style={{ display: "flex", gap: "4px" }}>
+                                <button
+                                  onClick={() => handleEditAvailability(a)}
+                                  style={smallButtonStyle}
+                                >
+                                  ✏️ Edit
+                                </button>
+                                <button
+                                  onClick={() => handleDeleteAvailability(a.id)}
+                                  style={{ ...smallButtonStyle, backgroundColor: "#dc3545" }}
+                                >
+                                  🗑️ Delete
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  )}
+
+                  {/* Action Buttons */}
+                  <div style={{ display: "flex", gap: "8px", marginTop: "16px", flexWrap: "wrap" }}>
+                    {user?.role === "ADMIN" && (
+                      <>
+                        <button onClick={() => handleEdit(r)} style={cardButtonStyle}>✏️ Edit</button>
+                        <button onClick={() => handleDelete(r.id)} style={{ ...cardButtonStyle, backgroundColor: "#dc3545" }}>🗑️ Delete</button>
+                      </>
+                    )}
+
+                    {r.status === "ACTIVE" && (userRole === "ADMIN" || userRole === "USER") && (
+                      <>
+                        <button onClick={() => onBook(r)} style={cardButtonPrimaryStyle}>📖 Book</button>
+                        {user?.role === "ADMIN" && (
+                          <button onClick={() => onAddAvailability(r)} style={cardButtonStyle}>➕ Add Availability</button>
+                        )}
+                      </>
                     )}
                   </div>
-                )}
-
-                {/* ADMIN BUTTONS */}
-                {user?.role === "ADMIN" && (
-                  <>
-                    <button onClick={() => handleEdit(r)}>Edit</button>
-                    <button onClick={() => handleDelete(r.id)}>Delete</button>
-                  </>
-                )}
-
-                {/* USER & ADMIN BOOKING ACTIONS */}
-                {r.status === "ACTIVE" && (userRole === "ADMIN" || userRole === "USER") && (
-                  <>
-                    <button onClick={() => onBook(r)}>Book</button>
-
-                    {user?.role === "ADMIN" && (
-                      <button onClick={() => onAddAvailability(r)}>
-                        Add Availability
-                      </button>
-                    )}
-                  </>
-                )}
+                </div>
               </>
             )}
           </div>
@@ -821,7 +839,7 @@ function ResourceList({ reload, userRole, onBook, onAddAvailability }) {
         )}
       </div>
 
-      {/* 📅 MY BOOKINGS MODAL */}
+      {/* MODALS */}
       {showMyBookings && (
         <MyBookingsModal
           resources={resources}
@@ -829,20 +847,19 @@ function ResourceList({ reload, userRole, onBook, onAddAvailability }) {
         />
       )}
 
-      {/* 📚 BOOKING HISTORY MODAL */}
       {showBookingHistory && (
         <BookingHistoryModal
           resources={resources}
           onClose={() => setShowBookingHistory(false)}
         />
       )}
-      {/* 📊 ADMIN BOOKING DASHBOARD MODAL */}
+
       {showAdminDashboard && (
         <AdminBookingDashboard
           onClose={() => setShowAdminDashboard(false)}
         />
       )}
-      {/* 🚨 MY INCIDENTS MODAL */}
+
       {showMyIncidents && (
         <MyIncidentsModal
           myIncidents={myIncidents}
@@ -854,7 +871,7 @@ function ResourceList({ reload, userRole, onBook, onAddAvailability }) {
         />
       )}
 
-      {/* ⏰ EDIT AVAILABILITY MODAL */}
+      {/* EDIT AVAILABILITY MODAL */}
       {showEditAvailabilityModal && (
         <div style={{
           position: "fixed",
@@ -870,103 +887,58 @@ function ResourceList({ reload, userRole, onBook, onAddAvailability }) {
         }}>
           <div style={{
             backgroundColor: "white",
-            borderRadius: "10px",
+            borderRadius: "16px",
             padding: "30px",
             width: "90%",
             maxWidth: "400px",
-            boxShadow: "0 4px 20px rgba(0, 0, 0, 0.3)"
+            boxShadow: "0 20px 60px rgba(0, 0, 0, 0.3)"
           }}>
-            <h3 style={{ marginBottom: "20px" }}>✏️ Edit Availability Slot</h3>
+            <h3 style={{ marginBottom: "20px", color: "#1a1a2e" }}>✏️ Edit Availability Slot</h3>
 
             <div style={{ display: "flex", flexDirection: "column", gap: "15px" }}>
-              {/* DATE */}
               <div>
-                <label style={{ display: "block", fontWeight: "600", marginBottom: "5px" }}>Date</label>
+                <label style={{ display: "block", fontWeight: "600", marginBottom: "5px", color: "#4a5568" }}>Date</label>
                 <input
                   type="date"
                   name="date"
                   value={editAvailabilityForm.date}
                   onChange={handleAvailabilityChange}
-                  style={{
-                    width: "100%",
-                    padding: "10px",
-                    border: "1px solid #ccc",
-                    borderRadius: "5px",
-                    fontSize: "14px",
-                    boxSizing: "border-box"
-                  }}
+                  style={inputStyle}
                 />
               </div>
 
-              {/* START TIME */}
               <div>
-                <label style={{ display: "block", fontWeight: "600", marginBottom: "5px" }}>Start Time</label>
+                <label style={{ display: "block", fontWeight: "600", marginBottom: "5px", color: "#4a5568" }}>Start Time</label>
                 <input
                   type="time"
                   name="startTime"
                   value={editAvailabilityForm.startTime}
                   onChange={handleAvailabilityChange}
-                  style={{
-                    width: "100%",
-                    padding: "10px",
-                    border: "1px solid #ccc",
-                    borderRadius: "5px",
-                    fontSize: "14px",
-                    boxSizing: "border-box"
-                  }}
+                  style={inputStyle}
                 />
               </div>
 
-              {/* END TIME */}
               <div>
-                <label style={{ display: "block", fontWeight: "600", marginBottom: "5px" }}>End Time</label>
+                <label style={{ display: "block", fontWeight: "600", marginBottom: "5px", color: "#4a5568" }}>End Time</label>
                 <input
                   type="time"
                   name="endTime"
                   value={editAvailabilityForm.endTime}
                   onChange={handleAvailabilityChange}
-                  style={{
-                    width: "100%",
-                    padding: "10px",
-                    border: "1px solid #ccc",
-                    borderRadius: "5px",
-                    fontSize: "14px",
-                    boxSizing: "border-box"
-                  }}
+                  style={inputStyle}
                 />
               </div>
 
-              {/* BUTTONS */}
               <div style={{ display: "flex", gap: "10px", marginTop: "20px" }}>
                 <button
                   onClick={handleUpdateAvailability}
-                  style={{
-                    flex: 1,
-                    padding: "12px",
-                    backgroundColor: "#22c55e",
-                    color: "white",
-                    border: "none",
-                    borderRadius: "5px",
-                    cursor: "pointer",
-                    fontWeight: "600",
-                    fontSize: "14px"
-                  }}
+                  style={saveButtonStyle}
                 >
                   ✅ Save Changes
                 </button>
                 <button
                   onClick={closeEditModal}
-                  style={{
-                    flex: 1,
-                    padding: "12px",
-                    backgroundColor: "#6c757d",
-                    color: "white",
-                    border: "none",
-                    borderRadius: "5px",
-                    cursor: "pointer",
-                    fontWeight: "600",
-                    fontSize: "14px"
-                  }}
+                  style={cancelButtonStyle}
                 >
                   ❌ Cancel
                 </button>
@@ -978,5 +950,94 @@ function ResourceList({ reload, userRole, onBook, onAddAvailability }) {
     </div>
   );
 }
+
+// Additional styles for modern UI
+const inputStyle = {
+  width: "100%",
+  padding: "10px",
+  border: "1px solid #ddd",
+  borderRadius: "8px",
+  fontSize: "14px",
+  boxSizing: "border-box",
+  transition: "border-color 0.3s ease"
+};
+
+const infoRowStyle = {
+  display: "flex",
+  justifyContent: "space-between",
+  padding: "8px 0",
+  borderBottom: "1px solid #f0f0f0"
+};
+
+const infoLabelStyle = {
+  fontWeight: "600",
+  color: "#4a5568",
+  fontSize: "13px"
+};
+
+const infoValueStyle = {
+  color: "#1a1a2e",
+  fontSize: "13px"
+};
+
+const cardButtonStyle = {
+  padding: "8px 12px",
+  borderRadius: "8px",
+  border: "none",
+  cursor: "pointer",
+  fontSize: "12px",
+  fontWeight: "600",
+  backgroundColor: "#6c757d",
+  color: "white",
+  transition: "all 0.2s ease"
+};
+
+const cardButtonPrimaryStyle = {
+  padding: "8px 12px",
+  borderRadius: "8px",
+  border: "none",
+  cursor: "pointer",
+  fontSize: "12px",
+  fontWeight: "600",
+  backgroundColor: "#4361ee",
+  color: "white",
+  transition: "all 0.2s ease"
+};
+
+const smallButtonStyle = {
+  padding: "2px 6px",
+  backgroundColor: "#007bff",
+  color: "white",
+  border: "none",
+  borderRadius: "4px",
+  cursor: "pointer",
+  fontSize: "10px"
+};
+
+const saveButtonStyle = {
+  flex: 1,
+  padding: "12px",
+  backgroundColor: "#22c55e",
+  color: "white",
+  border: "none",
+  borderRadius: "8px",
+  cursor: "pointer",
+  fontWeight: "600",
+  fontSize: "14px",
+  transition: "all 0.2s ease"
+};
+
+const cancelButtonStyle = {
+  flex: 1,
+  padding: "12px",
+  backgroundColor: "#6c757d",
+  color: "white",
+  border: "none",
+  borderRadius: "8px",
+  cursor: "pointer",
+  fontWeight: "600",
+  fontSize: "14px",
+  transition: "all 0.2s ease"
+};
 
 export default ResourceList;
