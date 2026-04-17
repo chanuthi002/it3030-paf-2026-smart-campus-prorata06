@@ -13,7 +13,7 @@ function ResourceForm({ refresh }) {
     status: "ACTIVE",
   };
 
-  // ✅ Extended validation schema
+  // ✅ Extended validation schema with conditional capacity for EQUIPMENT
   const extendedValidationSchema = resourceSchema.concat(
     Yup.object({
       name: Yup.string()
@@ -25,8 +25,20 @@ function ResourceForm({ refresh }) {
         .required("Capacity is required")
         .typeError("Capacity must be a number")
         .min(0, "Capacity cannot be negative")
-        .max(1000, "Capacity cannot exceed 1000")
-        .integer("Capacity must be a whole number"),
+        .integer("Capacity must be a whole number")
+        .test(
+          'equipment-capacity-limit',
+          'Equipment can only have capacity up to 10',
+          function(value) {
+            const { type } = this.parent;
+            // If type is EQUIPMENT, capacity must be <= 10
+            if (type === 'EQUIPMENT') {
+              return value <= 10;
+            }
+            // For other types, capacity must be <= 1000
+            return value <= 1000;
+          }
+        ),
     })
   );
 
@@ -150,7 +162,7 @@ function ResourceForm({ refresh }) {
       validateOnBlur={true}
       validateOnChange={true}
     >
-      {({ isSubmitting, isValid, errors, touched }) => (
+      {({ isSubmitting, isValid, errors, touched, values }) => (
         <Form style={formStyle}>
           <h3 style={headerStyle}>Add Resource</h3>
 
@@ -194,8 +206,7 @@ function ResourceForm({ refresh }) {
               name="capacity" 
               type="number" 
               min="0" 
-              max="1000"
-              placeholder="Number of people (max 1000)" 
+              placeholder="Number of people" 
               style={{
                 ...fieldStyle,
                 borderColor: touched.capacity && errors.capacity ? "#dc3545" : fieldStyle.borderColor
@@ -205,8 +216,15 @@ function ResourceForm({ refresh }) {
               onBlur={(e) => e.target.style.borderColor = "#e0e0e0"}
             />
             <FormError name="capacity" />
-            <div style={{ fontSize: "11px", color: "#666", marginTop: "2px" }}>
-              Maximum capacity: 1000 people
+            <div style={{ 
+              fontSize: "11px", 
+              color: values.type === "EQUIPMENT" ? "#f59e0b" : "#666", 
+              marginTop: "2px",
+              fontWeight: values.type === "EQUIPMENT" ? "500" : "normal"
+            }}>
+              {values.type === "EQUIPMENT" 
+                ? "⚠️ Equipment can only have capacity up to 10" 
+                : "Maximum capacity: 1000 people"}
             </div>
           </div>
 
