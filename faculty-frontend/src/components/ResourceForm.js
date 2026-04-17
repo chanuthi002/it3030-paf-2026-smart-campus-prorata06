@@ -2,6 +2,7 @@ import { Formik, Form, Field } from "formik";
 import { createResource } from "../services/api";
 import { resourceSchema } from "../utils/validationSchemas";
 import FormError from "./FormError";
+import * as Yup from "yup";
 
 function ResourceForm({ refresh }) {
   const initialValues = {
@@ -11,6 +12,23 @@ function ResourceForm({ refresh }) {
     location: "",
     status: "ACTIVE",
   };
+
+  // ✅ Extended validation schema
+  const extendedValidationSchema = resourceSchema.concat(
+    Yup.object({
+      name: Yup.string()
+        .required("Resource name is required")
+        .max(50, "Resource name cannot exceed 50 characters")
+        .matches(/^[a-zA-Z0-9\s]+$/, "Resource name can only contain letters, numbers, and spaces"),
+      
+      capacity: Yup.number()
+        .required("Capacity is required")
+        .typeError("Capacity must be a number")
+        .min(0, "Capacity cannot be negative")
+        .max(1000, "Capacity cannot exceed 1000")
+        .integer("Capacity must be a whole number"),
+    })
+  );
 
   const handleSubmit = async (values, { setSubmitting, resetForm }) => {
     try {
@@ -110,32 +128,52 @@ function ResourceForm({ refresh }) {
     letterSpacing: "0.3px",
   };
 
+  // ✅ Helper to prevent non-numeric input for capacity
+  const handleCapacityKeyDown = (e) => {
+    // Allow: backspace, delete, tab, escape, enter, home, end, left, right
+    if (e.key === "Backspace" || e.key === "Delete" || e.key === "Tab" || 
+        e.key === "Escape" || e.key === "Enter" || e.key === "Home" || 
+        e.key === "End" || e.key === "ArrowLeft" || e.key === "ArrowRight") {
+      return;
+    }
+    // Allow numbers only
+    if (!/^\d$/.test(e.key)) {
+      e.preventDefault();
+    }
+  };
+
   return (
     <Formik
       initialValues={initialValues}
-      validationSchema={resourceSchema}
+      validationSchema={extendedValidationSchema}
       onSubmit={handleSubmit}
       validateOnBlur={true}
       validateOnChange={true}
     >
-      {({ isSubmitting, isValid }) => (
+      {({ isSubmitting, isValid, errors, touched }) => (
         <Form style={formStyle}>
           <h3 style={headerStyle}>Add Resource</h3>
 
           <div style={fieldWrapperStyle}>
-            <label style={labelStyle}>Resource Name</label>
+            <label style={labelStyle}>Resource Name *</label>
             <Field 
               name="name" 
-              placeholder="e.g., Main Computer Lab" 
-              style={fieldStyle}
+              placeholder="e.g., Main Computer Lab (max 50 chars)" 
+              style={{
+                ...fieldStyle,
+                borderColor: touched.name && errors.name ? "#dc3545" : fieldStyle.borderColor
+              }}
               onFocus={(e) => e.target.style.borderColor = "#4361ee"}
               onBlur={(e) => e.target.style.borderColor = "#e0e0e0"}
             />
             <FormError name="name" />
+            <div style={{ fontSize: "11px", color: "#666", marginTop: "2px" }}>
+              Only letters, numbers, and spaces. Max 50 characters
+            </div>
           </div>
 
           <div style={fieldWrapperStyle}>
-            <label style={labelStyle}>Resource Type</label>
+            <label style={labelStyle}>Resource Type *</label>
             <Field 
               as="select" 
               name="type"
@@ -151,21 +189,29 @@ function ResourceForm({ refresh }) {
           </div>
 
           <div style={fieldWrapperStyle}>
-            <label style={labelStyle}>Capacity</label>
+            <label style={labelStyle}>Capacity *</label>
             <Field 
               name="capacity" 
               type="number" 
               min="0" 
-              placeholder="Number of people" 
-              style={fieldStyle}
+              max="1000"
+              placeholder="Number of people (max 1000)" 
+              style={{
+                ...fieldStyle,
+                borderColor: touched.capacity && errors.capacity ? "#dc3545" : fieldStyle.borderColor
+              }}
+              onKeyDown={handleCapacityKeyDown}
               onFocus={(e) => e.target.style.borderColor = "#4361ee"}
               onBlur={(e) => e.target.style.borderColor = "#e0e0e0"}
             />
             <FormError name="capacity" />
+            <div style={{ fontSize: "11px", color: "#666", marginTop: "2px" }}>
+              Maximum capacity: 1000 people
+            </div>
           </div>
 
           <div style={fieldWrapperStyle}>
-            <label style={labelStyle}>Location</label>
+            <label style={labelStyle}>Location *</label>
             <Field 
               as="select" 
               name="location"
