@@ -13,19 +13,40 @@ public class ResourceService {
     @Autowired
     private ResourceRepository repository;
 
+    // ✅ FIXED: Generate unique ID based on maximum existing ID
     private String generateCustomId() {
-        long count = repository.count() + 1;
-        return String.format("F%04d", count);
+        List<Resource> allResources = repository.findAll();
+        
+        if (allResources.isEmpty()) {
+            return "F0001";
+        }
+        
+        int maxNumber = 0;
+        for (Resource resource : allResources) {
+            String id = resource.getId();
+            if (id != null && id.startsWith("F")) {
+                try {
+                    int number = Integer.parseInt(id.substring(1));
+                    if (number > maxNumber) {
+                        maxNumber = number;
+                    }
+                } catch (NumberFormatException e) {
+                    // Skip invalid IDs
+                }
+            }
+        }
+        
+        int nextNumber = maxNumber + 1;
+        return String.format("F%04d", nextNumber);
     }
 
-    // CREATE
+    // ✅ FIXED CREATE - Always generate a NEW ID (ignore any ID from frontend)
     public Resource save(Resource resource) {
-
-        // If ID not set → generate
-        if (resource.getId() == null || resource.getId().isEmpty()) {
-            resource.setId(generateCustomId());
-        }
-
+        // CRITICAL FIX: Always generate a new ID, don't trust the incoming ID
+        String newId = generateCustomId();
+        resource.setId(newId);
+        System.out.println("🆕 Creating NEW resource with ID: " + newId);
+        
         return repository.save(resource);
     }
 
@@ -50,6 +71,7 @@ public class ResourceService {
             existing.setCapacity(newResource.getCapacity());
             existing.setLocation(newResource.getLocation());
             existing.setStatus(newResource.getStatus());
+            System.out.println("✏️ Updating resource with ID: " + id);
             return repository.save(existing);
         }
         return null;
@@ -57,6 +79,7 @@ public class ResourceService {
 
     // DELETE
     public void delete(String id) {
+        System.out.println("🗑️ Deleting resource with ID: " + id);
         repository.deleteById(id);
     }
 
