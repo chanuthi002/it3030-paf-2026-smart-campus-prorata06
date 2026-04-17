@@ -13,7 +13,7 @@ function ResourceForm({ refresh }) {
     status: "ACTIVE",
   };
 
-  // ✅ Extended validation schema with conditional capacity for EQUIPMENT
+  // ✅ Extended validation schema with conditional capacity for different types
   const extendedValidationSchema = resourceSchema.concat(
     Yup.object({
       name: Yup.string()
@@ -27,15 +27,19 @@ function ResourceForm({ refresh }) {
         .min(0, "Capacity cannot be negative")
         .integer("Capacity must be a whole number")
         .test(
-          'equipment-capacity-limit',
-          'Equipment can only have capacity up to 10',
+          'capacity-limit-by-type',
           function(value) {
             const { type } = this.parent;
-            // If type is EQUIPMENT, capacity must be <= 10
+            
+            // COMPUTER_LAB: max 100
+            if (type === 'COMPUTER_LAB') {
+              return value <= 100;
+            }
+            // EQUIPMENT: max 10
             if (type === 'EQUIPMENT') {
               return value <= 10;
             }
-            // For other types, capacity must be <= 1000
+            // LECTURE_HALL and MEETING_ROOM: max 1000
             return value <= 1000;
           }
         ),
@@ -154,6 +158,22 @@ function ResourceForm({ refresh }) {
     }
   };
 
+  // ✅ Function to get capacity hint text based on selected type
+  const getCapacityHint = (type) => {
+    switch(type) {
+      case 'COMPUTER_LAB':
+        return { text: "⚠️ Computer Lab capacity: Maximum 100 people", color: "#f59e0b" };
+      case 'EQUIPMENT':
+        return { text: "⚠️ Equipment can only have capacity up to 10", color: "#f59e0b" };
+      case 'LECTURE_HALL':
+        return { text: "📚 Lecture Hall capacity: Maximum 1000 people", color: "#666" };
+      case 'MEETING_ROOM':
+        return { text: "👥 Meeting Room capacity: Maximum 1000 people", color: "#666" };
+      default:
+        return { text: "Maximum capacity: 1000 people", color: "#666" };
+    }
+  };
+
   return (
     <Formik
       initialValues={initialValues}
@@ -162,124 +182,127 @@ function ResourceForm({ refresh }) {
       validateOnBlur={true}
       validateOnChange={true}
     >
-      {({ isSubmitting, isValid, errors, touched, values }) => (
-        <Form style={formStyle}>
-          <h3 style={headerStyle}>Add Resource</h3>
+      {({ isSubmitting, isValid, errors, touched, values }) => {
+        // ✅ Get capacity hint inside the render function where values is defined
+        const capacityHint = getCapacityHint(values.type);
+        
+        return (
+          <Form style={formStyle}>
+            <h3 style={headerStyle}>Add Resource</h3>
 
-          <div style={fieldWrapperStyle}>
-            <label style={labelStyle}>Resource Name *</label>
-            <Field 
-              name="name" 
-              placeholder="e.g., Main Computer Lab (max 50 chars)" 
-              style={{
-                ...fieldStyle,
-                borderColor: touched.name && errors.name ? "#dc3545" : fieldStyle.borderColor
-              }}
-              onFocus={(e) => e.target.style.borderColor = "#4361ee"}
-              onBlur={(e) => e.target.style.borderColor = "#e0e0e0"}
-            />
-            <FormError name="name" />
-            <div style={{ fontSize: "11px", color: "#666", marginTop: "2px" }}>
-              Only letters, numbers, and spaces. Max 50 characters
+            <div style={fieldWrapperStyle}>
+              <label style={labelStyle}>Resource Name *</label>
+              <Field 
+                name="name" 
+                placeholder="e.g., Main Computer Lab (max 50 chars)" 
+                style={{
+                  ...fieldStyle,
+                  borderColor: touched.name && errors.name ? "#dc3545" : fieldStyle.borderColor
+                }}
+                onFocus={(e) => e.target.style.borderColor = "#4361ee"}
+                onBlur={(e) => e.target.style.borderColor = "#e0e0e0"}
+              />
+              <FormError name="name" />
+              <div style={{ fontSize: "11px", color: "#666", marginTop: "2px" }}>
+                Only letters, numbers, and spaces. Max 50 characters
+              </div>
             </div>
-          </div>
 
-          <div style={fieldWrapperStyle}>
-            <label style={labelStyle}>Resource Type *</label>
-            <Field 
-              as="select" 
-              name="type"
-              style={selectStyle}
-            >
-              <option value="">Select Type</option>
-              <option value="COMPUTER_LAB">Computer Lab</option>
-              <option value="LECTURE_HALL">Lecture Hall</option>
-              <option value="MEETING_ROOM">Meeting Room</option>
-              <option value="EQUIPMENT">Equipment</option>
-            </Field>
-            <FormError name="type" />
-          </div>
-
-          <div style={fieldWrapperStyle}>
-            <label style={labelStyle}>Capacity *</label>
-            <Field 
-              name="capacity" 
-              type="number" 
-              min="0" 
-              placeholder="Number of people" 
-              style={{
-                ...fieldStyle,
-                borderColor: touched.capacity && errors.capacity ? "#dc3545" : fieldStyle.borderColor
-              }}
-              onKeyDown={handleCapacityKeyDown}
-              onFocus={(e) => e.target.style.borderColor = "#4361ee"}
-              onBlur={(e) => e.target.style.borderColor = "#e0e0e0"}
-            />
-            <FormError name="capacity" />
-            <div style={{ 
-              fontSize: "11px", 
-              color: values.type === "EQUIPMENT" ? "#f59e0b" : "#666", 
-              marginTop: "2px",
-              fontWeight: values.type === "EQUIPMENT" ? "500" : "normal"
-            }}>
-              {values.type === "EQUIPMENT" 
-                ? "⚠️ Equipment can only have capacity up to 10" 
-                : "Maximum capacity: 1000 people"}
+            <div style={fieldWrapperStyle}>
+              <label style={labelStyle}>Resource Type *</label>
+              <Field 
+                as="select" 
+                name="type"
+                style={selectStyle}
+              >
+                <option value="">Select Type</option>
+                <option value="COMPUTER_LAB">Computer Lab</option>
+                <option value="LECTURE_HALL">Lecture Hall</option>
+                <option value="MEETING_ROOM">Meeting Room</option>
+                <option value="EQUIPMENT">Equipment</option>
+              </Field>
+              <FormError name="type" />
             </div>
-          </div>
 
-          <div style={fieldWrapperStyle}>
-            <label style={labelStyle}>Location *</label>
-            <Field 
-              as="select" 
-              name="location"
-              style={selectStyle}
+            <div style={fieldWrapperStyle}>
+              <label style={labelStyle}>Capacity *</label>
+              <Field 
+                name="capacity" 
+                type="number" 
+                min="0" 
+                placeholder="Number of people" 
+                style={{
+                  ...fieldStyle,
+                  borderColor: touched.capacity && errors.capacity ? "#dc3545" : fieldStyle.borderColor
+                }}
+                onKeyDown={handleCapacityKeyDown}
+                onFocus={(e) => e.target.style.borderColor = "#4361ee"}
+                onBlur={(e) => e.target.style.borderColor = "#e0e0e0"}
+              />
+              <FormError name="capacity" />
+              <div style={{ 
+                fontSize: "11px", 
+                color: capacityHint.color, 
+                marginTop: "2px",
+                fontWeight: values.type === "COMPUTER_LAB" || values.type === "EQUIPMENT" ? "500" : "normal"
+              }}>
+                {capacityHint.text}
+              </div>
+            </div>
+
+            <div style={fieldWrapperStyle}>
+              <label style={labelStyle}>Location *</label>
+              <Field 
+                as="select" 
+                name="location"
+                style={selectStyle}
+              >
+                <option value="">Select Building</option>
+                <option value="Building A">Building A</option>
+                <option value="Building B">Building B</option>
+                <option value="Building C">Building C</option>
+                <option value="Building D">Building D</option>
+                <option value="Building E">Building E</option>
+                <option value="Building F">Building F</option>
+              </Field>
+              <FormError name="location" />
+            </div>
+
+            <div style={fieldWrapperStyle}>
+              <label style={labelStyle}>Status</label>
+              <Field 
+                as="select" 
+                name="status"
+                style={selectStyle}
+              >
+                <option value="ACTIVE">ACTIVE</option>
+                <option value="OUT_OF_SERVICE">OUT_OF_SERVICE</option>
+              </Field>
+              <FormError name="status" />
+            </div>
+
+            <button 
+              type="submit" 
+              disabled={isSubmitting || !isValid}
+              style={isSubmitting || !isValid ? buttonDisabledStyle : buttonStyle}
+              onMouseEnter={(e) => {
+                if (!(isSubmitting || !isValid)) {
+                  e.target.style.backgroundColor = "#2b3cb0";
+                  e.target.style.transform = "translateY(-1px)";
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!(isSubmitting || !isValid)) {
+                  e.target.style.backgroundColor = "#4361ee";
+                  e.target.style.transform = "translateY(0)";
+                }
+              }}
             >
-              <option value="">Select Building</option>
-              <option value="Building A">Building A</option>
-              <option value="Building B">Building B</option>
-              <option value="Building C">Building C</option>
-              <option value="Building D">Building D</option>
-              <option value="Building E">Building E</option>
-              <option value="Building F">Building F</option>
-            </Field>
-            <FormError name="location" />
-          </div>
-
-          <div style={fieldWrapperStyle}>
-            <label style={labelStyle}>Status</label>
-            <Field 
-              as="select" 
-              name="status"
-              style={selectStyle}
-            >
-              <option value="ACTIVE">ACTIVE</option>
-              <option value="OUT_OF_SERVICE">OUT_OF_SERVICE</option>
-            </Field>
-            <FormError name="status" />
-          </div>
-
-          <button 
-            type="submit" 
-            disabled={isSubmitting || !isValid}
-            style={isSubmitting || !isValid ? buttonDisabledStyle : buttonStyle}
-            onMouseEnter={(e) => {
-              if (!(isSubmitting || !isValid)) {
-                e.target.style.backgroundColor = "#2b3cb0";
-                e.target.style.transform = "translateY(-1px)";
-              }
-            }}
-            onMouseLeave={(e) => {
-              if (!(isSubmitting || !isValid)) {
-                e.target.style.backgroundColor = "#4361ee";
-                e.target.style.transform = "translateY(0)";
-              }
-            }}
-          >
-            {isSubmitting ? "Adding..." : "Add Resource"}
-          </button>
-        </Form>
-      )}
+              {isSubmitting ? "Adding..." : "Add Resource"}
+            </button>
+          </Form>
+        );
+      }}
     </Formik>
   );
 }

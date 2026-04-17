@@ -1,6 +1,10 @@
 import { useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 
+// Import Font Awesome icons
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faFacebook, faTwitter, faInstagram, faLinkedin } from "@fortawesome/free-brands-svg-icons";
+
 import ResourceForm from "./components/ResourceForm";
 import ResourceList from "./components/ResourceList";
 import BookingForm from "./components/BookingForm";
@@ -251,6 +255,76 @@ const Dashboard = () => {
     fontWeight: "600",
     fontSize: "13px",
     transition: "all 0.2s ease",
+  };
+
+  // 🎨 FOOTER STYLES
+  const footerStyle = {
+    marginTop: "40px",
+    padding: "24px 32px",
+    backgroundColor: "#1a1a2e",
+    color: "#a0aec0",
+    borderRadius: "12px",
+    textAlign: "center",
+    fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
+  };
+
+  const footerContentStyle = {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    flexWrap: "wrap",
+    gap: "20px",
+    maxWidth: "1200px",
+    margin: "0 auto",
+  };
+
+  const footerSectionStyle = {
+    display: "flex",
+    flexDirection: "column",
+    gap: "8px",
+  };
+
+  const footerTitleStyle = {
+    fontSize: "14px",
+    fontWeight: "600",
+    color: "white",
+    marginBottom: "4px",
+  };
+
+  const footerTextStyle = {
+    fontSize: "12px",
+    color: "#a0aec0",
+  };
+
+  const footerLinkStyle = {
+    color: "#a0aec0",
+    textDecoration: "none",
+    fontSize: "12px",
+    transition: "color 0.2s ease",
+  };
+
+  const socialIconStyle = {
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    width: "36px",
+    height: "36px",
+    backgroundColor: "rgba(255,255,255,0.1)",
+    borderRadius: "8px",
+    margin: "0 6px",
+    transition: "all 0.2s ease",
+    cursor: "pointer",
+    fontSize: "18px",
+  };
+
+  const currentYear = new Date().getFullYear();
+
+  // Social media URLs
+  const socialLinks = {
+    facebook: "https://facebook.com/cbhcampus",
+    instagram: "https://instagram.com/cbhcampus",
+    twitter: "https://twitter.com/cbhcampus",
+    linkedin: "https://linkedin.com/school/cbhcampus",
   };
 
   return (
@@ -790,6 +864,120 @@ const Dashboard = () => {
           }}
         />
       )}
+
+      {/* 🎨 FOOTER WITH REAL SOCIAL MEDIA ICONS - FIXED */}
+      <footer style={footerStyle}>
+        <div style={footerContentStyle}>
+          <div style={footerSectionStyle}>
+            <div style={footerTitleStyle}>CBH Campus</div>
+            <div style={footerTextStyle}>Faculty Resource Management System</div>
+            <div style={footerTextStyle}>© {currentYear} All Rights Reserved</div>
+          </div>
+          
+          <div style={footerSectionStyle}>
+            <div style={footerTitleStyle}>Quick Links</div>
+            <a href="#" style={footerLinkStyle} onMouseEnter={(e) => e.target.style.color = "#667eea"} onMouseLeave={(e) => e.target.style.color = "#a0aec0"}>About Us</a>
+            <a href="#" style={footerLinkStyle} onMouseEnter={(e) => e.target.style.color = "#667eea"} onMouseLeave={(e) => e.target.style.color = "#a0aec0"}>Contact Support</a>
+            <a href="#" style={footerLinkStyle} onMouseEnter={(e) => e.target.style.color = "#667eea"} onMouseLeave={(e) => e.target.style.color = "#a0aec0"}>Privacy Policy</a>
+          </div>
+          
+          <div style={footerSectionStyle}>
+            <div style={footerTitleStyle}>Contact</div>
+            <div style={footerTextStyle}>📧 support@cbh.edu</div>
+            <div style={footerTextStyle}>📞 +94 11 123 4567</div>
+            <div style={footerTextStyle}>📍 Colombo, Sri Lanka</div>
+          </div>
+          
+          <div style={footerSectionStyle}>
+            <div style={footerTitleStyle}>Follow Us</div>
+            <div>
+              <a 
+                href={socialLinks.facebook}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ textDecoration: "none" }}
+              >
+                <span 
+                  style={socialIconStyle}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = "#1877f2";
+                    e.currentTarget.style.transform = "translateY(-2px)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.1)";
+                    e.currentTarget.style.transform = "translateY(0)";
+                  }}
+                >
+                  <FontAwesomeIcon icon={faFacebook} />
+                </span>
+              </a>
+              <a 
+                href={socialLinks.instagram}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ textDecoration: "none" }}
+              >
+                <span 
+                  style={socialIconStyle}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = "#e4405f";
+                    e.currentTarget.style.transform = "translateY(-2px)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.1)";
+                    e.currentTarget.style.transform = "translateY(0)";
+                  }}
+                >
+                  <FontAwesomeIcon icon={faInstagram} />
+                </span>
+              </a>
+              <a 
+                href={socialLinks.twitter}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ textDecoration: "none" }}
+              >
+                <span 
+                  style={socialIconStyle}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = "#1da1f2";
+                    e.currentTarget.style.transform = "translateY(-2px)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.1)";
+                    e.currentTarget.style.transform = "translateY(0)";
+                  }}
+                >
+                  <FontAwesomeIcon icon={faTwitter} />
+                </span>
+              </a>
+              <a 
+                href={socialLinks.linkedin}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ textDecoration: "none" }}
+              >
+                <span 
+                  style={socialIconStyle}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = "#0077b5";
+                    e.currentTarget.style.transform = "translateY(-2px)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.1)";
+                    e.currentTarget.style.transform = "translateY(0)";
+                  }}
+                >
+                  <FontAwesomeIcon icon={faLinkedin} />
+                </span>
+              </a>
+            </div>
+            <div style={{ fontSize: "10px", color: "#a0aec0", marginTop: "8px" }}>
+              Connect with us on social media
+            </div>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 };
