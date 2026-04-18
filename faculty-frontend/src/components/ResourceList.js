@@ -762,7 +762,7 @@ function ResourceList({ reload, userRole, onBook, onAddAvailability }) {
                     <span style={infoValueStyle}>{r.location}</span>
                   </div>
 
-                  {/* ⏰ AVAILABILITY */}
+                  {/* ⏰ AVAILABILITY - FIXED BUTTONS */}
                   {(userRole === "ADMIN" || userRole === "USER") && (
                     <div style={{
                       marginTop: "16px",
@@ -784,24 +784,64 @@ function ResourceList({ reload, userRole, onBook, onAddAvailability }) {
                             justifyContent: "space-between",
                             alignItems: "center",
                             fontSize: "12px",
-                            padding: "6px 8px",
+                            padding: "8px 10px",
                             background: "white",
-                            marginBottom: "4px",
+                            marginBottom: "6px",
                             borderRadius: "6px",
                             border: "1px solid #e0e0e0"
                           }}>
-                            <span>{a.date.split("T")[0]}: {a.startTime} - {a.endTime}</span>
+                            <span style={{ flex: 1 }}>
+                              {a.date.split("T")[0]}: {a.startTime} - {a.endTime}
+                            </span>
                             {user?.role === "ADMIN" && (
-                              <div style={{ display: "flex", gap: "4px" }}>
+                              <div style={{ display: "flex", gap: "8px", minWidth: "100px", justifyContent: "flex-end" }}>
                                 <button
                                   onClick={() => handleEditAvailability(a)}
-                                  style={smallButtonStyle}
+                                  style={{
+                                    padding: "4px 10px",
+                                    backgroundColor: "#007bff",
+                                    color: "white",
+                                    border: "none",
+                                    borderRadius: "4px",
+                                    cursor: "pointer",
+                                    fontSize: "11px",
+                                    fontWeight: "500",
+                                    transition: "all 0.2s ease",
+                                    minWidth: "45px"
+                                  }}
+                                  onMouseEnter={(e) => {
+                                    e.currentTarget.style.backgroundColor = "#0056b3";
+                                    e.currentTarget.style.transform = "translateY(-1px)";
+                                  }}
+                                  onMouseLeave={(e) => {
+                                    e.currentTarget.style.backgroundColor = "#007bff";
+                                    e.currentTarget.style.transform = "translateY(0)";
+                                  }}
                                 >
                                   ✏️ Edit
                                 </button>
                                 <button
                                   onClick={() => handleDeleteAvailability(a.id)}
-                                  style={{ ...smallButtonStyle, backgroundColor: "#dc3545" }}
+                                  style={{
+                                    padding: "4px 10px",
+                                    backgroundColor: "#dc3545",
+                                    color: "white",
+                                    border: "none",
+                                    borderRadius: "4px",
+                                    cursor: "pointer",
+                                    fontSize: "11px",
+                                    fontWeight: "500",
+                                    transition: "all 0.2s ease",
+                                    minWidth: "45px"
+                                  }}
+                                  onMouseEnter={(e) => {
+                                    e.currentTarget.style.backgroundColor = "#c82333";
+                                    e.currentTarget.style.transform = "translateY(-1px)";
+                                  }}
+                                  onMouseLeave={(e) => {
+                                    e.currentTarget.style.backgroundColor = "#dc3545";
+                                    e.currentTarget.style.transform = "translateY(0)";
+                                  }}
                                 >
                                   🗑️ Delete
                                 </button>
@@ -1082,16 +1122,6 @@ const addAvailabilityButtonStyle = {
   color: "white",
   transition: "all 0.2s ease",
   width: "100%"
-};
-
-const smallButtonStyle = {
-  padding: "2px 6px",
-  backgroundColor: "#007bff",
-  color: "white",
-  border: "none",
-  borderRadius: "4px",
-  cursor: "pointer",
-  fontSize: "10px"
 };
 
 const saveButtonStyle = {
