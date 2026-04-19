@@ -169,6 +169,26 @@ function ResourceList({ reload, userRole, onBook, onAddAvailability }) {
   // 🔍 HANDLE FILTER CHANGE
   const handleFilterChange = (e) => {
     const { name, value } = e.target;
+    
+    // ✅ VALIDATION FOR CAPACITY FILTER
+    if (name === "capacity") {
+      const numValue = parseInt(value);
+      // Allow empty value
+      if (value === "") {
+        setFilters({ ...filters, [name]: value });
+        return;
+      }
+      // Check if value is a valid number
+      if (isNaN(numValue)) {
+        return;
+      }
+      // Prevent negative values and values over 1000
+      if (numValue < 0 || numValue > 1000) {
+        alert("⚠️ Capacity filter must be between 0 and 1000");
+        return;
+      }
+    }
+    
     setFilters({ ...filters, [name]: value });
   };
 
@@ -452,21 +472,30 @@ function ResourceList({ reload, userRole, onBook, onAddAvailability }) {
             </select>
           </div>
 
-          {/* CAPACITY FILTER */}
+          {/* CAPACITY FILTER - WITH VALIDATION */}
           <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
-            <label style={{ fontWeight: "600", fontSize: "13px", color: "#4a5568" }}>Min Capacity</label>
+            <label style={{ fontWeight: "600", fontSize: "13px", color: "#4a5568" }}>Min Capacity (0-1000)</label>
             <input
               type="number"
               name="capacity"
               placeholder="Min capacity"
               value={filters.capacity}
               onChange={handleFilterChange}
+              min="0"
+              max="1000"
+              step="1"
               style={{
                 padding: "8px 10px",
                 border: "1px solid #ccc",
                 borderRadius: "5px",
                 fontSize: "13px",
                 minWidth: "120px"
+              }}
+              onKeyDown={(e) => {
+                // Prevent negative sign input
+                if (e.key === '-' || e.key === 'e') {
+                  e.preventDefault();
+                }
               }}
             />
           </div>
