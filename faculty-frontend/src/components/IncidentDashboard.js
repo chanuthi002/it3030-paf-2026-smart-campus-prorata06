@@ -422,6 +422,8 @@ function IncidentDashboard({ user }) {
       backgroundColor: "#fff",
       cursor: "pointer",
       fontSize: "12px",
+      width: "180px",
+      maxWidth: "100%",
     },
     detailsBtn: {
       padding: "6px 10px",
