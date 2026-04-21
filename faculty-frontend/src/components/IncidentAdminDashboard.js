@@ -33,14 +33,30 @@ function normalizeDateKey(value) {
   if (typeof value === "string" && value.length >= 10) {
     return value.slice(0, 10);
   }
-  return new Date(value).toISOString().slice(0, 10);
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return "";
+  return parsed.toISOString().slice(0, 10);
 }
 
 function normalizeSeverity(priority) {
-  if (!priority) return "Medium";
-  if (priority === "CRITICAL" || priority === "HIGH") return "High";
-  if (priority === "LOW") return "Low";
+  const normalizedPriority = String(priority || "").toUpperCase();
+  if (!normalizedPriority) return "Medium";
+  if (normalizedPriority === "CRITICAL" || normalizedPriority === "HIGH") return "High";
+  if (normalizedPriority === "LOW") return "Low";
   return "Medium";
+}
+
+function normalizeStatus(status) {
+  const normalizedStatus = String(status || "")
+    .trim()
+    .toUpperCase()
+    .replace(/\s+/g, "_");
+
+  if (["OPEN", "IN_PROGRESS", "RESOLVED", "CLOSED"].includes(normalizedStatus)) {
+    return normalizedStatus;
+  }
+
+  return "OPEN";
 }
 
 function monthLabel(dateValue) {
@@ -86,6 +102,7 @@ function IncidentAdminDashboard() {
   const enrichedIncidents = useMemo(() => {
     return incidents.map((incident) => ({
       ...incident,
+      normalizedStatus: normalizeStatus(incident.status),
       severity: normalizeSeverity(incident.priority),
       dateKey: normalizeDateKey(incident.createdAt),
       resourceName: resourcesMap[incident.resourceId] || String(incident.resourceId || "N/A"),
@@ -94,7 +111,7 @@ function IncidentAdminDashboard() {
 
   const filteredIncidents = useMemo(() => {
     return enrichedIncidents.filter((incident) => {
-      if (filters.status && incident.status !== filters.status) return false;
+      if (filters.status && incident.normalizedStatus !== filters.status) return false;
       if (filters.severity && incident.severity !== filters.severity) return false;
       if (filters.date && incident.dateKey !== filters.date) return false;
       return true;
@@ -106,7 +123,7 @@ function IncidentAdminDashboard() {
   const statusCounts = useMemo(() => {
     return enrichedIncidents.reduce(
       (summary, incident) => {
-        summary[incident.status] = (summary[incident.status] || 0) + 1;
+        summary[incident.normalizedStatus] = (summary[incident.normalizedStatus] || 0) + 1;
         return summary;
       },
       { OPEN: 0, IN_PROGRESS: 0, RESOLVED: 0, CLOSED: 0 }
@@ -195,7 +212,7 @@ function IncidentAdminDashboard() {
         incident.title,
         incident.resourceName,
         incident.severity,
-        incident.status,
+        incident.normalizedStatus,
         incident.dateKey,
       ]),
       styles: { fontSize: 8 },
@@ -205,7 +222,45 @@ function IncidentAdminDashboard() {
     doc.save(`incident-admin-report-${new Date().toISOString().slice(0, 10)}.pdf`);
   };
 
-  const statusOptions = [...new Set(enrichedIncidents.map((incident) => incident.status))];
+  const statusOptions = [...new Set(enrichedIncidents.map((incident) => incident.normalizedStatus))];
+
+  const chartCountOptions = {
+    responsive: true,
+    maintainAspectRatio: true,
+    scales: {
+      y: {
+        beginAtZero: true,
+        ticks: {
+          precision: 0,
+          stepSize: 1,
+        },
+      },
+    },
+    plugins: {
+      legend: {
+        display: true,
+      },
+    },
+  };
+
+  const lineChartOptions = {
+    responsive: true,
+    maintainAspectRatio: true,
+    scales: {
+      y: {
+        beginAtZero: true,
+        ticks: {
+          precision: 0,
+          stepSize: 1,
+        },
+      },
+    },
+    plugins: {
+      legend: {
+        display: true,
+      },
+    },
+  };
 
   const cardStyle = {
     background: "#ffffff",
@@ -298,6 +353,7 @@ function IncidentAdminDashboard() {
           <div>
             <h4 style={{ margin: "0 0 8px 0" }}>Incidents By Severity</h4>
             <Bar
+              options={chartCountOptions}
               data={{
                 labels: ["Low", "Medium", "High"],
                 datasets: [
@@ -314,6 +370,7 @@ function IncidentAdminDashboard() {
           <div>
             <h4 style={{ margin: "0 0 8px 0" }}>Monthly Incident Trends</h4>
             <Line
+              options={lineChartOptions}
               data={{
                 labels: monthlyTrends.map(([month]) => month),
                 datasets: [
@@ -404,7 +461,7 @@ function IncidentAdminDashboard() {
                   <td style={{ padding: "10px" }}>{incident.title}</td>
                   <td style={{ padding: "10px" }}>{incident.resourceName}</td>
                   <td style={{ padding: "10px" }}>{incident.severity}</td>
-                  <td style={{ padding: "10px" }}>{incident.status}</td>
+                  <td style={{ padding: "10px" }}>{incident.normalizedStatus}</td>
                   <td style={{ padding: "10px" }}>{incident.dateKey}</td>
                 </tr>
               ))}
