@@ -4,13 +4,18 @@ This project is developed for the Programming Applications and Frameworks (IT303
 
 🛠️ Technologies Used
 Frontend: React.js
+
 Backend: Spring Boot (REST API)
+
 Database: MongoDB / SQL
 
 👥 Team Members
 Member 1: Wakista C.S
+
 Member 2: Haifa M.A.F.
+
 Member 3: Parami H.K.B
+
 
 ▶️ Run Project
 # frontend
