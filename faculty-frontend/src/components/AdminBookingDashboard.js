@@ -490,7 +490,7 @@ const closeButtonStyle = {
 
 const pdfButtonStyle = {
   padding: "8px 12px",
-  backgroundColor: "#28a745",
+  backgroundColor: "#285da7",
   color: "white",
   border: "none",
   borderRadius: "5px",
