@@ -214,12 +214,37 @@ function AdminBookingDashboard({ onClose }) {
   };
 
   return (
-    <div style={overlayStyle}>
-      <div style={modalStyle}>
-        <h2>📊 Admin Booking Dashboard</h2>
-        <button onClick={onClose} style={closeButtonStyle}>
-          ❌
-        </button>
+   <div style={overlayStyle}>
+  <div style={modalStyle}>
+
+    {/* ✅ Header with title and close button together */}
+    <div style={{
+      display: "flex",
+      justifyContent: "space-between",
+      alignItems: "center",
+      marginBottom: "20px",
+      paddingBottom: "16px",
+      borderBottom: "2px solid #e0e0e0",
+    }}>
+      <h2 style={{ margin: 0, fontSize: "22px", color: "#1a1a2e" }}>
+        📊 Admin Booking Dashboard
+      </h2>
+      <button
+        onClick={onClose}
+        style={closeButtonStyle}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.backgroundColor = "#f0f0f0";
+          e.currentTarget.style.transform = "scale(1.1)";
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.backgroundColor = "transparent";
+          e.currentTarget.style.transform = "scale(1)";
+        }}
+      >
+        ❌
+      </button>
+    </div>
+
 
         {/* Filters */}
         <div style={{ marginBottom: "20px", display: "flex", gap: "10px" }}>
@@ -276,7 +301,6 @@ function AdminBookingDashboard({ onClose }) {
           </div>
         </div>
 
-        {/* Bookings Table */}
         {/* Bookings Table */}
 <div style={{
   maxHeight: "400px",
@@ -444,16 +468,24 @@ const modalStyle = {
   maxWidth: "1200px",
   maxHeight: "90vh",
   overflowY: "auto",
+  position: "relative",
 };
 
 const closeButtonStyle = {
   position: "absolute",
-  top: "10px",
-  right: "10px",
-  background: "none",
+  top: "15px",
+  right: "15px",
+  background: "rgba(255,255,255,0.2)",
   border: "none",
-  fontSize: "20px",
+  fontSize: "18px",
   cursor: "pointer",
+  width: "36px",
+  height: "36px",
+  borderRadius: "8px",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  transition: "all 0.2s ease",
 };
 
 const pdfButtonStyle = {
