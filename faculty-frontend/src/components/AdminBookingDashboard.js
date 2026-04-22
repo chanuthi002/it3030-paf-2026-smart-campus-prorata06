@@ -277,58 +277,146 @@ function AdminBookingDashboard({ onClose }) {
         </div>
 
         {/* Bookings Table */}
-        <div style={{ maxHeight: "400px", overflowY: "auto" }}>
-          <table style={tableStyle}>
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Resource</th>
-                <th>User</th>
-                <th>Date</th>
-                <th>Time</th>
-                <th>Status</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredBookings.map((b) => (
-                <tr key={b.id}>
-                  <td>{b.id}</td>
-                  <td>{getResourceName(b.resourceId)}</td>
-                  <td>{b.bookedBy}</td>
-                  <td>{b.date}</td>
-                  <td>
-                    {b.startTime} - {b.endTime}
-                  </td>
-                  <td>
-                    <span
-                      style={{
-                        color:
-                          b.status === "ACTIVE"
-                            ? "green"
-                            : b.status === "CANCELLED"
-                            ? "red"
-                            : "blue",
-                      }}
-                    >
-                      {b.status}
-                    </span>
-                  </td>
-                  <td>
-                    {b.status === "ACTIVE" && (
-                      <button
-                        onClick={() => handleCancelBooking(b.id)}
-                        style={cancelButtonStyle}
-                      >
-                        Cancel
-                      </button>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        {/* Bookings Table */}
+<div style={{
+  maxHeight: "400px",
+  overflowY: "auto",
+  borderRadius: "12px",
+  border: "1px solid #e0e0e0",
+  marginTop: "20px",
+}}>
+  <table style={tableStyle}>
+    <thead>
+      <tr>
+        <th style={tableHeaderStyle}>ID</th>
+        <th style={tableHeaderStyle}>Resource</th>
+        <th style={tableHeaderStyle}>User</th>
+        <th style={tableHeaderStyle}>Date</th>
+        <th style={tableHeaderStyle}>Time</th>
+        <th style={tableHeaderStyle}>Status</th>
+        <th style={tableHeaderStyle}>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {filteredBookings.map((b, index) => (
+        <tr
+          key={b.id}
+          style={{
+            ...tableRowStyle,
+            backgroundColor: index % 2 === 0 ? "#ffffff" : "#f8f9ff",
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = "#eef0ff";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor =
+              index % 2 === 0 ? "#ffffff" : "#f8f9ff";
+          }}
+        >
+          <td style={tableCellStyle}>
+            <span style={{
+              background: "#f0f0f0",
+              padding: "2px 8px",
+              borderRadius: "12px",
+              fontSize: "11px",
+              fontWeight: "600",
+              color: "#555",
+            }}>
+              #{b.id}
+            </span>
+          </td>
+
+          <td style={tableCellStyle}>
+            <span style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "6px",
+              fontWeight: "500",
+            }}>
+              🏫 {getResourceName(b.resourceId)}
+            </span>
+          </td>
+
+          <td style={tableCellStyle}>
+            <span style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "6px",
+            }}>
+              👤 {b.bookedBy}
+            </span>
+          </td>
+
+          <td style={tableCellStyle}>
+            <span style={{
+              background: "#e3f2fd",
+              padding: "4px 10px",
+              borderRadius: "20px",
+              fontSize: "12px",
+              fontWeight: "500",
+              color: "#1976d2",
+            }}>
+              {b.date}
+            </span>
+          </td>
+
+          <td style={tableCellStyle}>
+            <span style={{
+              background: "#f3e5f5",
+              padding: "4px 10px",
+              borderRadius: "20px",
+              fontSize: "12px",
+              fontWeight: "500",
+              color: "#7b1fa2",
+            }}>
+              ⏰{b.startTime} - {b.endTime}
+            </span>
+          </td>
+
+          <td style={tableCellStyle}>
+            <span style={{
+              display: "inline-block",
+              padding: "4px 12px",
+              borderRadius: "20px",
+              fontSize: "11px",
+              fontWeight: "700",
+              backgroundColor:
+                b.status === "ACTIVE" ? "#d4edda" :
+                b.status === "CANCELLED" ? "#f8d7da" : "#d1ecf1",
+              color:
+                b.status === "ACTIVE" ? "#155724" :
+                b.status === "CANCELLED" ? "#721c24" : "#0c5460",
+              textTransform: "uppercase",
+              letterSpacing: "0.5px",
+            }}>
+              {b.status === "ACTIVE" ? "✅ Active" :
+               b.status === "CANCELLED" ? "❌Cancelled" : "✔ Completed"}
+            </span>
+          </td>
+
+          <td style={tableCellStyle}>
+            {b.status === "ACTIVE" && (
+              <button
+                onClick={() => handleCancelBooking(b.id)}
+                style={cancelButtonStyle}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = "#c82333";
+                  e.currentTarget.style.transform = "translateY(-1px)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = "#dc3545";
+                  e.currentTarget.style.transform = "translateY(0)";
+                }}
+              >
+                🚫 Cancel
+              </button>
+            )}
+          </td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
+</div>
       </div>
     </div>
   );
@@ -381,15 +469,49 @@ const tableStyle = {
   width: "100%",
   borderCollapse: "collapse",
   marginTop: "20px",
+  fontSize: "14px",
+  fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
+  boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+  borderRadius: "12px",
+  overflow: "hidden",
+};
+
+const tableHeaderStyle = {
+  backgroundColor: "#4361ee",
+  color: "white",
+  padding: "14px 16px",
+  textAlign: "left",
+  fontWeight: "600",
+  fontSize: "13px",
+  letterSpacing: "0.5px",
+  textTransform: "uppercase",
+  whiteSpace: "nowrap",
+};
+
+const tableRowStyle = {
+  borderBottom: "1px solid #f0f0f0",
+  transition: "background-color 0.2s ease",
+  cursor: "default",
+};
+
+const tableCellStyle = {
+  padding: "12px 16px",
+  color: "#2d3748",
+  fontSize: "13px",
+  verticalAlign: "middle",
 };
 
 const cancelButtonStyle = {
-  padding: "4px 8px",
+  padding: "6px 14px",
   backgroundColor: "#dc3545",
   color: "white",
   border: "none",
-  borderRadius: "3px",
+  borderRadius: "8px",
   cursor: "pointer",
+  fontSize: "12px",
+  fontWeight: "600",
+  transition: "all 0.2s ease",
+  boxShadow: "0 2px 6px rgba(220, 53, 69, 0.3)",
 };
 
 export default AdminBookingDashboard;
