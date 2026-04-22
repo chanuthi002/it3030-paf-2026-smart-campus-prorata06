@@ -5,27 +5,52 @@ import { reportIncidentSchema } from "../utils/validationSchemas";
 import { countWords } from "../utils/validationHelpers";
 
 function ReportIncidentForm({ resources, user, onClose, onSuccess }) {
+  const MAX_FILE_SIZE_MB = 5;
   const [attachments, setAttachments] = useState([]);
   const [fileError, setFileError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const formatFileSize = (bytes) => {
+    if (!bytes) return "0 KB";
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
+  };
 
   // 🔹 HANDLE FILE INPUT
   const handleFileChange = (e) => {
     const files = Array.from(e.target.files);
     setFileError("");
-    
-    // Validate file types (images only)
-    const validFiles = files.filter(file => {
-      const validTypes = ["image/jpeg", "image/png", "image/gif", "image/webp"];
-      return validTypes.includes(file.type);
-    });
 
-    if (validFiles.length !== files.length) {
-      setFileError("Only image files (JPEG, PNG, GIF, WebP) are allowed");
+    const validTypes = ["image/jpeg", "image/png", "image/gif", "image/webp"];
+    const sizeLimit = MAX_FILE_SIZE_MB * 1024 * 1024;
+
+    const invalidTypeFiles = files.filter((file) => !validTypes.includes(file.type));
+    const oversizedFiles = files.filter((file) => file.size > sizeLimit);
+
+    if (invalidTypeFiles.length > 0) {
+      setFileError("Only image files are allowed (JPG, PNG, GIF, WebP).");
+      e.target.value = "";
       return;
     }
 
-    setAttachments([...attachments, ...validFiles]);
+    if (oversizedFiles.length > 0) {
+      setFileError(`Each file must be ${MAX_FILE_SIZE_MB} MB or smaller.`);
+      e.target.value = "";
+      return;
+    }
+
+    const existingKeys = new Set(attachments.map((file) => `${file.name}-${file.size}`));
+    const uniqueNewFiles = files.filter((file) => !existingKeys.has(`${file.name}-${file.size}`));
+
+    if (uniqueNewFiles.length === 0 && files.length > 0) {
+      setFileError("These files are already attached.");
+      e.target.value = "";
+      return;
+    }
+
+    setAttachments((prev) => [...prev, ...uniqueNewFiles]);
+    e.target.value = "";
   };
 
   // 🔹 REMOVE ATTACHMENT
@@ -165,11 +190,21 @@ function ReportIncidentForm({ resources, user, onClose, onSuccess }) {
       marginTop: "3px",
     },
     fileInput: {
-      padding: "8px",
+      padding: "10px",
       border: "2px dashed #d1d5db",
-      borderRadius: "8px",
+      borderRadius: "10px",
       cursor: "pointer",
       backgroundColor: "#f9fafb",
+      width: "100%",
+    },
+    uploadHintBox: {
+      padding: "10px 12px",
+      borderRadius: "8px",
+      backgroundColor: "#f8fafc",
+      border: "1px solid #e2e8f0",
+      fontSize: "12px",
+      color: "#475569",
+      lineHeight: 1.5,
     },
     attachmentList: {
       display: "flex",
@@ -177,23 +212,52 @@ function ReportIncidentForm({ resources, user, onClose, onSuccess }) {
       gap: "8px",
       marginTop: "10px",
     },
+    attachmentHeader: {
+      display: "flex",
+      justifyContent: "space-between",
+      alignItems: "center",
+      fontSize: "13px",
+      color: "#334155",
+    },
+    clearAllBtn: {
+      border: "1px solid #cbd5e1",
+      backgroundColor: "#fff",
+      color: "#334155",
+      borderRadius: "6px",
+      fontSize: "12px",
+      padding: "4px 8px",
+      cursor: "pointer",
+      fontWeight: 600,
+    },
     attachment: {
       display: "flex",
       justifyContent: "space-between",
       alignItems: "center",
-      padding: "8px 12px",
-      backgroundColor: "#f0f0f0",
-      borderRadius: "5px",
+      padding: "10px 12px",
+      backgroundColor: "#f8fafc",
+      border: "1px solid #e2e8f0",
+      borderRadius: "8px",
       fontSize: "13px",
+    },
+    attachmentName: {
+      color: "#1f2937",
+      fontWeight: 500,
+      marginBottom: "2px",
+      wordBreak: "break-all",
+    },
+    attachmentMeta: {
+      color: "#64748b",
+      fontSize: "12px",
     },
     removeBtn: {
       backgroundColor: "#ff6b6b",
       color: "white",
       border: "none",
-      padding: "4px 8px",
-      borderRadius: "3px",
+      padding: "5px 9px",
+      borderRadius: "6px",
       cursor: "pointer",
       fontSize: "12px",
+      fontWeight: 600,
     },
     buttonGroup: {
       display: "flex",
@@ -346,6 +410,9 @@ function ReportIncidentForm({ resources, user, onClose, onSuccess }) {
               <div style={styles.formGroup}>
                 <label style={styles.label}>📸 Attach Images</label>
                 <span style={styles.helper}>Optional: upload clear photos of the issue.</span>
+                <div style={styles.uploadHintBox}>
+                  Supported formats: JPG, PNG, GIF, WebP. Max file size: {MAX_FILE_SIZE_MB} MB each.
+                </div>
                 <input
                   type="file"
                   multiple
@@ -357,10 +424,22 @@ function ReportIncidentForm({ resources, user, onClose, onSuccess }) {
 
                 {attachments.length > 0 && (
                   <div style={styles.attachmentList}>
-                    <strong>Attached files ({attachments.length}):</strong>
+                    <div style={styles.attachmentHeader}>
+                      <strong>Attached files ({attachments.length})</strong>
+                      <button
+                        type="button"
+                        style={styles.clearAllBtn}
+                        onClick={() => setAttachments([])}
+                      >
+                        Clear All
+                      </button>
+                    </div>
                     {attachments.map((file, index) => (
                       <div key={index} style={styles.attachment}>
-                        <span>📷 {file.name} ({(file.size / 1024).toFixed(2)} KB)</span>
+                        <div>
+                          <div style={styles.attachmentName}>📷 {file.name}</div>
+                          <div style={styles.attachmentMeta}>{formatFileSize(file.size)}</div>
+                        </div>
                         <button
                           type="button"
                           style={styles.removeBtn}
