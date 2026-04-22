@@ -87,63 +87,77 @@ function ReportIncidentForm({ resources, user, onClose, onSuccess }) {
       left: 0,
       width: "100%",
       height: "100%",
-      backgroundColor: "rgba(0,0,0,0.5)",
+      backgroundColor: "rgba(15, 23, 42, 0.45)",
       display: "flex",
       justifyContent: "center",
       alignItems: "center",
       zIndex: 1000,
+      padding: "16px",
     },
     modal: {
       backgroundColor: "#fff",
-      padding: "30px",
-      borderRadius: "10px",
-      width: "600px",
+      padding: "24px",
+      borderRadius: "12px",
+      width: "min(680px, 100%)",
       maxHeight: "90vh",
       overflowY: "auto",
-      boxShadow: "0 4px 6px rgba(0,0,0,0.1)",
+      boxShadow: "0 18px 40px rgba(15, 23, 42, 0.2)",
     },
     title: {
-      fontSize: "24px",
+      fontSize: "28px",
       fontWeight: "bold",
-      marginBottom: "20px",
+      marginBottom: "6px",
       color: "#222",
+    },
+    subtitle: {
+      margin: "0 0 16px 0",
+      color: "#4b5563",
+      fontSize: "14px",
     },
     form: {
       display: "flex",
       flexDirection: "column",
-      gap: "15px",
+      gap: "14px",
     },
     formGroup: {
       display: "flex",
       flexDirection: "column",
-      gap: "5px",
+      gap: "6px",
     },
     label: {
       fontWeight: "600",
       color: "#333",
       fontSize: "14px",
     },
+    helper: {
+      fontSize: "12px",
+      color: "#6b7280",
+      marginTop: "-2px",
+    },
     input: {
-      padding: "10px",
-      border: "1px solid #ddd",
-      borderRadius: "5px",
+      padding: "11px 12px",
+      border: "1px solid #d1d5db",
+      borderRadius: "8px",
       fontSize: "14px",
       fontFamily: "Arial",
+      outline: "none",
     },
     textarea: {
-      padding: "10px",
-      border: "1px solid #ddd",
-      borderRadius: "5px",
+      padding: "11px 12px",
+      border: "1px solid #d1d5db",
+      borderRadius: "8px",
       fontSize: "14px",
       fontFamily: "Arial",
       minHeight: "100px",
       resize: "vertical",
+      outline: "none",
     },
     select: {
-      padding: "10px",
-      border: "1px solid #ddd",
-      borderRadius: "5px",
+      padding: "11px 12px",
+      border: "1px solid #d1d5db",
+      borderRadius: "8px",
       fontSize: "14px",
+      backgroundColor: "#fff",
     },
     error: {
       color: "#d32f2f",
@@ -152,10 +166,10 @@ function ReportIncidentForm({ resources, user, onClose, onSuccess }) {
     },
     fileInput: {
       padding: "8px",
-      border: "2px dashed #ddd",
-      borderRadius: "5px",
+      border: "2px dashed #d1d5db",
+      borderRadius: "8px",
       cursor: "pointer",
-      backgroundColor: "#f9f9f9",
+      backgroundColor: "#f9fafb",
     },
     attachmentList: {
       display: "flex",
@@ -216,6 +230,7 @@ function ReportIncidentForm({ resources, user, onClose, onSuccess }) {
     <div style={styles.overlay} onClick={onClose}>
       <div style={styles.modal} onClick={(e) => e.stopPropagation()}>
         <div style={styles.title}>📋 Report Incident</div>
+        <p style={styles.subtitle}>Share the issue details and we will notify the maintenance team.</p>
 
         <Formik
           initialValues={{
@@ -245,12 +260,13 @@ function ReportIncidentForm({ resources, user, onClose, onSuccess }) {
                 <Field
                   type="text"
                   name="title"
-                  placeholder="Brief description of the issue"
+                  placeholder="Ex: Projector not turning on"
                   style={{
                     ...styles.input,
                     borderColor: touched.title && errors.title ? "#d32f2f" : "#ddd",
                   }}
                 />
+                <span style={styles.helper}>Keep it short and specific.</span>
                 <ErrorMessage name="title" component="span" style={styles.error} />
               </div>
 
@@ -267,12 +283,13 @@ function ReportIncidentForm({ resources, user, onClose, onSuccess }) {
                 <Field
                   as="textarea"
                   name="description"
-                  placeholder="Detailed description of the incident"
+                  placeholder="What happened, where it happened, and when you noticed it"
                   style={{
                     ...styles.textarea,
                     borderColor: touched.description && errors.description ? "#d32f2f" : "#ddd",
                   }}
                 />
+                <span style={styles.helper}>Include key details to help technicians respond faster.</span>
                 <ErrorMessage name="description" component="span" style={styles.error} />
               </div>
 
@@ -287,13 +304,18 @@ function ReportIncidentForm({ resources, user, onClose, onSuccess }) {
                     borderColor: touched.resourceId && errors.resourceId ? "#d32f2f" : "#ddd",
                   }}
                 >
-                  <option value="">Select a resource</option>
+                  <option value="" disabled>
+                    Select affected resource
+                  </option>
                   {sortedResources.map((r) => (
                     <option key={r.id} value={r.id}>
                       {r.name} ({r.type})
                     </option>
                   ))}
                 </Field>
+                {sortedResources.length === 0 && (
+                  <span style={styles.helper}>No resources available right now.</span>
+                )}
                 <ErrorMessage name="resourceId" component="span" style={styles.error} />
               </div>
 
@@ -323,6 +345,7 @@ function ReportIncidentForm({ resources, user, onClose, onSuccess }) {
               {/* ATTACHMENTS */}
               <div style={styles.formGroup}>
                 <label style={styles.label}>📸 Attach Images</label>
+                <span style={styles.helper}>Optional: upload clear photos of the issue.</span>
                 <input
                   type="file"
                   multiple
