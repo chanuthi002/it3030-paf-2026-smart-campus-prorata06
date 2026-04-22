@@ -318,7 +318,7 @@ function IncidentAdminDashboard() {
               cursor: "pointer",
             }}
           >
-            Generate PDF Report
+            Generate PDF
           </button>
         </div>
 
