@@ -208,6 +208,10 @@ function ReportIncidentForm({ resources, user, onClose, onSuccess }) {
     },
   };
 
+  const sortedResources = [...resources].sort((a, b) =>
+    (a.name || "").localeCompare(b.name || "", undefined, { sensitivity: "base" })
+  );
+
   return (
     <div style={styles.overlay} onClick={onClose}>
       <div style={styles.modal} onClick={(e) => e.stopPropagation()}>
@@ -284,7 +288,7 @@ function ReportIncidentForm({ resources, user, onClose, onSuccess }) {
                   }}
                 >
                   <option value="">Select a resource</option>
-                  {resources.map((r) => (
+                  {sortedResources.map((r) => (
                     <option key={r.id} value={r.id}>
                       {r.name} ({r.type})
                     </option>
