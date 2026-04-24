@@ -201,6 +201,29 @@ function IncidentDashboard({ user }) {
       color: "#666",
       marginBottom: "5px",
     },
+    infoGrid: {
+      display: "grid",
+      gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+      gap: "10px",
+    },
+    infoCard: {
+      backgroundColor: "#f8fafc",
+      border: "1px solid #e2e8f0",
+      borderRadius: "8px",
+      padding: "10px",
+    },
+    infoLabel: {
+      fontSize: "12px",
+      color: "#6b7280",
+      marginBottom: "6px",
+      fontWeight: 600,
+    },
+    infoValue: {
+      fontSize: "14px",
+      color: "#111827",
+      fontWeight: 600,
+      wordBreak: "break-word",
+    },
     priorityBadge: {
       display: "inline-block",
       padding: "4px 8px",
@@ -262,18 +285,39 @@ function IncidentDashboard({ user }) {
     },
     modalContent: {
       backgroundColor: "white",
-      borderRadius: "10px",
-      width: "800px",
+      borderRadius: "12px",
+      width: "920px",
+      maxWidth: "95vw",
       maxHeight: "90vh",
       overflowY: "auto",
       padding: "30px",
       boxShadow: "0 4px 20px rgba(0,0,0,0.2)",
     },
+    modalHeaderRow: {
+      display: "flex",
+      justifyContent: "space-between",
+      alignItems: "flex-start",
+      gap: "12px",
+      marginBottom: "14px",
+    },
+    modalCloseBtn: {
+      background: "none",
+      border: "none",
+      fontSize: "24px",
+      cursor: "pointer",
+      color: "#374151",
+      lineHeight: 1,
+    },
     modalTitle: {
       fontSize: "22px",
       fontWeight: "bold",
-      marginBottom: "15px",
+      marginBottom: "4px",
       color: "#222",
+    },
+    modalSubTitle: {
+      fontSize: "13px",
+      color: "#6b7280",
+      margin: 0,
     },
     section: {
       marginBottom: "20px",
@@ -325,14 +369,6 @@ function IncidentDashboard({ user }) {
       cursor: "pointer",
       fontWeight: "600",
       fontSize: "13px",
-    },
-    updateBtn: {
-      backgroundColor: "#007bff",
-      color: "white",
-    },
-    deleteBtn: {
-      backgroundColor: "#dc3545",
-      color: "white",
     },
     closeBtn: {
       backgroundColor: "#6c757d",
@@ -396,6 +432,21 @@ function IncidentDashboard({ user }) {
       cursor: "pointer",
       fontSize: "12px",
       fontWeight: "600",
+    },
+    tableDeleteBtn: {
+      padding: "6px 10px",
+      borderRadius: "4px",
+      border: "none",
+      backgroundColor: "#dc2626",
+      color: "#fff",
+      cursor: "pointer",
+      fontSize: "12px",
+      fontWeight: "600",
+    },
+    rowActionButtons: {
+      display: "flex",
+      gap: "8px",
+      flexWrap: "wrap",
     },
   };
 
@@ -556,12 +607,20 @@ function IncidentDashboard({ user }) {
                 <td style={styles.tableCell}>{incident.assignedTo || "Unassigned"}</td>
                 <td style={styles.tableCell}>{new Date(incident.createdAt).toLocaleDateString()}</td>
                 <td style={styles.tableCell}>
-                  <button
-                    style={styles.detailsBtn}
-                    onClick={() => viewIncidentDetails(incident)}
-                  >
-                    View
-                  </button>
+                  <div style={styles.rowActionButtons}>
+                    <button
+                      style={styles.detailsBtn}
+                      onClick={() => viewIncidentDetails(incident)}
+                    >
+                      View
+                    </button>
+                    <button
+                      style={styles.tableDeleteBtn}
+                      onClick={() => handleDelete(incident.id)}
+                    >
+                      Delete
+                    </button>
+                  </div>
                 </td>
                 <td style={styles.tableCell}>
                   <div style={styles.tableActionGroup}>
@@ -597,17 +656,15 @@ function IncidentDashboard({ user }) {
       {selectedIncident && (
         <div style={styles.modalOverlay} onClick={() => setSelectedIncident(null)}>
           <div style={styles.modalContent} onClick={(e) => e.stopPropagation()}>
-            <div style={styles.modalTitle}>
-              📋 {selectedIncident.title}
+            <div style={styles.modalHeaderRow}>
+              <div>
+                <div style={styles.modalTitle}>📋 {selectedIncident.title}</div>
+                <p style={styles.modalSubTitle}>Review details, update status, and view timeline and attachments.</p>
+              </div>
               <button
                 onClick={() => setSelectedIncident(null)}
-                style={{
-                  float: "right",
-                  background: "none",
-                  border: "none",
-                  fontSize: "24px",
-                  cursor: "pointer",
-                }}
+                style={styles.modalCloseBtn}
+                aria-label="Close incident details"
               >
                 ×
               </button>
@@ -616,32 +673,45 @@ function IncidentDashboard({ user }) {
             {/* INCIDENT INFO */}
             <div style={styles.section}>
               <div style={styles.sectionTitle}>Incident Details</div>
-              <div style={styles.incidentInfo}>
-                <strong>ID:</strong> {selectedIncident.id}
-              </div>
-              <div style={styles.incidentInfo}>
-                <strong>Description:</strong> {selectedIncident.description}
-              </div>
-              <div style={styles.incidentInfo}>
-                <strong>Resource:</strong> {selectedIncident.resourceId}
-              </div>
-              <div style={styles.incidentInfo}>
-                <strong>Priority:</strong>
-                <span style={{ ...styles.priorityBadge, ...getPriorityColor(selectedIncident.priority) }}>
-                  {selectedIncident.priority}
-                </span>
-              </div>
-              <div style={styles.incidentInfo}>
-                <strong>Status:</strong>
-                <span style={{ ...styles.statusBadge, ...getStatusColor(selectedIncident.status) }}>
-                  {selectedIncident.status}
-                </span>
-              </div>
-              <div style={styles.incidentInfo}>
-                <strong>Reported by:</strong> {selectedIncident.reportedBy}
-              </div>
-              <div style={styles.incidentInfo}>
-                <strong>Assigned to:</strong> {selectedIncident.assignedTo || "Unassigned"}
+              <div style={styles.infoGrid}>
+                <div style={styles.infoCard}>
+                  <div style={styles.infoLabel}>ID</div>
+                  <div style={styles.infoValue}>{selectedIncident.id}</div>
+                </div>
+                <div style={styles.infoCard}>
+                  <div style={styles.infoLabel}>Resource</div>
+                  <div style={styles.infoValue}>{selectedIncident.resourceId}</div>
+                </div>
+                <div style={styles.infoCard}>
+                  <div style={styles.infoLabel}>Priority</div>
+                  <div style={styles.infoValue}>
+                    <span style={{ ...styles.priorityBadge, ...getPriorityColor(selectedIncident.priority) }}>
+                      {selectedIncident.priority}
+                    </span>
+                  </div>
+                </div>
+                <div style={styles.infoCard}>
+                  <div style={styles.infoLabel}>Status</div>
+                  <div style={styles.infoValue}>
+                    <span style={{ ...styles.statusBadge, ...getStatusColor(selectedIncident.status) }}>
+                      {selectedIncident.status}
+                    </span>
+                  </div>
+                </div>
+                <div style={styles.infoCard}>
+                  <div style={styles.infoLabel}>Reported By</div>
+                  <div style={styles.infoValue}>{selectedIncident.reportedBy}</div>
+                </div>
+                <div style={styles.infoCard}>
+                  <div style={styles.infoLabel}>Assigned To</div>
+                  <div style={styles.infoValue}>{selectedIncident.assignedTo || "Unassigned"}</div>
+                </div>
+                <div style={{ ...styles.infoCard, gridColumn: "1 / -1" }}>
+                  <div style={styles.infoLabel}>Description</div>
+                  <div style={{ ...styles.infoValue, fontWeight: 500 }}>
+                    {selectedIncident.description || "No description provided."}
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -716,12 +786,6 @@ function IncidentDashboard({ user }) {
 
             {/* ACTIONS */}
             <div style={styles.buttonGroup}>
-              <button
-                style={{ ...styles.actionBtn, ...styles.deleteBtn }}
-                onClick={() => handleDelete(selectedIncident.id)}
-              >
-                🗑️ Delete Incident
-              </button>
               <button
                 style={{ ...styles.actionBtn, ...styles.closeBtn }}
                 onClick={() => setSelectedIncident(null)}
