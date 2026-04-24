@@ -16,7 +16,6 @@ function IncidentDashboard({ user }) {
   const [updates, setUpdates] = useState([]);
   const [attachments, setAttachments] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [statusMap, setStatusMap] = useState({});
 
   // � RESOLVE MODAL STATE
   const [showResolveModal, setShowResolveModal] = useState(false);
@@ -46,17 +45,19 @@ function IncidentDashboard({ user }) {
     try {
       const res = await getAllIncidents();
       setIncidents(res.data);
-      filterByStatus("OPEN");
     } catch (err) {
       alert("Error loading incidents: " + err.message);
     }
   };
 
+  useEffect(() => {
+    const filtered = incidents.filter((i) => i.status === statusFilter);
+    setFilteredIncidents(filtered);
+  }, [incidents, statusFilter]);
+
   // 🔍 FILTER BY STATUS
   const filterByStatus = (status) => {
     setStatusFilter(status);
-    const filtered = incidents.filter((i) => i.status === status);
-    setFilteredIncidents(filtered);
   };
 
   // 👁️ VIEW INCIDENT DETAILS
@@ -95,6 +96,11 @@ function IncidentDashboard({ user }) {
     } catch (err) {
       alert("❌ Error updating status: " + err.message);
     }
+  };
+
+  const changeStatusFromTable = async (incident, newStatus) => {
+    setSelectedIncident(incident);
+    await changeStatus(incident.id, newStatus);
   };
 
   // ✅ RESOLVE INCIDENT WITH MESSAGE
@@ -167,27 +173,28 @@ function IncidentDashboard({ user }) {
       color: "#666",
     },
     incidentList: {
-      display: "grid",
-      gridTemplateColumns: "repeat(auto-fill, minmax(350px, 1fr))",
-      gap: "15px",
-    },
-    incidentCard: {
       backgroundColor: "white",
-      padding: "15px",
       borderRadius: "8px",
       boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
-      cursor: "pointer",
-      transition: "transform 0.2s, box-shadow 0.2s",
+      overflowX: "auto",
     },
-    incidentCardHover: {
-      transform: "translateY(-2px)",
-      boxShadow: "0 4px 8px rgba(0,0,0,0.15)",
+    incidentTable: {
+      width: "100%",
+      borderCollapse: "collapse",
+      minWidth: "980px",
     },
-    incidentTitle: {
-      fontSize: "16px",
-      fontWeight: "bold",
-      color: "#222",
-      marginBottom: "8px",
+    tableHeader: {
+      textAlign: "left",
+      padding: "12px 10px",
+      backgroundColor: "#eef2f7",
+      color: "#1f2937",
+      fontSize: "13px",
+    },
+    tableCell: {
+      padding: "10px",
+      borderTop: "1px solid #e5e7eb",
+      fontSize: "13px",
+      color: "#374151",
     },
     incidentInfo: {
       fontSize: "13px",
@@ -367,6 +374,29 @@ function IncidentDashboard({ user }) {
       cursor: "pointer",
       backgroundColor: "#fff",
     },
+    tableActionGroup: {
+      display: "flex",
+      flexDirection: "column",
+      gap: "6px",
+    },
+    statusSelect: {
+      padding: "8px 10px",
+      borderRadius: "4px",
+      border: "1px solid #d1d5db",
+      backgroundColor: "#fff",
+      cursor: "pointer",
+      fontSize: "12px",
+    },
+    detailsBtn: {
+      padding: "6px 10px",
+      borderRadius: "4px",
+      border: "none",
+      backgroundColor: "#2563eb",
+      color: "#fff",
+      cursor: "pointer",
+      fontSize: "12px",
+      fontWeight: "600",
+    },
   };
 
   const getPriorityColor = (priority) => {
@@ -495,34 +525,72 @@ function IncidentDashboard({ user }) {
 
       {/* INCIDENTS LIST */}
       <div style={styles.incidentList}>
-        {filteredIncidents.map((incident) => (
-          <div
-            key={incident.id}
-            style={styles.incidentCard}
-            onClick={() => viewIncidentDetails(incident)}
-          >
-            <div style={styles.incidentTitle}>{incident.title}</div>
-            <div style={styles.incidentInfo}>
-              <div>
-                <span style={{ ...styles.priorityBadge, ...getPriorityColor(incident.priority) }}>
-                  {incident.priority}
-                </span>
-                <span style={{ ...styles.statusBadge, ...getStatusColor(incident.status) }}>
-                  {incident.status}
-                </span>
-              </div>
-            </div>
-            <div style={styles.incidentInfo}>
-              <strong>Reported by:</strong> {incident.reportedBy}
-            </div>
-            <div style={styles.incidentInfo}>
-              <strong>Assigned to:</strong> {incident.assignedTo || "Unassigned"}
-            </div>
-            <div style={styles.incidentInfo}>
-              <strong>Created:</strong> {new Date(incident.createdAt).toLocaleDateString()}
-            </div>
-          </div>
-        ))}
+        <table style={styles.incidentTable}>
+          <thead>
+            <tr>
+              <th style={styles.tableHeader}>Title</th>
+              <th style={styles.tableHeader}>Priority</th>
+              <th style={styles.tableHeader}>Current Status</th>
+              <th style={styles.tableHeader}>Reported By</th>
+              <th style={styles.tableHeader}>Assigned To</th>
+              <th style={styles.tableHeader}>Created</th>
+              <th style={styles.tableHeader}>Action</th>
+              <th style={styles.tableHeader}>Change Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filteredIncidents.map((incident) => (
+              <tr key={incident.id}>
+                <td style={styles.tableCell}>{incident.title}</td>
+                <td style={styles.tableCell}>
+                  <span style={{ ...styles.priorityBadge, ...getPriorityColor(incident.priority) }}>
+                    {incident.priority}
+                  </span>
+                </td>
+                <td style={styles.tableCell}>
+                  <span style={{ ...styles.statusBadge, ...getStatusColor(incident.status) }}>
+                    {incident.status}
+                  </span>
+                </td>
+                <td style={styles.tableCell}>{incident.reportedBy}</td>
+                <td style={styles.tableCell}>{incident.assignedTo || "Unassigned"}</td>
+                <td style={styles.tableCell}>{new Date(incident.createdAt).toLocaleDateString()}</td>
+                <td style={styles.tableCell}>
+                  <button
+                    style={styles.detailsBtn}
+                    onClick={() => viewIncidentDetails(incident)}
+                  >
+                    View
+                  </button>
+                </td>
+                <td style={styles.tableCell}>
+                  <div style={styles.tableActionGroup}>
+                    <span style={{ fontSize: "12px", color: "#6b7280", fontWeight: 600 }}>
+                      Current: {incident.status}
+                    </span>
+                    <select
+                      value={incident.status}
+                      style={styles.statusSelect}
+                      onChange={(event) => changeStatusFromTable(incident, event.target.value)}
+                    >
+                      <option value="OPEN">OPEN</option>
+                      <option value="IN_PROGRESS">IN_PROGRESS</option>
+                      <option value="RESOLVED">RESOLVED</option>
+                      <option value="CLOSED">CLOSED</option>
+                    </select>
+                  </div>
+                </td>
+              </tr>
+            ))}
+            {filteredIncidents.length === 0 && (
+              <tr>
+                <td style={{ ...styles.tableCell, textAlign: "center" }} colSpan={8}>
+                  {loading ? "Loading incidents..." : "No incidents found for this status."}
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
       </div>
 
       {/* DETAIL MODAL */}
