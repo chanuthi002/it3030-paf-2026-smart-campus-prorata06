@@ -33,14 +33,39 @@ function normalizeDateKey(value) {
   if (typeof value === "string" && value.length >= 10) {
     return value.slice(0, 10);
   }
-  return new Date(value).toISOString().slice(0, 10);
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return "";
+  return parsed.toISOString().slice(0, 10);
 }
 
 function normalizeSeverity(priority) {
-  if (!priority) return "Medium";
-  if (priority === "CRITICAL" || priority === "HIGH") return "High";
-  if (priority === "LOW") return "Low";
+  const normalizedPriority = String(priority || "").toUpperCase();
+  if (!normalizedPriority) return "Medium";
+  if (normalizedPriority === "CRITICAL" || normalizedPriority === "HIGH") return "High";
+  if (normalizedPriority === "LOW") return "Low";
   return "Medium";
+}
+
+function normalizeStatus(status) {
+  const normalizedStatus = String(status || "")
+    .trim()
+    .toUpperCase()
+    .replace(/\s+/g, "_");
+
+  if (["OPEN", "IN_PROGRESS", "RESOLVED", "CLOSED"].includes(normalizedStatus)) {
+    return normalizedStatus;
+  }
+
+  return "OPEN";
+}
+
+function toDisplayStatus(status) {
+  return String(status || "")
+    .toLowerCase()
+    .split("_")
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
 }
 
 function monthLabel(dateValue) {
@@ -86,6 +111,7 @@ function IncidentAdminDashboard() {
   const enrichedIncidents = useMemo(() => {
     return incidents.map((incident) => ({
       ...incident,
+      normalizedStatus: normalizeStatus(incident.status),
       severity: normalizeSeverity(incident.priority),
       dateKey: normalizeDateKey(incident.createdAt),
       resourceName: resourcesMap[incident.resourceId] || String(incident.resourceId || "N/A"),
@@ -94,7 +120,7 @@ function IncidentAdminDashboard() {
 
   const filteredIncidents = useMemo(() => {
     return enrichedIncidents.filter((incident) => {
-      if (filters.status && incident.status !== filters.status) return false;
+      if (filters.status && incident.normalizedStatus !== filters.status) return false;
       if (filters.severity && incident.severity !== filters.severity) return false;
       if (filters.date && incident.dateKey !== filters.date) return false;
       return true;
@@ -106,7 +132,7 @@ function IncidentAdminDashboard() {
   const statusCounts = useMemo(() => {
     return enrichedIncidents.reduce(
       (summary, incident) => {
-        summary[incident.status] = (summary[incident.status] || 0) + 1;
+        summary[incident.normalizedStatus] = (summary[incident.normalizedStatus] || 0) + 1;
         return summary;
       },
       { OPEN: 0, IN_PROGRESS: 0, RESOLVED: 0, CLOSED: 0 }
@@ -195,7 +221,7 @@ function IncidentAdminDashboard() {
         incident.title,
         incident.resourceName,
         incident.severity,
-        incident.status,
+        incident.normalizedStatus,
         incident.dateKey,
       ]),
       styles: { fontSize: 8 },
@@ -205,13 +231,87 @@ function IncidentAdminDashboard() {
     doc.save(`incident-admin-report-${new Date().toISOString().slice(0, 10)}.pdf`);
   };
 
-  const statusOptions = [...new Set(enrichedIncidents.map((incident) => incident.status))];
+  const statusOptions = [...new Set(enrichedIncidents.map((incident) => incident.normalizedStatus))];
+
+  const chartCountOptions = {
+    responsive: true,
+    maintainAspectRatio: true,
+    scales: {
+      y: {
+        beginAtZero: true,
+        ticks: {
+          precision: 0,
+          stepSize: 1,
+        },
+      },
+    },
+    plugins: {
+      legend: {
+        display: true,
+      },
+    },
+  };
+
+  const lineChartOptions = {
+    responsive: true,
+    maintainAspectRatio: true,
+    scales: {
+      y: {
+        beginAtZero: true,
+        ticks: {
+          precision: 0,
+          stepSize: 1,
+        },
+      },
+    },
+    plugins: {
+      legend: {
+        display: true,
+      },
+    },
+  };
 
   const cardStyle = {
     background: "#ffffff",
     borderRadius: "12px",
     padding: "16px",
     boxShadow: "0 2px 10px rgba(0,0,0,0.08)",
+  };
+
+  const filterLabelStyle = {
+    fontSize: "12px",
+    color: "#475569",
+    marginBottom: "4px",
+    fontWeight: 600,
+  };
+
+  const inputStyle = {
+    padding: "9px",
+    borderRadius: "8px",
+    border: "1px solid #cbd5e1",
+    backgroundColor: "#fff",
+  };
+
+  const badgeBaseStyle = {
+    display: "inline-block",
+    padding: "3px 9px",
+    borderRadius: "999px",
+    fontSize: "12px",
+    fontWeight: 600,
+    lineHeight: 1.4,
+  };
+
+  const statusBadgeStyles = {
+    OPEN: { backgroundColor: "#fee2e2", color: "#b91c1c" },
+    IN_PROGRESS: { backgroundColor: "#fef3c7", color: "#92400e" },
+    RESOLVED: { backgroundColor: "#dcfce7", color: "#166534" },
+    CLOSED: { backgroundColor: "#e2e8f0", color: "#334155" },
+  };
+
+  const severityBadgeStyles = {
+    Low: { backgroundColor: "#dcfce7", color: "#166534" },
+    Medium: { backgroundColor: "#fef3c7", color: "#92400e" },
+    High: { backgroundColor: "#fee2e2", color: "#b91c1c" },
   };
 
   return (
@@ -298,6 +398,7 @@ function IncidentAdminDashboard() {
           <div>
             <h4 style={{ margin: "0 0 8px 0" }}>Incidents By Severity</h4>
             <Bar
+              options={chartCountOptions}
               data={{
                 labels: ["Low", "Medium", "High"],
                 datasets: [
@@ -314,6 +415,7 @@ function IncidentAdminDashboard() {
           <div>
             <h4 style={{ margin: "0 0 8px 0" }}>Monthly Incident Trends</h4>
             <Line
+              options={lineChartOptions}
               data={{
                 labels: monthlyTrends.map(([month]) => month),
                 datasets: [
@@ -333,7 +435,21 @@ function IncidentAdminDashboard() {
       </div>
 
       <div style={cardStyle}>
-        <h3 style={{ marginTop: 0 }}>Incident Overview List</h3>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            gap: "10px",
+            flexWrap: "wrap",
+            marginBottom: "8px",
+          }}
+        >
+          <h3 style={{ margin: 0 }}>Incident Overview List</h3>
+          <div style={{ color: "#475569", fontSize: "13px", fontWeight: 600 }}>
+            Showing {filteredIncidents.length} of {totalCount} incidents
+          </div>
+        </div>
 
         <div
           style={{
@@ -343,75 +459,122 @@ function IncidentAdminDashboard() {
             marginBottom: "12px",
           }}
         >
-          <select
-            value={filters.status}
-            onChange={(event) => setFilters((prev) => ({ ...prev, status: event.target.value }))}
-            style={{ padding: "8px" }}
-          >
-            <option value="">All Status</option>
-            {statusOptions.map((status) => (
-              <option key={status} value={status}>
-                {status}
-              </option>
-            ))}
-          </select>
+          <div>
+            <div style={filterLabelStyle}>Status</div>
+            <select
+              value={filters.status}
+              onChange={(event) => setFilters((prev) => ({ ...prev, status: event.target.value }))}
+              style={{ ...inputStyle, width: "100%" }}
+            >
+              <option value="">All Status</option>
+              {statusOptions.map((status) => (
+                <option key={status} value={status}>
+                  {toDisplayStatus(status)}
+                </option>
+              ))}
+            </select>
+          </div>
 
-          <select
-            value={filters.severity}
-            onChange={(event) => setFilters((prev) => ({ ...prev, severity: event.target.value }))}
-            style={{ padding: "8px" }}
-          >
-            <option value="">All Severity</option>
-            <option value="Low">Low</option>
-            <option value="Medium">Medium</option>
-            <option value="High">High</option>
-          </select>
+          <div>
+            <div style={filterLabelStyle}>Severity</div>
+            <select
+              value={filters.severity}
+              onChange={(event) => setFilters((prev) => ({ ...prev, severity: event.target.value }))}
+              style={{ ...inputStyle, width: "100%" }}
+            >
+              <option value="">All Severity</option>
+              <option value="Low">Low</option>
+              <option value="Medium">Medium</option>
+              <option value="High">High</option>
+            </select>
+          </div>
 
-          <input
-            type="date"
-            value={filters.date}
-            onChange={(event) => setFilters((prev) => ({ ...prev, date: event.target.value }))}
-            style={{ padding: "8px" }}
-          />
+          <div>
+            <div style={filterLabelStyle}>Reported Date</div>
+            <input
+              type="date"
+              value={filters.date}
+              onChange={(event) => setFilters((prev) => ({ ...prev, date: event.target.value }))}
+              style={{ ...inputStyle, width: "100%" }}
+            />
+          </div>
 
-          <button
-            onClick={() => setFilters({ status: "", severity: "", date: "" })}
-            style={{
-              border: "1px solid #ddd",
-              borderRadius: "6px",
-              backgroundColor: "#fff",
-              cursor: "pointer",
-            }}
-          >
-            Reset Filters
-          </button>
+          <div>
+            <div style={filterLabelStyle}>Actions</div>
+            <button
+              onClick={() => setFilters({ status: "", severity: "", date: "" })}
+              style={{
+                width: "100%",
+                height: "38px",
+                border: "1px solid #cbd5e1",
+                borderRadius: "8px",
+                backgroundColor: "#f8fafc",
+                color: "#0f172a",
+                cursor: "pointer",
+                fontWeight: 600,
+              }}
+            >
+              Reset Filters
+            </button>
+          </div>
         </div>
 
-        <div style={{ overflowX: "auto" }}>
-          <table style={{ width: "100%", borderCollapse: "collapse" }}>
+        <div style={{ overflowX: "auto", border: "1px solid #e2e8f0", borderRadius: "10px" }}>
+          <table style={{ width: "100%", borderCollapse: "separate", borderSpacing: 0 }}>
             <thead>
-              <tr style={{ backgroundColor: "#f1f5f9" }}>
-                <th style={{ padding: "10px", textAlign: "left" }}>Incident Title</th>
-                <th style={{ padding: "10px", textAlign: "left" }}>Related Resource</th>
-                <th style={{ padding: "10px", textAlign: "left" }}>Severity</th>
-                <th style={{ padding: "10px", textAlign: "left" }}>Status</th>
-                <th style={{ padding: "10px", textAlign: "left" }}>Reported Date</th>
+              <tr style={{ backgroundColor: "#e2e8f0" }}>
+                <th style={{ padding: "11px 10px", textAlign: "left", fontSize: "13px", color: "#0f172a" }}>Incident Title</th>
+                <th style={{ padding: "11px 10px", textAlign: "left", fontSize: "13px", color: "#0f172a" }}>Related Resource</th>
+                <th style={{ padding: "11px 10px", textAlign: "left", fontSize: "13px", color: "#0f172a" }}>Severity</th>
+                <th style={{ padding: "11px 10px", textAlign: "left", fontSize: "13px", color: "#0f172a" }}>Status</th>
+                <th style={{ padding: "11px 10px", textAlign: "left", fontSize: "13px", color: "#0f172a" }}>Reported Date</th>
               </tr>
             </thead>
             <tbody>
-              {filteredIncidents.map((incident) => (
-                <tr key={incident.id} style={{ borderTop: "1px solid #e2e8f0" }}>
-                  <td style={{ padding: "10px" }}>{incident.title}</td>
-                  <td style={{ padding: "10px" }}>{incident.resourceName}</td>
-                  <td style={{ padding: "10px" }}>{incident.severity}</td>
-                  <td style={{ padding: "10px" }}>{incident.status}</td>
-                  <td style={{ padding: "10px" }}>{incident.dateKey}</td>
+              {loading && (
+                <tr>
+                  <td colSpan={5} style={{ padding: "12px", textAlign: "center", color: "#64748b" }}>
+                    Loading incidents...
+                  </td>
                 </tr>
-              ))}
+              )}
+
+              {!loading &&
+                filteredIncidents.map((incident, index) => (
+                  <tr
+                    key={incident.id}
+                    style={{
+                      borderTop: "1px solid #e2e8f0",
+                      backgroundColor: index % 2 === 0 ? "#ffffff" : "#f8fafc",
+                    }}
+                  >
+                    <td style={{ padding: "10px", fontWeight: 500, color: "#0f172a" }}>{incident.title}</td>
+                    <td style={{ padding: "10px", color: "#1e293b" }}>{incident.resourceName}</td>
+                    <td style={{ padding: "10px" }}>
+                      <span style={{ ...badgeBaseStyle, ...(severityBadgeStyles[incident.severity] || severityBadgeStyles.Medium) }}>
+                        {incident.severity}
+                      </span>
+                    </td>
+                    <td style={{ padding: "10px" }}>
+                      <span
+                        style={{
+                          ...badgeBaseStyle,
+                          ...(statusBadgeStyles[incident.normalizedStatus] || statusBadgeStyles.OPEN),
+                        }}
+                      >
+                        {toDisplayStatus(incident.normalizedStatus)}
+                      </span>
+                    </td>
+                    <td style={{ padding: "10px", color: "#334155", whiteSpace: "nowrap" }}>
+                      {new Date(incident.dateKey || incident.createdAt).toLocaleDateString()}
+                    </td>
+                  </tr>
+                ))}
+
               {!loading && filteredIncidents.length === 0 && (
                 <tr>
                   <td colSpan={5} style={{ padding: "12px", textAlign: "center", color: "#666" }}>
-                    No incidents found for selected filters.
+                    No incidents found for selected filters. Try changing or resetting filters.
                   </td>
                 </tr>
               )}

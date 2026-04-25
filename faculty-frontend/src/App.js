@@ -388,7 +388,7 @@ const Dashboard = () => {
                 color: "#a0aec0",
                 fontWeight: "500"
               }}>
-                Faculty Resource Management System
+                 Smart Campus Operations Hub
               </p>
             </div>
           </div>

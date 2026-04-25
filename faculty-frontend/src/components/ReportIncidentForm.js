@@ -5,27 +5,52 @@ import { reportIncidentSchema } from "../utils/validationSchemas";
 import { countWords } from "../utils/validationHelpers";
 
 function ReportIncidentForm({ resources, user, onClose, onSuccess }) {
+  const MAX_FILE_SIZE_MB = 5;
   const [attachments, setAttachments] = useState([]);
   const [fileError, setFileError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const formatFileSize = (bytes) => {
+    if (!bytes) return "0 KB";
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
+  };
 
   // 🔹 HANDLE FILE INPUT
   const handleFileChange = (e) => {
     const files = Array.from(e.target.files);
     setFileError("");
-    
-    // Validate file types (images only)
-    const validFiles = files.filter(file => {
-      const validTypes = ["image/jpeg", "image/png", "image/gif", "image/webp"];
-      return validTypes.includes(file.type);
-    });
 
-    if (validFiles.length !== files.length) {
-      setFileError("Only image files (JPEG, PNG, GIF, WebP) are allowed");
+    const validTypes = ["image/jpeg", "image/png", "image/gif", "image/webp"];
+    const sizeLimit = MAX_FILE_SIZE_MB * 1024 * 1024;
+
+    const invalidTypeFiles = files.filter((file) => !validTypes.includes(file.type));
+    const oversizedFiles = files.filter((file) => file.size > sizeLimit);
+
+    if (invalidTypeFiles.length > 0) {
+      setFileError("Only image files are allowed (JPG, PNG, GIF, WebP).");
+      e.target.value = "";
       return;
     }
 
-    setAttachments([...attachments, ...validFiles]);
+    if (oversizedFiles.length > 0) {
+      setFileError(`Each file must be ${MAX_FILE_SIZE_MB} MB or smaller.`);
+      e.target.value = "";
+      return;
+    }
+
+    const existingKeys = new Set(attachments.map((file) => `${file.name}-${file.size}`));
+    const uniqueNewFiles = files.filter((file) => !existingKeys.has(`${file.name}-${file.size}`));
+
+    if (uniqueNewFiles.length === 0 && files.length > 0) {
+      setFileError("These files are already attached.");
+      e.target.value = "";
+      return;
+    }
+
+    setAttachments((prev) => [...prev, ...uniqueNewFiles]);
+    e.target.value = "";
   };
 
   // 🔹 REMOVE ATTACHMENT
@@ -87,63 +112,77 @@ function ReportIncidentForm({ resources, user, onClose, onSuccess }) {
       left: 0,
       width: "100%",
       height: "100%",
-      backgroundColor: "rgba(0,0,0,0.5)",
+      backgroundColor: "rgba(15, 23, 42, 0.45)",
       display: "flex",
       justifyContent: "center",
       alignItems: "center",
       zIndex: 1000,
+      padding: "16px",
     },
     modal: {
       backgroundColor: "#fff",
-      padding: "30px",
-      borderRadius: "10px",
-      width: "600px",
+      padding: "24px",
+      borderRadius: "12px",
+      width: "min(680px, 100%)",
       maxHeight: "90vh",
       overflowY: "auto",
-      boxShadow: "0 4px 6px rgba(0,0,0,0.1)",
+      boxShadow: "0 18px 40px rgba(15, 23, 42, 0.2)",
     },
     title: {
-      fontSize: "24px",
+      fontSize: "28px",
       fontWeight: "bold",
-      marginBottom: "20px",
+      marginBottom: "6px",
       color: "#222",
+    },
+    subtitle: {
+      margin: "0 0 16px 0",
+      color: "#4b5563",
+      fontSize: "14px",
     },
     form: {
       display: "flex",
       flexDirection: "column",
-      gap: "15px",
+      gap: "14px",
     },
     formGroup: {
       display: "flex",
       flexDirection: "column",
-      gap: "5px",
+      gap: "6px",
     },
     label: {
       fontWeight: "600",
       color: "#333",
       fontSize: "14px",
     },
+    helper: {
+      fontSize: "12px",
+      color: "#6b7280",
+      marginTop: "-2px",
+    },
     input: {
-      padding: "10px",
-      border: "1px solid #ddd",
-      borderRadius: "5px",
+      padding: "11px 12px",
+      border: "1px solid #d1d5db",
+      borderRadius: "8px",
       fontSize: "14px",
       fontFamily: "Arial",
+      outline: "none",
     },
     textarea: {
-      padding: "10px",
-      border: "1px solid #ddd",
-      borderRadius: "5px",
+      padding: "11px 12px",
+      border: "1px solid #d1d5db",
+      borderRadius: "8px",
       fontSize: "14px",
       fontFamily: "Arial",
       minHeight: "100px",
       resize: "vertical",
+      outline: "none",
     },
     select: {
-      padding: "10px",
-      border: "1px solid #ddd",
-      borderRadius: "5px",
+      padding: "11px 12px",
+      border: "1px solid #d1d5db",
+      borderRadius: "8px",
       fontSize: "14px",
+      backgroundColor: "#fff",
     },
     error: {
       color: "#d32f2f",
@@ -151,11 +190,21 @@ function ReportIncidentForm({ resources, user, onClose, onSuccess }) {
       marginTop: "3px",
     },
     fileInput: {
-      padding: "8px",
-      border: "2px dashed #ddd",
-      borderRadius: "5px",
+      padding: "10px",
+      border: "2px dashed #d1d5db",
+      borderRadius: "10px",
       cursor: "pointer",
-      backgroundColor: "#f9f9f9",
+      backgroundColor: "#f9fafb",
+      width: "100%",
+    },
+    uploadHintBox: {
+      padding: "10px 12px",
+      borderRadius: "8px",
+      backgroundColor: "#f8fafc",
+      border: "1px solid #e2e8f0",
+      fontSize: "12px",
+      color: "#475569",
+      lineHeight: 1.5,
     },
     attachmentList: {
       display: "flex",
@@ -163,23 +212,52 @@ function ReportIncidentForm({ resources, user, onClose, onSuccess }) {
       gap: "8px",
       marginTop: "10px",
     },
+    attachmentHeader: {
+      display: "flex",
+      justifyContent: "space-between",
+      alignItems: "center",
+      fontSize: "13px",
+      color: "#334155",
+    },
+    clearAllBtn: {
+      border: "1px solid #cbd5e1",
+      backgroundColor: "#fff",
+      color: "#334155",
+      borderRadius: "6px",
+      fontSize: "12px",
+      padding: "4px 8px",
+      cursor: "pointer",
+      fontWeight: 600,
+    },
     attachment: {
       display: "flex",
       justifyContent: "space-between",
       alignItems: "center",
-      padding: "8px 12px",
-      backgroundColor: "#f0f0f0",
-      borderRadius: "5px",
+      padding: "10px 12px",
+      backgroundColor: "#f8fafc",
+      border: "1px solid #e2e8f0",
+      borderRadius: "8px",
       fontSize: "13px",
+    },
+    attachmentName: {
+      color: "#1f2937",
+      fontWeight: 500,
+      marginBottom: "2px",
+      wordBreak: "break-all",
+    },
+    attachmentMeta: {
+      color: "#64748b",
+      fontSize: "12px",
     },
     removeBtn: {
       backgroundColor: "#ff6b6b",
       color: "white",
       border: "none",
-      padding: "4px 8px",
-      borderRadius: "3px",
+      padding: "5px 9px",
+      borderRadius: "6px",
       cursor: "pointer",
       fontSize: "12px",
+      fontWeight: 600,
     },
     buttonGroup: {
       display: "flex",
@@ -208,10 +286,15 @@ function ReportIncidentForm({ resources, user, onClose, onSuccess }) {
     },
   };
 
+  const sortedResources = [...resources].sort((a, b) =>
+    (a.name || "").localeCompare(b.name || "", undefined, { sensitivity: "base" })
+  );
+
   return (
     <div style={styles.overlay} onClick={onClose}>
       <div style={styles.modal} onClick={(e) => e.stopPropagation()}>
         <div style={styles.title}>📋 Report Incident</div>
+        <p style={styles.subtitle}>Share the issue details and we will notify the maintenance team.</p>
 
         <Formik
           initialValues={{
@@ -241,12 +324,13 @@ function ReportIncidentForm({ resources, user, onClose, onSuccess }) {
                 <Field
                   type="text"
                   name="title"
-                  placeholder="Brief description of the issue"
+                  placeholder="Ex: Projector not turning on"
                   style={{
                     ...styles.input,
                     borderColor: touched.title && errors.title ? "#d32f2f" : "#ddd",
                   }}
                 />
+                <span style={styles.helper}>Keep it short and specific.</span>
                 <ErrorMessage name="title" component="span" style={styles.error} />
               </div>
 
@@ -263,12 +347,13 @@ function ReportIncidentForm({ resources, user, onClose, onSuccess }) {
                 <Field
                   as="textarea"
                   name="description"
-                  placeholder="Detailed description of the incident"
+                  placeholder="What happened, where it happened, and when you noticed it"
                   style={{
                     ...styles.textarea,
                     borderColor: touched.description && errors.description ? "#d32f2f" : "#ddd",
                   }}
                 />
+                <span style={styles.helper}>Include key details to help technicians respond faster.</span>
                 <ErrorMessage name="description" component="span" style={styles.error} />
               </div>
 
@@ -283,13 +368,18 @@ function ReportIncidentForm({ resources, user, onClose, onSuccess }) {
                     borderColor: touched.resourceId && errors.resourceId ? "#d32f2f" : "#ddd",
                   }}
                 >
-                  <option value="">Select a resource</option>
-                  {resources.map((r) => (
+                  <option value="" disabled>
+                    Select affected resource
+                  </option>
+                  {sortedResources.map((r) => (
                     <option key={r.id} value={r.id}>
                       {r.name} ({r.type})
                     </option>
                   ))}
                 </Field>
+                {sortedResources.length === 0 && (
+                  <span style={styles.helper}>No resources available right now.</span>
+                )}
                 <ErrorMessage name="resourceId" component="span" style={styles.error} />
               </div>
 
@@ -319,6 +409,10 @@ function ReportIncidentForm({ resources, user, onClose, onSuccess }) {
               {/* ATTACHMENTS */}
               <div style={styles.formGroup}>
                 <label style={styles.label}>📸 Attach Images</label>
+                <span style={styles.helper}>Optional: upload clear photos of the issue.</span>
+                <div style={styles.uploadHintBox}>
+                  Supported formats: JPG, PNG, GIF, WebP. Max file size: {MAX_FILE_SIZE_MB} MB each.
+                </div>
                 <input
                   type="file"
                   multiple
@@ -330,10 +424,22 @@ function ReportIncidentForm({ resources, user, onClose, onSuccess }) {
 
                 {attachments.length > 0 && (
                   <div style={styles.attachmentList}>
-                    <strong>Attached files ({attachments.length}):</strong>
+                    <div style={styles.attachmentHeader}>
+                      <strong>Attached files ({attachments.length})</strong>
+                      <button
+                        type="button"
+                        style={styles.clearAllBtn}
+                        onClick={() => setAttachments([])}
+                      >
+                        Clear All
+                      </button>
+                    </div>
                     {attachments.map((file, index) => (
                       <div key={index} style={styles.attachment}>
-                        <span>📷 {file.name} ({(file.size / 1024).toFixed(2)} KB)</span>
+                        <div>
+                          <div style={styles.attachmentName}>📷 {file.name}</div>
+                          <div style={styles.attachmentMeta}>{formatFileSize(file.size)}</div>
+                        </div>
                         <button
                           type="button"
                           style={styles.removeBtn}
