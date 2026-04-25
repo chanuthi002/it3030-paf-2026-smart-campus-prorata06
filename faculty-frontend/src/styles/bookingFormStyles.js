@@ -1,6 +1,9 @@
 // 🎨 Modern UI Styles
 export const containerStyle = {
-  padding: "0",
+  width: "100%",
+  maxWidth: "760px",
+  margin: "0 auto",
+  padding: "0 16px",
   fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
 };
 
@@ -181,6 +184,7 @@ export const emptyStateIcon = {
 };
 
 export const formStyle = {
+  width: "100%",
   display: "flex",
   flexDirection: "column",
   gap: "16px",
