@@ -330,6 +330,128 @@ function ResourceList({ reload, userRole, onBook, onAddAvailability }) {
     color: "white",
   };
 
+  // 🎨 MODERN EDIT AVAILABILITY MODAL STYLES
+  const modalOverlayStyle = {
+    position: "fixed",
+    top: "0",
+    left: "0",
+    width: "100%",
+    height: "100%",
+    backgroundColor: "rgba(0, 0, 0, 0.6)",
+    backdropFilter: "blur(4px)",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 2000,
+    animation: "fadeIn 0.2s ease-out",
+  };
+
+  const modalContainerStyle = {
+    backgroundColor: "white",
+    borderRadius: "24px",
+    width: "90%",
+    maxWidth: "480px",
+    overflow: "hidden",
+    boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)",
+    animation: "slideUp 0.3s ease-out",
+  };
+
+  const modalHeaderStyle = {
+    background: "linear-gradient(135deg, #f59e0b 0%, #d97706 100%)",
+    padding: "20px 24px",
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+  };
+
+  const modalTitleStyle = {
+    margin: 0,
+    color: "white",
+    fontSize: "20px",
+    fontWeight: "600",
+    display: "flex",
+    alignItems: "center",
+    gap: "10px",
+  };
+
+  const modalCloseButtonStyle = {
+    background: "rgba(255,255,255,0.2)",
+    border: "none",
+    color: "white",
+    fontSize: "20px",
+    cursor: "pointer",
+    width: "34px",
+    height: "34px",
+    borderRadius: "10px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    transition: "all 0.2s ease",
+  };
+
+  const modalBodyStyle = {
+    padding: "28px 24px",
+  };
+
+  const formGroupStyle = {
+    marginBottom: "24px",
+  };
+
+  const formLabelStyle = {
+    display: "flex",
+    alignItems: "center",
+    gap: "8px",
+    fontSize: "13px",
+    fontWeight: "600",
+    color: "#1e293b",
+    marginBottom: "8px",
+  };
+
+  const formInputStyle = {
+    width: "100%",
+    padding: "12px 14px",
+    fontSize: "14px",
+    border: "2px solid #e2e8f0",
+    borderRadius: "12px",
+    transition: "all 0.2s ease",
+    outline: "none",
+    fontFamily: "inherit",
+    boxSizing: "border-box",
+    backgroundColor: "#f8fafc",
+  };
+
+  const modalButtonGroupStyle = {
+    display: "flex",
+    gap: "12px",
+    marginTop: "8px",
+  };
+
+  const saveButtonStyleModern = {
+    flex: 1,
+    padding: "12px",
+    background: "linear-gradient(135deg, #22c55e 0%, #16a34a 100%)",
+    color: "white",
+    border: "none",
+    borderRadius: "12px",
+    cursor: "pointer",
+    fontWeight: "600",
+    fontSize: "14px",
+    transition: "all 0.2s ease",
+  };
+
+  const cancelButtonStyleModern = {
+    flex: 1,
+    padding: "12px",
+    backgroundColor: "#f1f5f9",
+    color: "#475569",
+    border: "none",
+    borderRadius: "12px",
+    cursor: "pointer",
+    fontWeight: "600",
+    fontSize: "14px",
+    transition: "all 0.2s ease",
+  };
+
   return (
     <div id="resource-list" style={{ padding: "20px", background: "#f0f2f5", minHeight: "100vh" }}>
 
@@ -1004,74 +1126,140 @@ function ResourceList({ reload, userRole, onBook, onAddAvailability }) {
         />
       )}
 
-      {/* EDIT AVAILABILITY MODAL */}
+      {/* 🎨 MODERN EDIT AVAILABILITY MODAL - UI IMPROVED */}
       {showEditAvailabilityModal && (
-        <div style={{
-          position: "fixed",
-          top: "0",
-          left: "0",
-          width: "100%",
-          height: "100%",
-          backgroundColor: "rgba(0, 0, 0, 0.5)",
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          zIndex: 2000
-        }}>
-          <div style={{
-            backgroundColor: "white",
-            borderRadius: "16px",
-            padding: "30px",
-            width: "90%",
-            maxWidth: "400px",
-            boxShadow: "0 20px 60px rgba(0, 0, 0, 0.3)"
-          }}>
-            <h3 style={{ marginBottom: "20px", color: "#1a1a2e" }}>✏️ Edit Availability Slot</h3>
+        <div style={modalOverlayStyle}>
+          <div style={modalContainerStyle}>
+            {/* Header */}
+            <div style={modalHeaderStyle}>
+              <div style={modalTitleStyle}>
+                <span>✏️</span> Edit Availability Slot
+              </div>
+              <button
+                onClick={closeEditModal}
+                style={modalCloseButtonStyle}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.3)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.2)";
+                }}
+              >
+                ✕
+              </button>
+            </div>
 
-            <div style={{ display: "flex", flexDirection: "column", gap: "15px" }}>
-              <div>
-                <label style={{ display: "block", fontWeight: "600", marginBottom: "5px", color: "#4a5568" }}>Date</label>
+            {/* Body */}
+            <div style={modalBodyStyle}>
+              {/* Date Field */}
+              <div style={formGroupStyle}>
+                <label style={formLabelStyle}>
+                  <span>📅</span> Date
+                </label>
                 <input
                   type="date"
                   name="date"
                   value={editAvailabilityForm.date}
                   onChange={handleAvailabilityChange}
-                  style={inputStyle}
+                  style={formInputStyle}
+                  onFocus={(e) => {
+                    e.target.style.borderColor = "#f59e0b";
+                    e.target.style.backgroundColor = "#ffffff";
+                  }}
+                  onBlur={(e) => {
+                    e.target.style.borderColor = "#e2e8f0";
+                    e.target.style.backgroundColor = "#f8fafc";
+                  }}
                 />
               </div>
 
-              <div>
-                <label style={{ display: "block", fontWeight: "600", marginBottom: "5px", color: "#4a5568" }}>Start Time</label>
+              {/* Start Time Field */}
+              <div style={formGroupStyle}>
+                <label style={formLabelStyle}>
+                  <span>⏰</span> Start Time
+                </label>
                 <input
                   type="time"
                   name="startTime"
                   value={editAvailabilityForm.startTime}
                   onChange={handleAvailabilityChange}
-                  style={inputStyle}
+                  style={formInputStyle}
+                  onFocus={(e) => {
+                    e.target.style.borderColor = "#f59e0b";
+                    e.target.style.backgroundColor = "#ffffff";
+                  }}
+                  onBlur={(e) => {
+                    e.target.style.borderColor = "#e2e8f0";
+                    e.target.style.backgroundColor = "#f8fafc";
+                  }}
                 />
               </div>
 
-              <div>
-                <label style={{ display: "block", fontWeight: "600", marginBottom: "5px", color: "#4a5568" }}>End Time</label>
+              {/* End Time Field */}
+              <div style={formGroupStyle}>
+                <label style={formLabelStyle}>
+                  <span>⏰</span> End Time
+                </label>
                 <input
                   type="time"
                   name="endTime"
                   value={editAvailabilityForm.endTime}
                   onChange={handleAvailabilityChange}
-                  style={inputStyle}
+                  style={formInputStyle}
+                  onFocus={(e) => {
+                    e.target.style.borderColor = "#f59e0b";
+                    e.target.style.backgroundColor = "#ffffff";
+                  }}
+                  onBlur={(e) => {
+                    e.target.style.borderColor = "#e2e8f0";
+                    e.target.style.backgroundColor = "#f8fafc";
+                  }}
                 />
               </div>
 
-              <div style={{ display: "flex", gap: "10px", marginTop: "20px" }}>
+              {/* Time Preview */}
+              {editAvailabilityForm.startTime && editAvailabilityForm.endTime && (
+                <div style={{
+                  backgroundColor: "#fef3c7",
+                  padding: "10px 14px",
+                  borderRadius: "10px",
+                  marginBottom: "20px",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  fontSize: "12px",
+                  color: "#92400e",
+                }}>
+                  <span>⏰</span>
+                  <span>Selected time: <strong>{editAvailabilityForm.startTime} - {editAvailabilityForm.endTime}</strong></span>
+                </div>
+              )}
+
+              {/* Action Buttons */}
+              <div style={modalButtonGroupStyle}>
                 <button
                   onClick={handleUpdateAvailability}
-                  style={saveButtonStyle}
+                  style={saveButtonStyleModern}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = "translateY(-2px)";
+                    e.currentTarget.style.boxShadow = "0 6px 14px rgba(34, 197, 94, 0.3)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = "translateY(0)";
+                    e.currentTarget.style.boxShadow = "none";
+                  }}
                 >
                   ✅ Save Changes
                 </button>
                 <button
                   onClick={closeEditModal}
-                  style={cancelButtonStyle}
+                  style={cancelButtonStyleModern}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = "#e2e8f0";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = "#f1f5f9";
+                  }}
                 >
                   ❌ Cancel
                 </button>
