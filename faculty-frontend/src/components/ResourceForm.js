@@ -65,94 +65,130 @@ function ResourceForm({ refresh }) {
     }
   };
 
-  // 🔹 STYLES
+  // 🎨 ENHANCED STYLES - Smaller header, longer form
   const formStyle = {
-    maxWidth: "500px",
+    maxWidth: "600px",
     margin: "0 auto",
-    padding: "30px",
-    borderRadius: "16px",
+    borderRadius: "20px",
     backgroundColor: "#ffffff",
-    boxShadow: "0 10px 25px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.05)",
+    boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)",
     display: "flex",
     flexDirection: "column",
-    gap: "16px",
-    fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
+    overflow: "hidden",
+    fontFamily: "'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
+  };
+
+  const formHeaderStyle = {
+    background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+    padding: "20px 24px",
+    textAlign: "center",
+  };
+
+  const headerIconStyle = {
+    fontSize: "32px",
+    marginBottom: "6px",
   };
 
   const headerStyle = {
-    fontSize: "24px",
+    fontSize: "20px",
     fontWeight: "600",
-    color: "#1a1a2e",
-    margin: "0 0 8px 0",
-    textAlign: "center",
-    borderBottom: "3px solid #4361ee",
-    paddingBottom: "12px",
-    display: "inline-block",
-    width: "fit-content",
-    alignSelf: "center",
+    color: "white",
+    margin: "0",
+    letterSpacing: "-0.3px",
+  };
+
+  const headerSubtitleStyle = {
+    fontSize: "12px",
+    color: "rgba(255,255,255,0.85)",
+    marginTop: "4px",
+    marginBottom: "0",
+  };
+
+  const formContentStyle = {
+    padding: "28px 32px 32px 32px",
   };
 
   const fieldStyle = {
     width: "100%",
     padding: "12px 16px",
     fontSize: "14px",
-    border: "1px solid #e0e0e0",
-    borderRadius: "8px",
-    transition: "all 0.3s ease",
+    border: "2px solid #e2e8f0",
+    borderRadius: "10px",
+    transition: "all 0.2s ease",
     outline: "none",
     fontFamily: "inherit",
     boxSizing: "border-box",
+    backgroundColor: "#f8fafc",
   };
 
   const selectStyle = {
     ...fieldStyle,
-    backgroundColor: "#fff",
+    backgroundColor: "#f8fafc",
     cursor: "pointer",
   };
 
   const buttonStyle = {
-    backgroundColor: "#4361ee",
+    width: "100%",
+    background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
     color: "white",
     border: "none",
-    padding: "12px 24px",
-    fontSize: "16px",
+    padding: "14px 24px",
+    fontSize: "15px",
     fontWeight: "600",
-    borderRadius: "8px",
+    borderRadius: "10px",
     cursor: "pointer",
-    transition: "all 0.3s ease",
-    marginTop: "8px",
+    transition: "all 0.2s ease",
+    marginTop: "12px",
     fontFamily: "inherit",
+    boxShadow: "0 4px 12px rgba(102, 126, 234, 0.3)",
   };
 
   const buttonDisabledStyle = {
     ...buttonStyle,
-    backgroundColor: "#cccccc",
+    background: "#cbd5e1",
     cursor: "not-allowed",
     opacity: 0.7,
+    boxShadow: "none",
   };
 
   const fieldWrapperStyle = {
     display: "flex",
     flexDirection: "column",
-    gap: "4px",
+    gap: "6px",
+    marginBottom: "20px",
   };
 
   const labelStyle = {
     fontSize: "13px",
-    fontWeight: "500",
-    color: "#4a5568",
+    fontWeight: "600",
+    color: "#1e293b",
     letterSpacing: "0.3px",
+    display: "flex",
+    alignItems: "center",
+    gap: "6px",
+  };
+
+  const requiredStarStyle = {
+    color: "#ef4444",
+    fontSize: "12px",
+  };
+
+  const hintTextStyle = {
+    fontSize: "11px",
+    color: "#64748b",
+    marginTop: "4px",
+    display: "flex",
+    alignItems: "center",
+    gap: "4px",
   };
 
   // ✅ Helper to prevent non-numeric input for capacity
   const handleCapacityKeyDown = (e) => {
-    // Allow: backspace, delete, tab, escape, enter, home, end, left, right
     if (e.key === "Backspace" || e.key === "Delete" || e.key === "Tab" || 
         e.key === "Escape" || e.key === "Enter" || e.key === "Home" || 
         e.key === "End" || e.key === "ArrowLeft" || e.key === "ArrowRight") {
       return;
     }
-    // Allow numbers only
     if (!/^\d$/.test(e.key)) {
       e.preventDefault();
     }
@@ -162,15 +198,26 @@ function ResourceForm({ refresh }) {
   const getCapacityHint = (type) => {
     switch(type) {
       case 'COMPUTER_LAB':
-        return { text: "⚠️ Computer Lab capacity: Maximum 100 people", color: "#f59e0b" };
+        return { text: "⚠️ Computer Lab capacity: Maximum 100 people", color: "#f59e0b", icon: "🖥️" };
       case 'EQUIPMENT':
-        return { text: "⚠️ Equipment can only have capacity up to 10", color: "#f59e0b" };
+        return { text: "⚠️ Equipment can only have capacity up to 10", color: "#f59e0b", icon: "🔧" };
       case 'LECTURE_HALL':
-        return { text: "📚 Lecture Hall capacity: Maximum 1000 people", color: "#666" };
+        return { text: "📚 Lecture Hall capacity: Maximum 1000 people", color: "#3b82f6", icon: "🏛️" };
       case 'MEETING_ROOM':
-        return { text: "👥 Meeting Room capacity: Maximum 1000 people", color: "#666" };
+        return { text: "👥 Meeting Room capacity: Maximum 1000 people", color: "#3b82f6", icon: "💼" };
       default:
-        return { text: "Maximum capacity: 1000 people", color: "#666" };
+        return { text: "Maximum capacity: 1000 people", color: "#64748b", icon: "📊" };
+    }
+  };
+
+  // Get icon for resource type
+  const getTypeIcon = (type) => {
+    switch(type) {
+      case 'COMPUTER_LAB': return '💻';
+      case 'LECTURE_HALL': return '📖';
+      case 'MEETING_ROOM': return '🤝';
+      case 'EQUIPMENT': return '🔧';
+      default: return '📦';
     }
   };
 
@@ -183,123 +230,192 @@ function ResourceForm({ refresh }) {
       validateOnChange={true}
     >
       {({ isSubmitting, isValid, errors, touched, values }) => {
-        // ✅ Get capacity hint inside the render function where values is defined
         const capacityHint = getCapacityHint(values.type);
         
         return (
           <Form style={formStyle}>
-            <h3 style={headerStyle}>Add Resource</h3>
+            {/* Header Section - Made smaller */}
+            <div style={formHeaderStyle}>
+              <div style={headerIconStyle}>➕</div>
+              <h3 style={headerStyle}>Add New Resource</h3>
+              <p style={headerSubtitleStyle}>Fill in the details below to create a new resource</p>
+            </div>
 
-            <div style={fieldWrapperStyle}>
-              <label style={labelStyle}>Resource Name *</label>
-              <Field 
-                name="name" 
-                placeholder="e.g., Main Computer Lab (max 50 chars)" 
-                style={{
-                  ...fieldStyle,
-                  borderColor: touched.name && errors.name ? "#dc3545" : fieldStyle.borderColor
-                }}
-                onFocus={(e) => e.target.style.borderColor = "#4361ee"}
-                onBlur={(e) => e.target.style.borderColor = "#e0e0e0"}
-              />
-              <FormError name="name" />
-              <div style={{ fontSize: "11px", color: "#666", marginTop: "2px" }}>
-                Only letters, numbers, and spaces. Max 50 characters
+            {/* Form Content - Made wider */}
+            <div style={formContentStyle}>
+              {/* Resource Name */}
+              <div style={fieldWrapperStyle}>
+                <label style={labelStyle}>
+                  <span>📝</span> Resource Name
+                  <span style={requiredStarStyle}>*</span>
+                </label>
+                <Field 
+                  name="name" 
+                  placeholder="e.g., Main Computer Lab" 
+                  style={{
+                    ...fieldStyle,
+                    borderColor: touched.name && errors.name ? "#ef4444" : fieldStyle.borderColor,
+                    backgroundColor: touched.name && errors.name ? "#fef2f2" : fieldStyle.backgroundColor
+                  }}
+                  onFocus={(e) => {
+                    e.target.style.borderColor = "#667eea";
+                    e.target.style.backgroundColor = "#ffffff";
+                  }}
+                  onBlur={(e) => {
+                    if (!errors.name) {
+                      e.target.style.borderColor = "#e2e8f0";
+                      e.target.style.backgroundColor = "#f8fafc";
+                    }
+                  }}
+                />
+                <FormError name="name" />
+                <div style={hintTextStyle}>
+                  <span>💡</span> Only letters, numbers, and spaces. Max 50 characters
+                </div>
               </div>
-            </div>
 
-            <div style={fieldWrapperStyle}>
-              <label style={labelStyle}>Resource Type *</label>
-              <Field 
-                as="select" 
-                name="type"
-                style={selectStyle}
-              >
-                <option value="">Select Type</option>
-                <option value="COMPUTER_LAB">Computer Lab</option>
-                <option value="LECTURE_HALL">Lecture Hall</option>
-                <option value="MEETING_ROOM">Meeting Room</option>
-                <option value="EQUIPMENT">Equipment</option>
-              </Field>
-              <FormError name="type" />
-            </div>
-
-            <div style={fieldWrapperStyle}>
-              <label style={labelStyle}>Capacity *</label>
-              <Field 
-                name="capacity" 
-                type="number" 
-                min="0" 
-                placeholder="Number of people" 
-                style={{
-                  ...fieldStyle,
-                  borderColor: touched.capacity && errors.capacity ? "#dc3545" : fieldStyle.borderColor
-                }}
-                onKeyDown={handleCapacityKeyDown}
-                onFocus={(e) => e.target.style.borderColor = "#4361ee"}
-                onBlur={(e) => e.target.style.borderColor = "#e0e0e0"}
-              />
-              <FormError name="capacity" />
-              <div style={{ 
-                fontSize: "11px", 
-                color: capacityHint.color, 
-                marginTop: "2px",
-                fontWeight: values.type === "COMPUTER_LAB" || values.type === "EQUIPMENT" ? "500" : "normal"
-              }}>
-                {capacityHint.text}
+              {/* Resource Type */}
+              <div style={fieldWrapperStyle}>
+                <label style={labelStyle}>
+                  <span>🏷️</span> Resource Type
+                  <span style={requiredStarStyle}>*</span>
+                </label>
+                <Field 
+                  as="select" 
+                  name="type"
+                  style={{
+                    ...selectStyle,
+                    borderColor: touched.type && errors.type ? "#ef4444" : selectStyle.borderColor
+                  }}
+                >
+                  <option value="">Select Type</option>
+                  <option value="COMPUTER_LAB">💻 Computer Lab</option>
+                  <option value="LECTURE_HALL">📖 Lecture Hall</option>
+                  <option value="MEETING_ROOM">🤝 Meeting Room</option>
+                  <option value="EQUIPMENT">🔧 Equipment</option>
+                </Field>
+                <FormError name="type" />
+                {values.type && (
+                  <div style={hintTextStyle}>
+                    <span>{getTypeIcon(values.type)}</span> Selected: {values.type.replace('_', ' ')}
+                  </div>
+                )}
               </div>
-            </div>
 
-            <div style={fieldWrapperStyle}>
-              <label style={labelStyle}>Location *</label>
-              <Field 
-                as="select" 
-                name="location"
-                style={selectStyle}
+              {/* Capacity */}
+              <div style={fieldWrapperStyle}>
+                <label style={labelStyle}>
+                  <span>👥</span> Capacity
+                  <span style={requiredStarStyle}>*</span>
+                </label>
+                <Field 
+                  name="capacity" 
+                  type="number" 
+                  min="0" 
+                  placeholder="Number of people" 
+                  style={{
+                    ...fieldStyle,
+                    borderColor: touched.capacity && errors.capacity ? "#ef4444" : fieldStyle.borderColor,
+                    backgroundColor: touched.capacity && errors.capacity ? "#fef2f2" : fieldStyle.backgroundColor
+                  }}
+                  onKeyDown={handleCapacityKeyDown}
+                  onFocus={(e) => {
+                    e.target.style.borderColor = "#667eea";
+                    e.target.style.backgroundColor = "#ffffff";
+                  }}
+                  onBlur={(e) => {
+                    if (!errors.capacity) {
+                      e.target.style.borderColor = "#e2e8f0";
+                      e.target.style.backgroundColor = "#f8fafc";
+                    }
+                  }}
+                />
+                <FormError name="capacity" />
+                <div style={{ 
+                  ...hintTextStyle, 
+                  color: capacityHint.color, 
+                  fontWeight: values.type === "COMPUTER_LAB" || values.type === "EQUIPMENT" ? "500" : "normal",
+                  backgroundColor: values.type === "COMPUTER_LAB" || values.type === "EQUIPMENT" ? "#fef3c7" : "transparent",
+                  padding: values.type === "COMPUTER_LAB" || values.type === "EQUIPMENT" ? "6px 10px" : "0",
+                  borderRadius: "8px",
+                }}>
+                  <span>{capacityHint.icon}</span> {capacityHint.text}
+                </div>
+              </div>
+
+              {/* Location */}
+              <div style={fieldWrapperStyle}>
+                <label style={labelStyle}>
+                  <span>📍</span> Location
+                  <span style={requiredStarStyle}>*</span>
+                </label>
+                <Field 
+                  as="select" 
+                  name="location"
+                  style={{
+                    ...selectStyle,
+                    borderColor: touched.location && errors.location ? "#ef4444" : selectStyle.borderColor
+                  }}
+                >
+                  <option value="">Select Building</option>
+                  <option value="Building A">🏢 Building A</option>
+                  <option value="Building B">🏢 Building B</option>
+                  <option value="Building C">🏢 Building C</option>
+                  <option value="Building D">🏢 Building D</option>
+                  <option value="Building E">🏢 Building E</option>
+                  <option value="Building F">🏢 Building F</option>
+                </Field>
+                <FormError name="location" />
+              </div>
+
+              {/* Status */}
+              <div style={fieldWrapperStyle}>
+                <label style={labelStyle}>
+                  <span>⚡</span> Status
+                </label>
+                <Field 
+                  as="select" 
+                  name="status"
+                  style={selectStyle}
+                >
+                  <option value="ACTIVE">🟢 ACTIVE</option>
+                  <option value="OUT_OF_SERVICE">🔴 OUT OF SERVICE</option>
+                </Field>
+                <FormError name="status" />
+                <div style={hintTextStyle}>
+                  <span>ℹ️</span> Active resources can be booked by users
+                </div>
+              </div>
+
+              {/* Submit Button */}
+              <button 
+                type="submit" 
+                disabled={isSubmitting || !isValid}
+                style={isSubmitting || !isValid ? buttonDisabledStyle : buttonStyle}
+                onMouseEnter={(e) => {
+                  if (!(isSubmitting || !isValid)) {
+                    e.target.style.transform = "translateY(-2px)";
+                    e.target.style.boxShadow = "0 8px 20px rgba(102, 126, 234, 0.4)";
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!(isSubmitting || !isValid)) {
+                    e.target.style.transform = "translateY(0)";
+                    e.target.style.boxShadow = "0 4px 12px rgba(102, 126, 234, 0.3)";
+                  }
+                }}
               >
-                <option value="">Select Building</option>
-                <option value="Building A">Building A</option>
-                <option value="Building B">Building B</option>
-                <option value="Building C">Building C</option>
-                <option value="Building D">Building D</option>
-                <option value="Building E">Building E</option>
-                <option value="Building F">Building F</option>
-              </Field>
-              <FormError name="location" />
+                {isSubmitting ? (
+                  <span style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}>
+                    <span>⏳</span> Adding Resource...
+                  </span>
+                ) : (
+                  <span style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}>
+                    <span>✅</span> Add Resource
+                  </span>
+                )}
+              </button>
             </div>
-
-            <div style={fieldWrapperStyle}>
-              <label style={labelStyle}>Status</label>
-              <Field 
-                as="select" 
-                name="status"
-                style={selectStyle}
-              >
-                <option value="ACTIVE">ACTIVE</option>
-                <option value="OUT_OF_SERVICE">OUT_OF_SERVICE</option>
-              </Field>
-              <FormError name="status" />
-            </div>
-
-            <button 
-              type="submit" 
-              disabled={isSubmitting || !isValid}
-              style={isSubmitting || !isValid ? buttonDisabledStyle : buttonStyle}
-              onMouseEnter={(e) => {
-                if (!(isSubmitting || !isValid)) {
-                  e.target.style.backgroundColor = "#2b3cb0";
-                  e.target.style.transform = "translateY(-1px)";
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (!(isSubmitting || !isValid)) {
-                  e.target.style.backgroundColor = "#4361ee";
-                  e.target.style.transform = "translateY(0)";
-                }
-              }}
-            >
-              {isSubmitting ? "Adding..." : "Add Resource"}
-            </button>
           </Form>
         );
       }}
