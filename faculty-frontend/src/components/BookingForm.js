@@ -309,6 +309,8 @@ function BookingForm({ resource, refresh }) {
           />
         </div>
 
+        
+
         <div style={formRowStyle}>
           <div style={formFieldHalfStyle}>
             <label style={labelStyle}>⏰ Start Time</label>

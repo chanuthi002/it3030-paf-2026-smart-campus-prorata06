@@ -192,15 +192,15 @@ const Dashboard = () => {
   };
 
   const modalStyle = {
-    backgroundColor: "#fff",
-    borderRadius: "20px",
-    width: "90%",
-    maxWidth: "500px",
-    maxHeight: "85vh",
-    overflow: "hidden",
-    boxShadow: "0 20px 60px rgba(0, 0, 0, 0.3)",
-    animation: "slideIn 0.3s ease-out",
-  };
+  backgroundColor: "#fff",
+  borderRadius: "20px",
+  width: "90%",
+  maxWidth: "500px",
+  maxHeight: "95vh",        // ✅ increased from 85vh to 95vh
+  overflow: "hidden",
+  boxShadow: "0 20px 60px rgba(0, 0, 0, 0.3)",
+  animation: "slideIn 0.3s ease-out",
+};
 
   const modalHeaderStyle = {
     background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
@@ -226,10 +226,10 @@ const Dashboard = () => {
   };
 
   const modalContentStyle = {
-    padding: "20px",
-    maxHeight: "calc(85vh - 70px)",
-    overflowY: "auto",
-  };
+  padding: "20px",
+  maxHeight: "calc(95vh - 70px)",   // ✅ changed 85vh to 95vh
+  overflowY: "auto",
+};
 
   const adminPopupStyle = {
     backgroundColor: "#fff",
